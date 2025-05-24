@@ -39,7 +39,7 @@ jobs:
         run: flutter test
 
       # Step 6: Build APK for Android
-      - run: flutter build apk --re lease --split-per-abi
+      - run: flutter build apk --release --split-per-abi
 
       # Step 7: Build IPA for iOS
       - run: |
