@@ -1,0 +1,38 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Food Courier Dev",
+        "program": "lib/main.dart",
+        "request": "launch",
+        "type": "dart",
+        "args": [
+          "--dart-define=env=development",
+          "--web-port=5000"
+        ]
+      },
+      {
+        "name": "Food Courier Staging",
+       "program": "lib/main.dart",
+        "request": "launch",
+        "type": "dart",
+        "args": [
+          "--dart-define=env=staging",
+          "--web-port=5000"
+        ]
+      },
+      {
+        "name": "Food Courier Production",
+        "program": "lib/main.dart",
+        "request": "launch",
+        "type": "dart",
+        "args": [
+          "--dart-define=env=production",
+          "--web-port=5000"
+        ]
+      }
+    ]
+  }

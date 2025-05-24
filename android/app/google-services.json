@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "321435872473",
+    "firebase_url": "https://phone-auth-ed201-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "phone-auth-ed201",
+    "storage_bucket": "phone-auth-ed201.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:321435872473:android:12626d319667106fcba2c8",
+        "android_client_info": {
+          "package_name": "com.food_courier"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKNJVccejyRLixZ-qkdW7NOk800Hx8A_g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

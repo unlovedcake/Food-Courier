@@ -1,0 +1,41 @@
+#include: package:flutter_lints/flutter.yaml
+include: all_lint_rules.yaml
+
+# Check for Dart errors and enable the lint rules for best practices
+analyzer:
+  errors:
+    prefer_single_quotes: warning
+    unused_local_variable: info
+    prefer_null_aware_operators: warning
+    always_declare_return_types: warning
+    always_specify_types: warning
+    avoid_empty_else: warning
+    prefer_relative_imports: error
+    prefer_final_parameters: warning
+
+linter:
+  rules:
+    # Allow
+    prefer_expression_function_bodies: false
+
+    # Avoid using final paramaeters
+    prefer_final_parameters: false
+
+    # Avoid black logic or return in else block
+    avoid_empty_else: true
+
+    prefer_single_quotes: true
+
+    # Encourage using absolute imports
+    prefer_relative_imports:
+      false
+
+      # Encourage using null-aware operators like `??` and `?.` instead of `!`
+    prefer_null_aware_operators:
+      true
+
+      # Encourage to add return type if you have function or method
+    always_declare_return_types: false
+
+    # Allow UpperCase variable
+    constant_identifier_names: false

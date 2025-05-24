@@ -1,0 +1,70 @@
+{
+    "version": "0.2",
+    "language": "en-US",
+    "flagWords": [],
+    "ignorePaths": [
+        ".git",
+        ".gitignore",
+        "*.lock",
+        "*.log",
+        "cSpell.json",
+        "**/l10n/**",
+        "**/.github/workflows/**",
+        "**/ios/**",
+        "**/android/**",
+        "*.freezed.dart",
+        "*.g.dart",
+        "*.gen.dart",
+        "*.yaml",
+        "*.ttf",
+        "*.svg",
+        "*.otf",
+        "*.json",
+        "Gemfile",
+        "*.mp4",
+        "*.mp3",
+        "*.wav",
+        "*.html",
+        "*.pbxproj",
+        "*.xcscheme",
+        "*.xcconfig",
+        "*.xib",
+        "GoogleService-Info.plist",
+        "GeneratedPluginRegistrant.swift",
+        "firebase_options.dart",
+        "firebase_options_dev.dart"
+    ],
+    "dictionaries": [
+        "cspell-words"
+    ],
+    "languageSettings": [
+        {
+            "languageId": "*",
+            "allowCompoundWords": false
+        }
+    ],
+    "useGitignore": true,
+    "words": [
+        "autovalidate",
+        "bookedai",
+        "cupertino",
+        "delagate",
+        "dtos",
+        "flutterstripe",
+        "fullscreen",
+        "Getx",
+        "Keychain",
+        "LTRB",
+        "LTRBR",
+        "microtask",
+        "OAEPwithSHA",
+        "pubspec",
+        "Reclip",
+        "riverpod",
+        "rxdart",
+        "satoshi",
+        "unawaited",
+        "vsync"
+    ],
+    "ignoreWords": []
+}
