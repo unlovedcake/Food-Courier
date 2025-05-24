@@ -15,7 +15,10 @@ analyzer:
 
 linter:
   rules:
-    # Allow
+    # Allow unsort pub depedencies in yaml file
+    sort_pub_dependencies: false
+
+    # Allow expression function bodies
     prefer_expression_function_bodies: false
 
     # Avoid using final paramaeters
