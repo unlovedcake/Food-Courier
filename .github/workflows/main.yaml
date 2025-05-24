@@ -1,0 +1,79 @@
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+  push:
+    branches:
+      - main
+      - master
+      - develop
+name: "Build & Release"
+jobs:
+  build:
+    name: Build & Release
+    runs-on: macos-latest
+    steps:
+      # Step 1: Checkout the code
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          distribution: "zulu"
+          java-version: "17.x"
+      # Step 2: Set up Flutter environment
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          architecture: x64
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Step 4: Run linting to check code quality
+      - name: Run Flutter Linter
+        run: flutter analyze
+
+      # Step 5: Run tests
+      - name: Run tests
+        run: flutter test
+
+      # Step 6: Build APK for Android
+      - run: flutter build apk --re lease --split-per-abi
+
+      # Step 7: Build IPA for iOS
+      - run: |
+          flutter build ios --no-codesign
+          cd build/ios/iphoneos
+          mkdir Payload
+          cd Payload
+          ln -s ../Runner.app
+          cd ..
+          zip -r app.ipa Payload
+
+      # Step 8: Upload the APK as an artifact
+      - name: Push to Releases
+        uses: ncipollo/release-action@v1
+
+        # Step 9: Upload the IPA as an artifact
+        with:
+          artifacts: "build/app/outputs/apk/release/*,build/ios/iphoneos/app.ipa"
+          tag: v1.0.${{ github.run_number }}
+          token: ${{ secrets.TOKEN }}
+
+        # Optional Step 10: Deploy to Firebase App Distribution (Android) or TestFlight (iOS)
+    # For Android:
+    # - name: Deploy to Firebase App Distribution
+    #   uses: wzieba/Firebase-Distribution-Github-Action@v1
+    #   with:
+    #     appId: ${{ secrets.FIREBASE_APP_ID }}
+    #     token: ${{ secrets.FIREBASE_AUTH_TOKEN }}
+    #     groups: testers
+    #     file: build/app/outputs/flutter-apk/app-release.apk
+
+    # For iOS:
+    # - name: Deploy to TestFlight
+    #   run: |
+    #     fastlane deliver --ipa output/ipa/Runner.ipa --username ${{ secrets.APPLE_ID }}
+# push to master, main, develop
+# pull request on main master
