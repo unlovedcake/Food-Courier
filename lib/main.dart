@@ -28,7 +28,7 @@ Future<void> main() async {
   runApp(
     GetMaterialApp(
       title: json['flavor'] ?? '',
-      initialRoute: AppPages.INITIAL,
+      initialRoute: AppPages.ONBOARDING,
       getPages: AppPages.routes,
     ),
   );
