@@ -4,9 +4,8 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingController extends GetxController {
-  RxInt pageIndex = 0.obs;
+  RxInt pageIndex = (-1).obs;
 
-  final OnboardingController controller = Get.put(OnboardingController());
   final PageController pageController = PageController();
 
   void changePage(int index) {
@@ -25,6 +24,23 @@ class OnboardingController extends GetxController {
 
   Future<void> navigateToHome() async {
     await completeOnboarding();
-    await Get.toNamed(AppPages.INITIAL); // Replace with your HomeScreen
+
+    await Get.toNamed(AppPages.DASHBOARD); // Replace with your HomeScreen
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+
+    Future.delayed(const Duration(milliseconds: 500), () {
+      pageIndex.value = 0;
+    });
+  }
+
+  @override
+  void onClose() {
+    super.onClose();
+
+    pageController.dispose();
   }
 }

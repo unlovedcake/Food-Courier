@@ -27,6 +27,10 @@ Future<void> main() async {
 
   runApp(
     GetMaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        scaffoldBackgroundColor: Colors.grey.shade100,
+      ),
       title: json['flavor'] ?? '',
       initialRoute: AppPages.ONBOARDING,
       getPages: AppPages.routes,

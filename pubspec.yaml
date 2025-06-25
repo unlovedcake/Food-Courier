@@ -39,6 +39,9 @@ dependencies:
   firebase_auth: ^5.5.4
   get: ^4.7.2
   shared_preferences: ^2.5.3
+  http: ^1.4.0
+  webview_flutter: ^4.13.0
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:

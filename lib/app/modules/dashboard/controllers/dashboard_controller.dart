@@ -1,7 +1,12 @@
 import 'package:get/get.dart';
 
 class DashboardController extends GetxController {
-  final count = 0.obs;
+  final RxInt _currentIndex = 0.obs;
 
-  void increment() => count.value++;
+  // Getter to access currentIndex without .value
+  int get currentIndex => _currentIndex.value;
+
+  void changeTab(int index) {
+    _currentIndex.value = index;
+  }
 }

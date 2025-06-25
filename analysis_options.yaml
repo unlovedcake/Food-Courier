@@ -15,6 +15,9 @@ analyzer:
 
 linter:
   rules:
+    # disable debugFillProperties suggestions
+    diagnostic_describe_all_properties: false
+
     # Allow unsort pub depedencies in yaml file
     sort_pub_dependencies: false
 
