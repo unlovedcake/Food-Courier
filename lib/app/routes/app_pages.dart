@@ -2,8 +2,12 @@ import 'package:get/get.dart';
 
 import '../modules/cart/bindings/cart_binding.dart';
 import '../modules/cart/views/cart_view.dart';
+import '../modules/chat/bindings/chat_binding.dart';
+import '../modules/chat/views/chat_view.dart';
 import '../modules/dashboard/bindings/dashboard_binding.dart';
 import '../modules/dashboard/views/dashboard_view.dart';
+import '../modules/detail_product/bindings/detail_product_binding.dart';
+import '../modules/detail_product/views/detail_product_view.dart';
 import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
 import '../modules/onboarding/bindings/onboarding_binding.dart';
@@ -20,7 +24,9 @@ class AppPages {
   static const ONBOARDING = Routes.ONBOARDING;
   static const DASHBOARD = Routes.DASHBOARD;
   static const CART = Routes.CART;
+  static const DETAIL_PRODUCT = Routes.DETAIL_PRODUCT;
   static const WEBVIEW = Routes.WEBVIEW;
+  static const CHAT = Routes.CHAT;
 
   static final routes = [
     GetPage(
@@ -47,6 +53,16 @@ class AppPages {
       name: _Paths.WEBVIEW,
       page: () => const WebviewView(),
       binding: WebviewBinding(),
+    ),
+    GetPage(
+      name: _Paths.DETAIL_PRODUCT,
+      page: () => const DetailProductView(),
+      binding: DetailProductBinding(),
+    ),
+    GetPage(
+      name: _Paths.CHAT,
+      page: () => const ChatView(),
+      binding: ChatBinding(),
     ),
   ];
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:food_courier/app/modules/chat/views/chat_view.dart';
 import 'package:food_courier/app/modules/home/views/home_view.dart';
 import 'package:get/get.dart';
 
@@ -10,7 +11,7 @@ class DashboardView extends GetView<DashboardController> {
   Widget build(BuildContext context) {
     final List<Widget> pages = [
       const HomeView(),
-      const Center(child: Text('History')),
+      const ChatView(),
       const Center(child: Text('Favorites')),
       const Center(child: Text('Profile')),
     ];

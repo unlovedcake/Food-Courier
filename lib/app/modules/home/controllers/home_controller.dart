@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:food_courier/app/data/models/product_model.dart';
+import 'package:food_courier/app/routes/app_pages.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -638,7 +639,7 @@ class _ProductTileState extends State<ProductTile>
           //     : null,
           margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: const Color(0xFFE0E0E0), // Light background
+            color: Theme.of(context).colorScheme.surface, // Light background
             borderRadius: BorderRadius.circular(20),
             boxShadow: controller.cartProducts.containsKey(widget.product.id)
                 ? [
@@ -665,35 +666,44 @@ class _ProductTileState extends State<ProductTile>
                 children: [
                   Stack(
                     children: [
-                      DecoratedBox(
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(20),
-                            topRight: Radius.circular(20),
+                      GestureDetector(
+                        onTap: () {
+                          Get.toNamed(
+                            AppPages.DETAIL_PRODUCT,
+                            arguments: widget.product,
+                          );
+                        },
+                        child: DecoratedBox(
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(20),
+                              topRight: Radius.circular(20),
+                            ),
                           ),
-                        ),
-                        child: Hero(
-                          tag: widget.product.id,
-                          child: Image.network(
-                            key: widget.imageKey,
-                            widget.product.thumbnail,
-                            fit: BoxFit.cover,
+                          child: Hero(
+                            tag: widget.product.id,
+                            child: Image.network(
+                              key: widget.imageKey,
+                              widget.product.thumbnail,
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
                       ),
                       Positioned(
-                        top: 4,
+                        bottom: 4,
                         left: 4,
                         child: Obx(() {
                           final ProductModel? cartProduct =
                               controller.cartProducts[widget.product.id];
                           return Container(
                             width: 40,
+                            padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade200,
+                              color: Theme.of(context).colorScheme.surface,
                               borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(16),
+                                topRight: Radius.circular(16),
                               ),
                             ),
                             child: AnimatedSwitcher(
@@ -711,10 +721,11 @@ class _ProductTileState extends State<ProductTile>
                                       key: ValueKey(
                                         cartProduct.countItem.toString(),
                                       ),
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                              fontWeight: FontWeight.bold),
                                     ),
                             ),
                           );
@@ -755,18 +766,20 @@ class _ProductTileState extends State<ProductTile>
                     ],
                   ),
                   Padding(
-                    padding: const EdgeInsets.all(4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                     child: Text(
                       widget.product.title,
                       overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(),
                     ),
                   ),
                   Text(
                     widget.product.price.toString(),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                 ],
               ),
@@ -777,7 +790,7 @@ class _ProductTileState extends State<ProductTile>
                 child: SizedBox(
                   width: controller.cartProducts.containsKey(widget.product.id)
                       ? 180
-                      : 140,
+                      : 150,
                   height: 45,
                   child: Row(
                     children: [
@@ -807,21 +820,31 @@ class _ProductTileState extends State<ProductTile>
                           style: ElevatedButton.styleFrom(
                             backgroundColor: controller.cartProducts
                                     .containsKey(widget.product.id)
-                                ? Colors.green
-                                : Colors.white,
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.add,
+                            color: controller.cartProducts
+                                    .containsKey(widget.product.id)
+                                ? Colors.black
+                                : Colors.white,
                           ),
                           label: Text(
                             controller.cartProducts
                                     .containsKey(widget.product.id)
                                 ? 'Added'
                                 : 'Add to Cart',
-                            style: const TextStyle(color: Colors.black),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: controller.cartProducts
+                                              .containsKey(widget.product.id)
+                                          ? Colors.black
+                                          : Colors.white,
+                                    ),
                           ),
                         ),
                       ),

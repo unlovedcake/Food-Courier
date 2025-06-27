@@ -8,6 +8,8 @@ abstract class Routes {
   static const ONBOARDING = _Paths.ONBOARDING;
   static const CART = _Paths.CART;
   static const WEBVIEW = _Paths.WEBVIEW;
+  static const DETAIL_PRODUCT = _Paths.DETAIL_PRODUCT;
+  static const CHAT = _Paths.CHAT;
 }
 
 abstract class _Paths {
@@ -17,4 +19,6 @@ abstract class _Paths {
   static const ONBOARDING = '/onboarding';
   static const CART = '/cart';
   static const WEBVIEW = '/webview';
+  static const DETAIL_PRODUCT = '/detail-product';
+  static const CHAT = '/chat';
 }

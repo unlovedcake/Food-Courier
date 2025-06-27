@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:food_courier/app/core/app_theme.dart';
+import 'package:food_courier/app/core/theme_controller.dart';
 import 'package:food_courier/firebase_options.dart';
 import 'package:get/get.dart';
 
@@ -24,16 +26,25 @@ Future<void> main() async {
   );
 
   final Map<String, dynamic> json = await loadConfig();
+  final ThemeController themeController = Get.put(ThemeController());
 
   runApp(
-    GetMaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        scaffoldBackgroundColor: Colors.grey.shade100,
+    Obx(
+      () => GetMaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: themeController.isDarkMode.value
+            ? AppTheme.darkTheme
+            : AppTheme.lightTheme,
+
+        themeMode:
+            themeController.isDarkMode.value ? ThemeMode.dark : ThemeMode.light,
+
+        //theme: ThemeData.light(useMaterial3: false),
+        //darkTheme: ThemeData.light(),
+        title: json['flavor'] ?? '',
+        initialRoute: AppPages.ONBOARDING,
+        getPages: AppPages.routes,
       ),
-      title: json['flavor'] ?? '',
-      initialRoute: AppPages.ONBOARDING,
-      getPages: AppPages.routes,
     ),
   );
 }

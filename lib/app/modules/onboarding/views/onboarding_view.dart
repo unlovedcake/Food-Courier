@@ -57,140 +57,137 @@ class OnboardingView extends GetView<OnboardingController> {
     return Scaffold(
       body: Stack(
         children: [
-          Expanded(
-            child: PageView.builder(
-              controller: controller.pageController,
-              itemCount: pages.length,
-              onPageChanged: controller.changePage,
-              itemBuilder: (_, index) {
-                final OnboardingModel item = pages[index];
+          PageView.builder(
+            controller: controller.pageController,
+            itemCount: pages.length,
+            onPageChanged: controller.changePage,
+            itemBuilder: (_, index) {
+              final OnboardingModel item = pages[index];
 
-                return Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Obx(() {
-                      //   bool isActive = controller.pageIndex.value == index;
-                      //   return AnimatedSlide(
-                      //     offset: isActive
-                      //         ? Offset.zero
-                      //         : const Offset(0.4, 0), // Slide from right
-                      //     duration: const Duration(milliseconds: 600),
-                      //     curve: Curves.easeOut,
-                      //     child: AnimatedScale(
-                      //       scale: isActive ? 1.0 : 0.8,
-                      //       duration: const Duration(milliseconds: 600),
-                      //       curve: Curves.easeInOut,
-                      //       child: AnimatedOpacity(
-                      //         opacity: isActive ? 1.0 : 0.0,
-                      //         duration: const Duration(milliseconds: 600),
-                      //         child: Image.network(
-                      //           item.image,
-                      //           height: 250,
-                      //           fit: BoxFit.contain,
-                      //         ),
-                      //       ),
-                      //     ),
-                      //   );
-                      // }),
+              return Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Obx(() {
+                    //   bool isActive = controller.pageIndex.value == index;
+                    //   return AnimatedSlide(
+                    //     offset: isActive
+                    //         ? Offset.zero
+                    //         : const Offset(0.4, 0), // Slide from right
+                    //     duration: const Duration(milliseconds: 600),
+                    //     curve: Curves.easeOut,
+                    //     child: AnimatedScale(
+                    //       scale: isActive ? 1.0 : 0.8,
+                    //       duration: const Duration(milliseconds: 600),
+                    //       curve: Curves.easeInOut,
+                    //       child: AnimatedOpacity(
+                    //         opacity: isActive ? 1.0 : 0.0,
+                    //         duration: const Duration(milliseconds: 600),
+                    //         child: Image.network(
+                    //           item.image,
+                    //           height: 250,
+                    //           fit: BoxFit.contain,
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   );
+                    // }),
 
-                      // Obx(() {
-                      //   bool isActive = controller.pageIndex.value == index;
-                      //   return AnimatedScale(
-                      //     scale: isActive ? 1.0 : 0.8,
-                      //     duration: const Duration(milliseconds: 500),
-                      //     child: AnimatedOpacity(
-                      //       opacity: isActive ? 1.0 : 0.3,
-                      //       duration: const Duration(milliseconds: 500),
-                      //       child: Image.network(item.image, height: 250),
-                      //     ),
-                      //   );
-                      // }),
-                      Obx(() {
-                        bool isActive = controller.pageIndex.value == index;
+                    // Obx(() {
+                    //   bool isActive = controller.pageIndex.value == index;
+                    //   return AnimatedScale(
+                    //     scale: isActive ? 1.0 : 0.8,
+                    //     duration: const Duration(milliseconds: 500),
+                    //     child: AnimatedOpacity(
+                    //       opacity: isActive ? 1.0 : 0.3,
+                    //       duration: const Duration(milliseconds: 500),
+                    //       child: Image.network(item.image, height: 250),
+                    //     ),
+                    //   );
+                    // }),
+                    Obx(() {
+                      bool isActive = controller.pageIndex.value == index;
 
-                        return AnimatedSlide(
-                          offset: isActive ? Offset.zero : const Offset(0.2, 0),
+                      return AnimatedSlide(
+                        offset: isActive ? Offset.zero : const Offset(0.2, 0),
+                        duration: const Duration(milliseconds: 600),
+                        curve: Curves.easeOut,
+                        child: AnimatedScale(
+                          scale: isActive ? 1.0 : 0.5,
                           duration: const Duration(milliseconds: 600),
-                          curve: Curves.easeOut,
-                          child: AnimatedScale(
-                            scale: isActive ? 1.0 : 0.5,
+                          curve: Curves.easeInOut,
+                          child: AnimatedRotation(
+                            turns: isActive
+                                ? 0.0
+                                : 0.25, // 0.25 turns = 90 degrees
                             duration: const Duration(milliseconds: 600),
                             curve: Curves.easeInOut,
-                            child: AnimatedRotation(
-                              turns: isActive
-                                  ? 0.0
-                                  : 0.25, // 0.25 turns = 90 degrees
+                            child: AnimatedOpacity(
+                              opacity: isActive ? 1.0 : 0.0,
                               duration: const Duration(milliseconds: 600),
-                              curve: Curves.easeInOut,
-                              child: AnimatedOpacity(
-                                opacity: isActive ? 1.0 : 0.0,
-                                duration: const Duration(milliseconds: 600),
-                                child: Image.network(
-                                  item.image,
-                                  height: 250,
-                                  fit: BoxFit.contain,
-                                ),
+                              child: Image.network(
+                                item.image,
+                                height: 250,
+                                fit: BoxFit.contain,
                               ),
                             ),
                           ),
-                        );
-                      }),
-                      const SizedBox(height: 30),
-                      Obx(() {
-                        bool isActive = controller.pageIndex.value == index;
-                        return AnimatedOpacity(
-                          opacity: isActive ? 1.0 : 0.0,
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 30),
+                    Obx(() {
+                      bool isActive = controller.pageIndex.value == index;
+                      return AnimatedOpacity(
+                        opacity: isActive ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 600),
+                        curve: Curves.easeInOut,
+                        child: AnimatedSlide(
+                          offset: isActive ? Offset.zero : const Offset(0, 0.3),
                           duration: const Duration(milliseconds: 600),
                           curve: Curves.easeInOut,
-                          child: AnimatedSlide(
-                            offset:
-                                isActive ? Offset.zero : const Offset(0, 0.3),
-                            duration: const Duration(milliseconds: 600),
-                            curve: Curves.easeInOut,
-                            child: Column(
-                              children: [
-                                Text(
-                                  item.title,
-                                  style: const TextStyle(
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          child: Column(
+                            children: [
+                              Text(
+                                item.title,
+                                style: const TextStyle(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  item.description,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.grey[600],
-                                  ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                item.description,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey[600],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        );
-                      }),
+                        ),
+                      );
+                    }),
 
-                      // Text(
-                      //   item.title,
-                      //   style: const TextStyle(
-                      //     fontSize: 26,
-                      //     fontWeight: FontWeight.bold,
-                      //   ),
-                      // ),
-                      // const SizedBox(height: 16),
-                      // Text(
-                      //   item.description,
-                      //   textAlign: TextAlign.center,
-                      //   style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                      // ),
-                    ],
-                  ),
-                );
-              },
-            ),
+                    // Text(
+                    //   item.title,
+                    //   style: const TextStyle(
+                    //     fontSize: 26,
+                    //     fontWeight: FontWeight.bold,
+                    //   ),
+                    // ),
+                    // const SizedBox(height: 16),
+                    // Text(
+                    //   item.description,
+                    //   textAlign: TextAlign.center,
+                    //   style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    // ),
+                  ],
+                ),
+              );
+            },
           ),
 
           // Skip

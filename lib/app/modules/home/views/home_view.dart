@@ -1,4 +1,7 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:food_courier/app/core/theme_controller.dart';
 import 'package:food_courier/app/data/models/product_model.dart';
 import 'package:food_courier/app/routes/app_pages.dart';
 import 'package:get/get.dart';
@@ -11,6 +14,7 @@ class HomeView extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     final HomeController controller = Get.put(HomeController());
+    final ThemeController themeController = Get.find();
 
     // final List<Map<String, dynamic>> products = List.generate(
     //   10,
@@ -155,43 +159,69 @@ class HomeView extends GetView<HomeController> {
                       top: 30,
                       left: 20,
                       child: RichText(
-                        text: const TextSpan(
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                          ),
+                        text: TextSpan(
+                          style:
+                              Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    fontSize: 18,
+                                    color: Colors.white,
+                                  ),
                           children: [
-                            TextSpan(text: 'Up to\n'),
+                            const TextSpan(text: 'Up to\n'),
                             TextSpan(
                               text: '70% ',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 36,
-                                color: Colors.red,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelLarge
+                                  ?.copyWith(
+                                    fontSize: 35,
+                                    color: Colors.red,
+                                  ),
                             ),
-                            TextSpan(text: 'Off\nwith free delivery'),
+                            const TextSpan(text: 'Off\nwith free delivery'),
                           ],
                         ),
                       ),
                     ),
                   ],
                 ),
-                title: const Padding(
-                  padding: EdgeInsets.symmetric(
+                title: Padding(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: 8,
                   ),
                   child: AnimatedTextReveal(
                     text: 'Click & Get',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red,
-                    ),
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          fontSize: 18,
+                          color: Colors.red,
+                        ),
                   ),
                 ),
               ),
               actions: [
+                Obx(
+                  () => IconButton(
+                    icon: Icon(
+                      themeController.isDarkMode.value
+                          ? Icons.dark_mode
+                          : Icons.light_mode,
+                      color: Theme.of(context).colorScheme.surface,
+                    ),
+                    onPressed: themeController.toggleTheme,
+                  ),
+                ),
+                // IconButton(
+                //   icon: Icon(
+                //     Get.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                //   ),
+                //   onPressed: () {
+                //     Get.changeTheme(
+                //       Get.isDarkMode
+                //           ? ThemeData.light(useMaterial3: false)
+                //           : ThemeData.dark(useMaterial3: false),
+                //     );
+                //   },
+                // ),
+
                 ScaleTransition(
                   scale: controller.cartScaleAnimation,
                   child: Padding(
@@ -212,9 +242,9 @@ class HomeView extends GetView<HomeController> {
                                 ),
                               ),
                         offset: const Offset(6, -6),
-                        child: const Icon(
+                        child: Icon(
                           Icons.shopping_cart,
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.surface,
                         ),
                       ),
                     ),
@@ -242,39 +272,54 @@ class HomeView extends GetView<HomeController> {
               //   preferredSize: Size.fromHeight(20),
               //   child: SizedBox(),
               // ),
-              flexibleSpace: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                height: 45,
-                margin: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 6,
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(28),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withValues(alpha: 0.2),
-                      blurRadius: 12,
-                      offset: const Offset(0, 6),
+              flexibleSpace: LayoutBuilder(
+                builder: (context, constraints) {
+                  bool isDesktop = constraints.maxWidth > 1024;
+
+                  print(isDesktop);
+                  return Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: 8,
+                      horizontal: isDesktop ? 300 : 4,
                     ),
-                  ],
-                ),
-                child: TextField(
-                  onChanged: controller.onSearchChanged,
-                  style: const TextStyle(fontSize: 18),
-                  decoration: InputDecoration(
-                    icon: Icon(
-                      Icons.search,
-                      color: Colors.grey[600],
-                      size: 24,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      height: 45,
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 22,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainer,
+                        borderRadius: BorderRadius.circular(28),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withValues(alpha: 0.2),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: TextField(
+                        onChanged: controller.onSearchChanged,
+                        style: const TextStyle(fontSize: 18),
+                        decoration: InputDecoration(
+                          icon: Icon(
+                            Icons.search,
+                            color: Colors.grey[600],
+                            size: 24,
+                          ),
+                          hintText: 'Search...',
+                          hintStyle: const TextStyle(fontSize: 16),
+                          border: InputBorder.none,
+                        ),
+                      ),
                     ),
-                    hintText: 'Search...',
-                    hintStyle: const TextStyle(fontSize: 16),
-                    border: InputBorder.none,
-                  ),
-                ),
+                  );
+                },
               ),
             ),
 
@@ -333,103 +378,114 @@ class HomeView extends GetView<HomeController> {
                         // ),
 
                         // ✅ Animated Category List
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          height: shrink ? 30 : 40,
-                          child: Obx(() {
-                            if (controller.animatedFlags.isEmpty) {
-                              return const SizedBox();
-                            }
-                            final List<MapEntry<String, String>>
-                                categoryEntries =
-                                controller.categories.entries.toList();
+                        ScrollConfiguration(
+                          behavior: WebScrollBehavior(),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            height: shrink ? 30 : 40,
+                            child: Obx(() {
+                              if (controller.animatedFlags.isEmpty) {
+                                return const SizedBox();
+                              }
+                              final List<MapEntry<String, String>>
+                                  categoryEntries =
+                                  controller.categories.entries.toList();
 
-                            return ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: categoryEntries.length,
-                              itemBuilder: (context, index) {
-                                final String key = categoryEntries[index].key;
-                                final String categoryName =
-                                    categoryEntries[index].value;
-                                // final String category =
-                                //     controller.categories[index];
-                                // final isSelected =
-                                //     controller.selectedCategory.value ==
-                                //         category;
+                              return ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: categoryEntries.length,
+                                itemBuilder: (context, index) {
+                                  final String key = categoryEntries[index].key;
+                                  final String categoryName =
+                                      categoryEntries[index].value;
+                                  // final String category =
+                                  //     controller.categories[index];
+                                  // final isSelected =
+                                  //     controller.selectedCategory.value ==
+                                  //         category;
 
-                                final bool isVisible =
-                                    controller.animatedFlags.length > index &&
-                                        controller.animatedFlags[index];
+                                  final bool isVisible =
+                                      controller.animatedFlags.length > index &&
+                                          controller.animatedFlags[index];
 
-                                // return Obx(
-                                //   () => AnimatedCategoryButton(
-                                //     label: controller.categories[index],
-                                //     isSelected:
-                                //         controller.selectedCategory.value ==
-                                //             controller.categories[index],
-                                //     onTap: () => controller.changeCategory(
-                                //       controller.categories[index],
-                                //     ),
-                                //   ),
-                                // );
+                                  // return Obx(
+                                  //   () => AnimatedCategoryButton(
+                                  //     label: controller.categories[index],
+                                  //     isSelected:
+                                  //         controller.selectedCategory.value ==
+                                  //             controller.categories[index],
+                                  //     onTap: () => controller.changeCategory(
+                                  //       controller.categories[index],
+                                  //     ),
+                                  //   ),
+                                  // );
 
-                                return Obx(
-                                  () => AnimatedOpacity(
-                                    opacity: isVisible ? 1.0 : 0.0,
-                                    duration: const Duration(milliseconds: 500),
-                                    child: AnimatedSlide(
-                                      offset: isVisible
-                                          ? Offset.zero
-                                          : const Offset(-0.3, 0),
+                                  return Obx(
+                                    () => AnimatedOpacity(
+                                      opacity: isVisible ? 1.0 : 0.0,
                                       duration:
-                                          const Duration(milliseconds: 800),
-                                      child: InkWell(
-                                        splashColor: Colors.blueAccent
-                                            .withValues(alpha: 0.3),
-                                        onTap: () => controller.changeCategory(
-                                          categoryName,
-                                          key,
-                                        ),
-                                        child: AnimatedContainer(
-                                          duration:
-                                              const Duration(milliseconds: 300),
-                                          margin:
-                                              const EdgeInsets.only(right: 12),
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: shrink ? 12 : 20,
-                                            vertical: shrink ? 6 : 10,
+                                          const Duration(milliseconds: 500),
+                                      child: AnimatedSlide(
+                                        offset: isVisible
+                                            ? Offset.zero
+                                            : const Offset(-0.3, 0),
+                                        duration:
+                                            const Duration(milliseconds: 800),
+                                        child: InkWell(
+                                          splashColor: Colors.blueAccent
+                                              .withValues(alpha: 0.3),
+                                          onTap: () =>
+                                              controller.changeCategory(
+                                            categoryName,
+                                            key,
                                           ),
-                                          decoration: BoxDecoration(
-                                            color: controller.selectedCategory
-                                                        .value ==
-                                                    categoryName
-                                                ? Colors.deepOrange
-                                                : Colors.grey[300],
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                          ),
-                                          child: Center(
-                                            child: Text(
-                                              categoryName,
-                                              style: TextStyle(
-                                                fontSize: shrink ? 12 : 14,
-                                                color: controller
-                                                            .selectedCategory
-                                                            .value ==
-                                                        categoryName
-                                                    ? Colors.white
-                                                    : Colors.black,
+                                          child: AnimatedContainer(
+                                            duration: const Duration(
+                                              milliseconds: 300,
+                                            ),
+                                            margin: const EdgeInsets.only(
+                                              right: 12,
+                                            ),
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: shrink ? 12 : 20,
+                                              vertical: shrink ? 6 : 10,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: controller.selectedCategory
+                                                          .value ==
+                                                      categoryName
+                                                  ? Colors.deepOrange
+                                                  : Colors.grey[300],
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                            ),
+                                            child: Center(
+                                              child: Text(
+                                                categoryName,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .labelLarge
+                                                    ?.copyWith(
+                                                      fontSize:
+                                                          shrink ? 12 : 14,
+                                                      color: controller
+                                                                  .selectedCategory
+                                                                  .value ==
+                                                              categoryName
+                                                          ? Colors.white
+                                                          : Colors.black,
+                                                    ),
                                               ),
                                             ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                );
-                              },
-                            );
-                          }),
+                                  );
+                                },
+                              );
+                            }),
+                          ),
                         ),
                       ],
                     ),
@@ -743,4 +799,14 @@ class _AnimatedCategoryButtonState extends State<AnimatedCategoryButton>
       },
     );
   }
+}
+
+// 👇 This enables pointer device support on web
+class WebScrollBehavior extends MaterialScrollBehavior {
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.trackpad,
+      };
 }

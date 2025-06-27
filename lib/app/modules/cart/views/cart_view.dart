@@ -97,10 +97,13 @@ class CartView extends GetView<CartController> {
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
+                          spacing: 10,
                           children: [
                             IconButton(
+                              padding: const EdgeInsets.all(4),
                               icon: const Icon(
-                                Icons.remove_circle_outline,
+                                Icons.remove_circle,
+                                color: Colors.red,
                               ),
                               onPressed: () {
                                 if (product.countItem.value > 1) {
@@ -114,7 +117,11 @@ class CartView extends GetView<CartController> {
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.add_circle_outline),
+                              padding: const EdgeInsets.all(4),
+                              icon: const Icon(
+                                Icons.add_circle,
+                                color: Colors.green,
+                              ),
                               onPressed: () {
                                 product.countItem.value++;
                               },
@@ -347,11 +354,11 @@ class CartView extends GetView<CartController> {
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
+                        // backgroundColor: Colors.green,
+                        // padding: const EdgeInsets.symmetric(
+                        //   horizontal: 24,
+                        //   vertical: 12,
+                        // ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
