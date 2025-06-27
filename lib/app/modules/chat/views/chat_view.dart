@@ -12,7 +12,23 @@ class ChatView extends GetView<ChatController> {
   Widget build(BuildContext context) {
     final ChatController controller = Get.put(ChatController());
     return Scaffold(
-      appBar: AppBar(title: const Text('Chat')),
+      appBar: AppBar(
+        title: Obx(
+          () => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Chat'),
+              if (controller.isOtherUserOnline.value)
+                const Text('🟢 Online', style: TextStyle(fontSize: 12))
+              else
+                Text(
+                  'Last seen: ${controller.lastSeenText.value}',
+                  style: const TextStyle(fontSize: 12),
+                ),
+            ],
+          ),
+        ),
+      ),
       body: Stack(
         children: [
           Column(
@@ -33,6 +49,19 @@ class ChatView extends GetView<ChatController> {
                     controller: controller.scrollController,
                     itemCount: controller.messages.length,
                     itemBuilder: (_, index) {
+                      if (index == controller.messages.length) {
+                        // 🔄 Loading spinner at the top
+                        return Obx(
+                          () => controller.isFetchingMoreObs.value
+                              ? const Padding(
+                                  padding: EdgeInsets.all(8),
+                                  child: Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                )
+                              : const SizedBox(),
+                        );
+                      }
                       final MessageModel msg = controller.messages[index];
                       final isMe = msg.senderId == controller.currentUserId;
 

@@ -28,7 +28,7 @@ class _DetailProductViewState extends State<DetailProductView>
 
     _rippleController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 3000),
+      duration: const Duration(milliseconds: 2500),
     );
 
     _rippleAnimation1 = Tween<double>(begin: 0, end: 1).animate(

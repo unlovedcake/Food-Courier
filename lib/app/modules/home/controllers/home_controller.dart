@@ -725,7 +725,8 @@ class _ProductTileState extends State<ProductTile>
                                           .textTheme
                                           .bodyMedium
                                           ?.copyWith(
-                                              fontWeight: FontWeight.bold),
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                     ),
                             ),
                           );
@@ -876,12 +877,10 @@ class _ProductTileState extends State<ProductTile>
                                     }
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.all(0),
+                                    padding: EdgeInsets.zero,
+                                    shape: const CircleBorder(),
                                     minimumSize: const Size(40, 40),
                                     backgroundColor: Colors.red,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
                                   ),
                                   child: const Icon(Icons.remove, size: 20),
                                 ),

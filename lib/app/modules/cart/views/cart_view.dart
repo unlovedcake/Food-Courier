@@ -99,9 +99,15 @@ class CartView extends GetView<CartController> {
                           mainAxisAlignment: MainAxisAlignment.end,
                           spacing: 10,
                           children: [
-                            IconButton(
-                              padding: const EdgeInsets.all(4),
-                              icon: const Icon(
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                shape: const CircleBorder(),
+                                padding:
+                                    const EdgeInsets.all(16), // Adjust for size
+                                backgroundColor: Colors.white, // Button color
+                              ),
+                              //padding: const EdgeInsets.all(4),
+                              child: const Icon(
                                 Icons.remove_circle,
                                 color: Colors.red,
                               ),
@@ -116,9 +122,14 @@ class CartView extends GetView<CartController> {
                                 product.countItem.value.toString(),
                               ),
                             ),
-                            IconButton(
-                              padding: const EdgeInsets.all(4),
-                              icon: const Icon(
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                shape: const CircleBorder(),
+                                padding:
+                                    const EdgeInsets.all(16), // Adjust for size
+                                backgroundColor: Colors.white, // Button color
+                              ),
+                              child: const Icon(
                                 Icons.add_circle,
                                 color: Colors.green,
                               ),
@@ -314,7 +325,7 @@ class CartView extends GetView<CartController> {
         });
 
         return Container(
-          height: 120,
+          height: 130,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           decoration: const BoxDecoration(
             color: Colors.white,
@@ -355,10 +366,10 @@ class CartView extends GetView<CartController> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         // backgroundColor: Colors.green,
-                        // padding: const EdgeInsets.symmetric(
-                        //   horizontal: 24,
-                        //   vertical: 12,
-                        // ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 16,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),

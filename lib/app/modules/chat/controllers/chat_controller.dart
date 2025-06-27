@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:food_courier/app/core/presence_service.dart';
 import 'package:food_courier/app/data/models/message_model.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -16,7 +18,7 @@ class ChatController extends GetxController {
   final floatingEmoji = Rxn<String>();
   final ScrollController scrollController = ScrollController();
   final chatId = 'buyer_seller_123'; // Replace with real chatId
-  final currentUserId = 'seller123'; // Replace with auth ID
+  final currentUserId = 'buyer123'; // Replace with auth ID
 
   final _firestore = FirebaseFirestore.instance;
   final _storage = FirebaseStorage.instance;
@@ -24,15 +26,230 @@ class ChatController extends GetxController {
 
   final editingMessageId = RxnString(); // null if not editing
 
+  final isOtherUserOnline = false.obs;
+  final lastSeenText = ''.obs;
+
+  final String otherUserId = 'seller123';
+
+  StreamSubscription<DatabaseEvent>? _presenceSub;
+
+  DocumentSnapshot? lastDocument;
+  bool isFetchingMore = false;
+  bool hasMore = true;
+
+  final isFetchingMoreObs = false.obs;
+
+  MessageModel? _lastObservedMessage;
+
   @override
   void onInit() {
     super.onInit();
-    _listenToMessages();
+    loadInitialMessages();
+
+    scrollController.addListener(() async {
+      if (scrollController.position.pixels ==
+          scrollController.position.minScrollExtent) {
+        // User scrolled to top
+        await loadMoreMessages(scrollController: scrollController);
+      }
+    });
+    // _listenToMessages();
     _listenToTyping();
     _listenToLastSeen();
-    _startLastSeenTimer();
-    ever(messages, (_) => scrollToBottom());
+    //_startLastSeenTimer();
+    //ever(messages, (_) => scrollToBottom());
+    // Start smart message scroll tracker
+    debounce(
+      messages,
+      (_) => _onMessagesChanged(),
+      time: const Duration(milliseconds: 100),
+    );
+
+    _startPresenceTracking();
+    _listenToOtherUserPresence();
   }
+
+  @override
+  void onClose() {
+    _presenceSub?.cancel(); // ✅ Stop listening
+    super.onClose();
+  }
+
+  void _onMessagesChanged() {
+    if (messages.isEmpty) return;
+
+    final MessageModel latest = messages.last;
+
+    // If last message is newer than previous
+    if (_lastObservedMessage == null || latest.id != _lastObservedMessage!.id) {
+      final isMyMessage = latest.senderId == currentUserId;
+
+      // ✅ Only scroll if it's a new message at the bottom (not from top prepend)
+      if (isMyMessage || _isNearBottom()) {
+        scrollToBottom();
+      }
+
+      _lastObservedMessage = latest;
+    }
+  }
+
+  bool _isNearBottom({double threshold = 100}) {
+    if (!scrollController.hasClients) return false;
+    final ScrollPosition position = scrollController.position;
+    return position.maxScrollExtent - position.pixels <= threshold;
+  }
+
+  void _startPresenceTracking() {
+    PresenceService(userId: currentUserId).setupPresenceTracking();
+  }
+
+  void _listenToOtherUserPresence() {
+    _presenceSub?.cancel(); // cleanup before subscribing again
+
+    final DatabaseReference otherRef =
+        FirebaseDatabase.instance.ref('status/$otherUserId');
+    _presenceSub = otherRef.onValue.listen((event) {
+      final data = event.snapshot.value as Map?;
+      if (data == null) return;
+
+      isOtherUserOnline.value = data['online'] ?? false;
+
+      if (data['lastSeen'] != null) {
+        final lastSeenMs = data['lastSeen'];
+        final lastSeenTime = DateTime.fromMillisecondsSinceEpoch(
+          lastSeenMs is int ? lastSeenMs : int.parse(lastSeenMs.toString()),
+        );
+        lastSeenText.value = _formatLastSeen(lastSeenTime);
+      }
+    });
+  }
+
+  String _formatLastSeen(DateTime dt) {
+    final Duration diff = DateTime.now().difference(dt);
+    if (diff.inSeconds < 60) return 'just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes} min ago';
+    if (diff.inHours < 24) return '${diff.inHours} hr ago';
+    return '${diff.inDays} day${diff.inDays > 1 ? 's' : ''} ago';
+  }
+
+  Future<void> loadInitialMessages() async {
+    try {
+      final QuerySnapshot<Map<String, dynamic>> snapshot = await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .orderBy('timestamp', descending: true)
+          .limit(20)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        lastDocument = snapshot.docs.last;
+
+        final List<MessageModel> msgs = snapshot.docs
+            .map((doc) => MessageModel.fromJson(doc.data()))
+            .toList();
+
+        messages.assignAll(msgs.reversed.toList());
+        // ✅ Wait for layout then scroll
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (scrollController.hasClients) {
+            scrollController.jumpTo(scrollController.position.maxScrollExtent);
+          }
+        });
+      } else {
+        hasMore = false;
+      }
+
+      // Real-time listener for new messages after initial load
+      _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .orderBy('timestamp', descending: true)
+          .limit(1)
+          .snapshots()
+          .listen((snapshot) {
+        if (snapshot.docs.isNotEmpty) {
+          final latest = MessageModel.fromJson(snapshot.docs.first.data());
+          if (!messages.any((m) => m.id == latest.id)) {
+            messages.add(latest);
+          }
+        }
+      });
+    } catch (e) {
+      debugPrint('Fetch Initial Mesages $e');
+    }
+  }
+
+  Future<void> loadMoreMessages({ScrollController? scrollController}) async {
+    if (isFetchingMore || !hasMore || lastDocument == null) return;
+    isFetchingMore = true;
+    isFetchingMoreObs.value = true;
+
+    final double beforeHeight = scrollController?.position.extentAfter ?? 0;
+
+    final QuerySnapshot<Map<String, dynamic>> snapshot = await _firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .orderBy('timestamp', descending: true)
+        .startAfterDocument(lastDocument!)
+        .limit(20)
+        .get();
+
+    if (snapshot.docs.isEmpty) {
+      hasMore = false;
+    } else {
+      lastDocument = snapshot.docs.last;
+
+      final List<MessageModel> more = snapshot.docs
+          .map((doc) => MessageModel.fromJson(doc.data()))
+          .toList();
+
+      messages.insertAll(0, more.reversed.toList());
+
+      // 🔁 Scroll offset compensation
+      await Future.delayed(const Duration(milliseconds: 50)); // wait layout
+      final double afterHeight = scrollController?.position.extentAfter ?? 0;
+      final double diff = afterHeight - beforeHeight;
+      scrollController?.jumpTo(scrollController.offset + diff);
+    }
+
+    isFetchingMore = false;
+    isFetchingMoreObs.value = false;
+  }
+
+  // Future<void> loadMoreMessages() async {
+  //   if (isFetchingMore || !hasMore || lastDocument == null) {
+  //     print('NO more');
+  //     return;
+  //   }
+  //   isFetchingMore = true;
+
+  //   final QuerySnapshot<Map<String, dynamic>> snapshot = await _firestore
+  //       .collection('chats')
+  //       .doc(chatId)
+  //       .collection('messages')
+  //       .orderBy('timestamp', descending: true)
+  //       .startAfterDocument(lastDocument!)
+  //       .limit(10)
+  //       .get();
+
+  //   if (snapshot.docs.isEmpty) {
+  //     hasMore = false;
+  //   } else {
+  //     lastDocument = snapshot.docs.last;
+
+  //     final List<MessageModel> more = snapshot.docs
+  //         .map((doc) => MessageModel.fromJson(doc.data()))
+  //         .toList();
+
+  //     // Prepend to current messages
+  //     messages.insertAll(0, more.reversed.toList());
+  //   }
+
+  //   isFetchingMore = false;
+  // }
 
   void _listenToMessages() {
     _firestore
@@ -248,23 +465,37 @@ class ChatController extends GetxController {
       final Map<String, dynamic>? data = doc.data();
       final String? otherId =
           data?.keys.firstWhere((k) => k != currentUserId, orElse: () => '');
-      if (otherId!.isNotEmpty) otherLastSeen.value = data![otherId];
+      if (otherId!.isNotEmpty) {
+        otherLastSeen.value = data![otherId];
+
+        print('otherLastSeen $otherLastSeen');
+      }
+
+      String dateString = otherLastSeen.toString();
+      DateTime dateTime = DateTime.parse(dateString);
+      int timestampMillis = dateTime.millisecondsSinceEpoch;
+
+      final lastSeenTime = DateTime.fromMillisecondsSinceEpoch(
+        int.parse(timestampMillis.toString()),
+      );
+
+      otherLastSeen.value = _formatLastSeen(lastSeenTime);
     });
   }
 
-  void _startLastSeenTimer() {
-    Timer.periodic(const Duration(seconds: 30), (_) {
-      _firestore
-          .collection('chats')
-          .doc(chatId)
-          .collection('status')
-          .doc('presence')
-          .set(
-        {currentUserId: DateTime.now().toIso8601String()},
-        SetOptions(merge: true),
-      );
-    });
-  }
+  // void _startLastSeenTimer() {
+  //   Timer.periodic(const Duration(seconds: 30), (_) {
+  //     _firestore
+  //         .collection('chats')
+  //         .doc(chatId)
+  //         .collection('status')
+  //         .doc('presence')
+  //         .set(
+  //       {currentUserId: DateTime.now().toIso8601String()},
+  //       SetOptions(merge: true),
+  //     );
+  //   });
+  // }
 
   void scrollToBottom() {
     Future.delayed(const Duration(milliseconds: 200), () {

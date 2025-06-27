@@ -268,6 +268,7 @@ class HomeView extends GetView<HomeController> {
               pinned: true,
               centerTitle: true,
               backgroundColor: Colors.white,
+              automaticallyImplyLeading: false,
               // bottom: const PreferredSize(
               //   preferredSize: Size.fromHeight(20),
               //   child: SizedBox(),
@@ -276,24 +277,22 @@ class HomeView extends GetView<HomeController> {
                 builder: (context, constraints) {
                   bool isDesktop = constraints.maxWidth > 1024;
 
-                  print(isDesktop);
                   return Padding(
                     padding: EdgeInsets.symmetric(
-                      vertical: 8,
                       horizontal: isDesktop ? 300 : 4,
+                      vertical: 4,
                     ),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
-                      height: 45,
                       margin: const EdgeInsets.symmetric(
                         horizontal: 22,
                       ),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
-                        vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainer,
+                        color: Colors.white,
+                        //color: Theme.of(context).colorScheme.surfaceContainer,
                         borderRadius: BorderRadius.circular(28),
                         boxShadow: [
                           BoxShadow(
@@ -307,6 +306,8 @@ class HomeView extends GetView<HomeController> {
                         onChanged: controller.onSearchChanged,
                         style: const TextStyle(fontSize: 18),
                         decoration: InputDecoration(
+                          contentPadding:
+                              const EdgeInsets.symmetric(vertical: 16),
                           icon: Icon(
                             Icons.search,
                             color: Colors.grey[600],
@@ -533,7 +534,7 @@ class HomeView extends GetView<HomeController> {
                   //         : 4,
                   crossAxisSpacing: 4,
                   mainAxisSpacing: 4,
-                  childAspectRatio: 0.61,
+                  childAspectRatio: 0.59,
                 ),
               ),
             ),
