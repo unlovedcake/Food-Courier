@@ -12,6 +12,7 @@ class DashboardView extends GetView<DashboardController> {
     final List<Widget> pages = [
       const HomeView(),
       const ChatView(),
+      const Center(child: Text('History')),
       const Center(child: Text('Favorites')),
       const Center(child: Text('Profile')),
     ];
@@ -24,20 +25,69 @@ class DashboardView extends GetView<DashboardController> {
           type: BottomNavigationBarType.fixed,
           selectedItemColor: Colors.blue,
           unselectedItemColor: Colors.grey,
-          items: const [
-            BottomNavigationBarItem(
+          items: [
+            const BottomNavigationBarItem(
               icon: Icon(Icons.home),
               label: 'Home',
             ),
             BottomNavigationBarItem(
+              icon: Stack(
+                children: [
+                  const Icon(Icons.chat),
+                  if (controller.isRead.value)
+                    const SizedBox()
+                  else
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        width: 10,
+                        height: 10,
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              label: 'Chat',
+            ),
+
+            // BottomNavigationBarItem(
+            //   icon: Obx(
+            //     () => IconButton(
+            //       tooltip: 'Notification',
+            //       onPressed: () async {
+            //         await controller.markMessageAsRead();
+            //         await Get.toNamed(AppPages.CHAT);
+            //       },
+            //       icon: Badge(
+            //         label: controller.isRead.value
+            //             ? null
+            //             : const CircleAvatar(
+            //                 radius: 4,
+            //                 backgroundColor: Colors.red,
+            //               ),
+            //         offset: const Offset(6, -6),
+            //         child: Icon(
+            //           Icons.chat,
+            //           color: Theme.of(context).colorScheme.surface,
+            //         ),
+            //       ),
+            //     ),
+            //   ),
+            //   label: 'Chat',
+            // ),
+            const BottomNavigationBarItem(
               icon: Icon(Icons.history),
               label: 'History',
             ),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(Icons.favorite),
               label: 'Favorites',
             ),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(Icons.person),
               label: 'Profile',
             ),

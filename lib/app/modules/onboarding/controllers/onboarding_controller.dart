@@ -25,7 +25,7 @@ class OnboardingController extends GetxController {
   Future<void> navigateToHome() async {
     await completeOnboarding();
 
-    await Get.toNamed(AppPages.DASHBOARD); // Replace with your HomeScreen
+    await Get.toNamed(AppPages.AUTH); // Replace with your HomeScreen
   }
 
   @override

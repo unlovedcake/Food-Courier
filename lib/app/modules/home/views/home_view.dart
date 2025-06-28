@@ -1,8 +1,10 @@
 import 'dart:ui';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:food_courier/app/core/theme_controller.dart';
 import 'package:food_courier/app/data/models/product_model.dart';
+import 'package:food_courier/app/modules/dashboard/controllers/dashboard_controller.dart';
 import 'package:food_courier/app/routes/app_pages.dart';
 import 'package:get/get.dart';
 
@@ -14,6 +16,8 @@ class HomeView extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     final HomeController controller = Get.put(HomeController());
+    final DashboardController dashBoardController =
+        Get.put(DashboardController());
     final ThemeController themeController = Get.find();
 
     // final List<Map<String, dynamic>> products = List.generate(
@@ -198,6 +202,38 @@ class HomeView extends GetView<HomeController> {
                 ),
               ),
               actions: [
+                IconButton(
+                  onPressed: () async {
+                    await FirebaseAuth.instance.signOut();
+                    await Get.offAllNamed(AppPages.AUTH);
+                  },
+                  icon: const Icon(Icons.logout_outlined),
+                ),
+
+                Obx(
+                  () => IconButton(
+                    tooltip: 'Notification',
+                    onPressed: () async {
+                      await dashBoardController.markMessageAsRead();
+                      await Get.toNamed(AppPages.CHAT);
+                    },
+                    icon: Badge(
+                      backgroundColor: Colors.white,
+                      label: dashBoardController.isRead.value
+                          ? null
+                          : const CircleAvatar(
+                              radius: 4,
+                              backgroundColor: Colors.red,
+                            ),
+                      offset: const Offset(6, -6),
+                      child: Icon(
+                        Icons.notification_important,
+                        color: Theme.of(context).colorScheme.surface,
+                      ),
+                    ),
+                  ),
+                ),
+
                 Obx(
                   () => IconButton(
                     icon: Icon(

@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:food_courier/app/core/helper_functions.dart';
 import 'package:food_courier/app/core/presence_service.dart';
 import 'package:food_courier/app/data/models/message_model.dart';
 import 'package:get/get.dart';
@@ -17,8 +19,8 @@ class ChatController extends GetxController {
   final otherLastSeen = ''.obs;
   final floatingEmoji = Rxn<String>();
   final ScrollController scrollController = ScrollController();
-  final chatId = 'buyer_seller_123'; // Replace with real chatId
-  final currentUserId = 'buyer123'; // Replace with auth ID
+  String chatId = ''; // Replace with real chatId
+  String currentUserId = ''; // Replace with auth ID
 
   final _firestore = FirebaseFirestore.instance;
   final _storage = FirebaseStorage.instance;
@@ -29,7 +31,8 @@ class ChatController extends GetxController {
   final isOtherUserOnline = false.obs;
   final lastSeenText = ''.obs;
 
-  final String otherUserId = 'seller123';
+  // final String otherUserId =
+  //     '4qYtKhUwkWheyGMeQ4BzeWzSVMq1'; //ataJQe5vGYafW9Ay7QfVbGt2L453';
 
   StreamSubscription<DatabaseEvent>? _presenceSub;
 
@@ -44,7 +47,12 @@ class ChatController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    loadInitialMessages();
+
+    currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+
+    chatId = generateChatId(currentUserId, otherUserId);
+
+    Future.microtask(loadInitialMessages);
 
     scrollController.addListener(() async {
       if (scrollController.position.pixels ==
@@ -99,8 +107,8 @@ class ChatController extends GetxController {
     return position.maxScrollExtent - position.pixels <= threshold;
   }
 
-  void _startPresenceTracking() {
-    PresenceService(userId: currentUserId).setupPresenceTracking();
+  Future<void> _startPresenceTracking() async {
+    await PresenceService(userId: currentUserId).setupPresenceTracking();
   }
 
   void _listenToOtherUserPresence() {
@@ -330,6 +338,7 @@ class ChatController extends GetxController {
         id: docRef.id,
         senderId: currentUserId,
         text: text,
+        isRead: isOtherUserOnline.value,
         timestamp: DateTime.now(),
       );
 

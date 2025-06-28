@@ -5,6 +5,8 @@ class DetailProductController extends GetxController {
   RxDouble rotateX = 0.0.obs;
   RxDouble rotateY = 0.0.obs;
 
+  RxBool showReviews = false.obs;
+
   void updateRotation(DragUpdateDetails details) {
     const sensitivity = 0.01;
     rotateY.value += details.delta.dx * sensitivity; // horizontal drag → Y axis
@@ -14,5 +16,9 @@ class DetailProductController extends GetxController {
   void resetRotation() {
     rotateX.value = 0;
     rotateY.value = 0;
+  }
+
+  void toggleReviews() {
+    showReviews.value = !showReviews.value;
   }
 }

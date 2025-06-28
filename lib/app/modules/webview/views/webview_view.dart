@@ -1,35 +1,9 @@
-// import 'package:flutter/material.dart';
-
-// import 'package:get/get.dart';
-
-// import '../controllers/webview_controller.dart';
-
-// class WebviewView extends GetView<WebviewController> {
-//   const WebviewView({super.key});
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text('WebviewView'),
-//         centerTitle: true,
-//       ),
-//       body: const Center(
-//         child: Text(
-//           'WebviewView is working',
-//           style: TextStyle(fontSize: 20),
-//         ),
-//       ),
-//     );
-//   }
-// }
-
 import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:food_courier/app/routes/app_pages.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as htpp;
 import 'package:http/http.dart' as http;
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -67,14 +41,10 @@ class _WebviewViewState extends State<WebviewView> {
               loadingPercentage = 100;
             });
           },
-
-// Keeping track of navigation uisng NavigationDelegate
           onNavigationRequest: (navigation) async {
-            final String host = Uri.parse(navigation.url).host;
-            print('URL: $host');
-            if (navigation.url.contains('https://www.google.com/')) {
+            if (navigation.url.contains('https://www.youtube.com')) {
               await fetchCheckoutSession(id);
-              Get.toNamed(AppPages.DASHBOARD);
+              await Get.offAllNamed(AppPages.DASHBOARD);
             }
             return NavigationDecision.navigate;
           },
@@ -114,13 +84,11 @@ class _WebviewViewState extends State<WebviewView> {
     final Uri url = Uri.parse(linkStatus);
 
     try {
-      // Sending a GET request
-      final http.Response response = await htpp.get(
+      final http.Response response = await http.get(
         url,
         headers: headers,
       );
 
-      // Check if the response is successful
       if (response.statusCode == 200) {
         final responseBody = jsonDecode(response.body);
 
@@ -132,7 +100,7 @@ class _WebviewViewState extends State<WebviewView> {
         log('Failed to load data');
       }
     } catch (e) {
-      print('Error: $e');
+      log('Error: $e');
     }
   }
 
@@ -214,7 +182,7 @@ class _WebviewViewState extends State<WebviewView> {
               value: loadingPercentage / 100.0,
             )
           else
-            Container(),
+            const SizedBox.shrink(),
         ],
       ),
     );

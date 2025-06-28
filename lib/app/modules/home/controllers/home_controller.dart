@@ -398,8 +398,8 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       });
     }
 
-    fetchProducts();
-    loadLikedProducts();
+    //Future.microtask(loadAllData);
+    Future.delayed(const Duration(milliseconds: 100), loadAllData);
 
     // Start auto-slide
     Timer.periodic(const Duration(seconds: 3), (timer) {
@@ -412,11 +412,11 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
         );
       }
     });
-    scrollController.addListener(() {
+    scrollController.addListener(() async {
       if (scrollController.position.pixels >=
               scrollController.position.maxScrollExtent &&
           hasMoreData.value) {
-        fetchProducts();
+        await fetchProducts();
       }
 
       if (scrollController.offset > 100 && !showScrollToTop.value) {
@@ -446,6 +446,13 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   void onClose() {
     cartIconAnimationController.dispose();
     super.onClose();
+  }
+
+  Future<void> loadAllData() async {
+    await Future.wait([
+      fetchProducts(),
+      loadLikedProducts(),
+    ]);
   }
 
   final animatedIndexes = <int>{};
@@ -816,7 +823,7 @@ class _ProductTileState extends State<ProductTile>
                                 widget.product.thumbnail,
                                 widget.index,
                               );
-                            widget.product.isAdded.add(widget.product.id);
+                            // widget.product.isAdded.add(widget.product.id);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: controller.cartProducts

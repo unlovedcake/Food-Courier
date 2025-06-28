@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
 
+import '../modules/auth/bindings/auth_binding.dart';
+import '../modules/auth/views/auth_view.dart';
 import '../modules/cart/bindings/cart_binding.dart';
 import '../modules/cart/views/cart_view.dart';
 import '../modules/chat/bindings/chat_binding.dart';
@@ -27,6 +29,7 @@ class AppPages {
   static const DETAIL_PRODUCT = Routes.DETAIL_PRODUCT;
   static const WEBVIEW = Routes.WEBVIEW;
   static const CHAT = Routes.CHAT;
+  static const AUTH = Routes.AUTH;
 
   static final routes = [
     GetPage(
@@ -63,6 +66,11 @@ class AppPages {
       name: _Paths.CHAT,
       page: () => const ChatView(),
       binding: ChatBinding(),
+    ),
+    GetPage(
+      name: _Paths.AUTH,
+      page: () => const AuthView(),
+      binding: AuthBinding(),
     ),
   ];
 }

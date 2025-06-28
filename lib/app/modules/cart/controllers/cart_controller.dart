@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:food_courier/app/data/models/product_model.dart';
 import 'package:food_courier/app/modules/home/controllers/home_controller.dart';
+import 'package:food_courier/app/routes/app_pages.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-import 'package:url_launcher/url_launcher.dart';
 
 class CartController extends GetxController with GetTickerProviderStateMixin {
   final isVisibleList = <bool>[].obs;
@@ -56,7 +56,6 @@ class CartController extends GetxController with GetTickerProviderStateMixin {
   }
 
   Future<void> createCheckoutSession() async {
-    print('HEY');
     final List<Map<String, Object>> lineItems =
         homeController.cartProducts.values.map((product) {
       return {
@@ -71,7 +70,6 @@ class CartController extends GetxController with GetTickerProviderStateMixin {
 
     final Uri url = Uri.parse(_baseUrl);
 
-    // Encode the username and password for basic auth
     final authHeader = 'Basic $_apiKey';
 
     final headers = {
@@ -87,18 +85,6 @@ class CartController extends GetxController with GetTickerProviderStateMixin {
           'show_line_items': true,
           'cancel_url': 'https://www.google.com/',
           'line_items': lineItems,
-          // [
-          //   {
-          //     'currency': 'PHP',
-          //     'images': [
-          //       'https://media.istockphoto.com/id/1350560575/photo/pair-of-blue-running-sneakers-on-white-background-isolated.jpg?s=612x612&w=0&k=20&c=A3w_a9q3Gz-tWkQL6K00xu7UHdN5LLZefzPDp-wNkSU=',
-          //     ],
-          //     'amount': 1000 * 100,
-          //     'description': 'Checkout Payment',
-          //     'name': 'Product Name',
-          //     'quantity': 1,
-          //   }
-          // ],
           'payment_method_types': [
             'card',
             'gcash',
@@ -110,43 +96,45 @@ class CartController extends GetxController with GetTickerProviderStateMixin {
           'success_url': 'https://www.youtube.com',
         },
       },
-      // 'data': {
-      //   'attributes': {
-      //     'billing': {
-      //       'address': {
-      //         'line1': 'Cebu City',
-      //         'city': 'Talisay City',
-      //         'postal_code': '6045',
-      //         'state': 'Cebu',
-      //         'country': 'PH',
-      //       },
-      //       'name': 'James Lebron',
-      //       'email': 'james@gmail.com',
-      //       'phone': '09165622771',
-      //     },
-      //     'send_email_receipt': true,
-      //     'show_description': true,
-      //     'show_line_items': true,
-      //     'description': 'Sample Description',
-      //     'line_items': [
-      //       {
-      //         'currency': 'PHP',
-      //         'images': [
-      //           'https://letsenhance.io/static/8f5e523ee6b2479e26ecc91b9c25261e/1015f/MainAfter.jpg',
-      //         ],
-      //         'amount': 1000 * 100,
-      //         'description': 'Sample Description',
-      //         'name': 'Name Product',
-      //         'quantity': 1,
-      //       }
-      //     ],
-      //     'payment_method_types': ['gcash', 'paymaya', 'grab_pay', 'card'],
-      //     'reference_number': '123456',
-      //     'success_url': 'https://www.google.com/',
-      //     'cancel_url': 'https://www.youtube.com/',
-      //   },
-      // },
     };
+
+    //   "data": {
+    //   "attributes": {
+    //     "billing": {
+    //       "address": {
+    //         "line1": "Washingon Street Talisay",
+    //         "city": "Talisay City Cebu",
+    //         "postal_code": "6045",
+    //         "country": "PH"
+    //       },
+    //       "name": "love",
+    //       "email": "love@gmail.com",
+    //       "phone": "09165622770"
+    //     },
+    //     "send_email_receipt": true,
+    //     "show_description": true,
+    //     "show_line_items": true,
+    //     "cancel_url": "https://www.google.com/",
+    //     "description": "Checkout",
+    //     "line_items": [
+    //       {
+    //         "currency": "PHP",
+    //         "amount": 100000,
+    //         "description": "Test Payment",
+    //         "name": "Smart Phone",
+    //         "quantity": 2
+    //       }
+    //     ],
+    //     "payment_method_types": [
+    //       "gcash",
+    //       "paymaya",
+    //       "card"
+    //     ],
+    //     "reference_number": "123",
+    //     "success_url": "https://www.youtube.com/",
+    //     "statement_descriptor": "Click and Get IT"
+    //   }
+    // }
 
     final String body = jsonEncode(data);
 
@@ -159,33 +147,30 @@ class CartController extends GetxController with GetTickerProviderStateMixin {
 
       if (response.statusCode == 200) {
         final responseBody = jsonDecode(response.body);
-        // Handle successful response
 
         String checkoutUrl = responseBody['data']['attributes']['checkout_url'];
         String id = responseBody['data']['id'];
         debugPrint('Checkout session created successfully: $id');
 
-        if (await canLaunchUrl(Uri.parse(checkoutUrl))) {
-          await launchUrl(
-            Uri.parse(checkoutUrl),
-            mode: LaunchMode.externalApplication,
-          );
-        }
+        // if (await canLaunchUrl(Uri.parse(checkoutUrl))) {
+        //   await launchUrl(
+        //     Uri.parse(checkoutUrl),
+        //     mode: LaunchMode.externalApplication,
+        //   );
+        // }
 
-        // Get.toNamed(
-        //   AppPages.WEBVIEW,
-        //   arguments: {
-        //     'checkout_url': checkoutUrl,
-        //     'id': id,
-        //   },
-        // );
+        Get.toNamed(
+          AppPages.WEBVIEW,
+          arguments: {
+            'checkout_url': checkoutUrl,
+            'id': id,
+          },
+        );
       } else {
-        // Handle error
-        print('Error creating checkout session: ${response.body}');
+        debugPrint('Error creating checkout session: ${response.body}');
       }
     } catch (error) {
-      // Handle network or other errors
-      print('Error: $error');
+      debugPrint('Error: $error');
     }
   }
 
