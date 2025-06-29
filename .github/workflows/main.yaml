@@ -47,7 +47,7 @@ jobs:
 
       # Step 6: Build APK with release flavor
       - name: 🏗️ Build Android APK
-        run: flutter build apk --release --split-per-abi --dart-define=env=production
+        run: flutter build apk --release --dart-define=env=production
 
       # Step 7: Install Firebase CLI
       - name: 🔧 Install Firebase CLI
@@ -62,6 +62,6 @@ jobs:
       # Step 9: Upload to Firebase App Distribution
       - name: 🚀 Upload APK to Firebase
         run: |
-          firebase appdistribution:distribute build/app/outputs/flutter-apk/app-arm64-v8a-release.apk \
+          firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
             --app "${{ secrets.FIREBASE_APP_ID }}" \
             --groups testers
