@@ -67,5 +67,5 @@ jobs:
         run: |
           firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
             --app "${{ secrets.FIREBASE_APP_ID }}" \
-            --groups testers
+            --groups testers \
             --release-notes "Automated release from GitHub Actions"
