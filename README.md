@@ -18,3 +18,6 @@ samples, guidance on mobile development, and a full API reference.
 # Github Actions Tutorial Link
 
 https://www.youtube.com/watch?v=9L7OfshBqX8&t=543s
+
+To get FIREBASE_AUTH_TOKEN
+run firebase login:ci in terminal

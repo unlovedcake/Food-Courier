@@ -351,7 +351,7 @@ class CartView extends GetView<CartController> {
                     ),
                   ),
                   Text(
-                    'Total: ${totalPay.toStringAsFixed(2)}',
+                    'Total: \u20B1${totalPay.toStringAsFixed(2)}',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
