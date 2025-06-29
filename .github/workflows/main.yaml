@@ -37,22 +37,19 @@ jobs:
 
       # Step 6: Build APK for Android
       - name: Build Flutter APK with production env
-        run:
-          flutter build apk --release --dart-define=env=production
+        run: flutter build apk --release --dart-define=env=production
 
-          # Optional Step 10: Deploy to Firebase App Distribution (Android) or TestFlight (iOS)
-      # For Android:
-      - name: Deploy to Firebase App Distribution
-        uses: wzieba/Firebase-Distribution-Github-Action@v1
-        with:
-          appId: ${{ secrets.FIREBASE_APP_ID }}
-          token: ${{ secrets.FIREBASE_AUTH_TOKEN }}
-          groups: testers
-          file: build/app/outputs/flutter-apk/app-release.apk
+      - name: 🚚 Upload APK to Firebase App Distribution
+        run: |
+          firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
+            --app "${{ secrets.FIREBASE_APP_ID }}" \
+            --token "${{ secrets.FIREBASE_AUTH_TOKEN }}" \
+            --groups testers
 
     # For iOS:
     # - name: Deploy to TestFlight
     #   run: |
     #     fastlane deliver --ipa output/ipa/Runner.ipa --username ${{ secrets.APPLE_ID }}
+
 # push to master, main, develop
 # pull request on main master
