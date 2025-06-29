@@ -33,16 +33,16 @@ jobs:
       - name: Create prod.json file from secret
         run: |
           mkdir -p assets/env
-          echo '${{ secrets.PROD_ENV_JSON }}' > assets/env/prod.json  
+          echo '${{ secrets.PROD_ENV_JSON }}' > assets/env/prod.json
 
-    
       # Step 5: Run tests
       - name: Run tests
         run: flutter test
 
       # Step 6: Build APK for Android
+      - name: Build Flutter APK with production env
         run: flutter build apk --release --dart-define=env=production
-    
+
       # Step 7: Build IPA for iOS
       - run: |
           flutter build ios --no-codesign
