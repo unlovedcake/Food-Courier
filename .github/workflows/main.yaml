@@ -43,7 +43,7 @@ jobs:
       - name: 📁 Create production config
         run: |
           mkdir -p assets/env
-          echo '${{ secrets.PROD_ENV_JSON }}' > assets/env/prod.json
+          echo '${{ secrets.PROD_ENV_JSON }}' > assets/env/production.json
 
       # Step 6: Build APK with release flavor
       - name: 🏗️ Build Android APK
@@ -59,9 +59,13 @@ jobs:
           echo "${{ secrets.GCLOUD_SERVICE_ACCOUNT_JSON }}" | base64 --decode > $HOME/firebase-service-account.json
           echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/firebase-service-account.json" >> $GITHUB_ENV
 
+      - name: 🧪 Preview JSON file head (debug only!)
+        run: head -n 5 $HOME/firebase-service-account.json
+
       # Step 9: Upload to Firebase App Distribution
       - name: 🚀 Upload APK to Firebase
         run: |
           firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
             --app "${{ secrets.FIREBASE_APP_ID }}" \
             --groups testers
+            --release-notes "Automated release from GitHub Actions"
