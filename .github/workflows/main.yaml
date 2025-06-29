@@ -37,37 +37,18 @@ jobs:
 
       # Step 6: Build APK for Android
       - name: Build Flutter APK with production env
-        run: flutter build apk --release --dart-define=env=production
+        run:
+          flutter build apk --release --dart-define=env=production
 
-      # Step 7: Build IPA for iOS
-      - run: |
-          flutter build ios --no-codesign
-          cd build/ios/iphoneos
-          mkdir Payload
-          cd Payload
-          ln -s ../Runner.app
-          cd ..
-          zip -r app.ipa Payload
-
-      # Step 8: Upload the APK as an artifact
-      - name: Push to Releases
-        uses: ncipollo/release-action@v1
-
-        # Step 9: Upload the IPA as an artifact
+          # Optional Step 10: Deploy to Firebase App Distribution (Android) or TestFlight (iOS)
+      # For Android:
+      - name: Deploy to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
-          artifacts: "build/app/outputs/apk/release/*,build/ios/iphoneos/app.ipa"
-          tag: v1.0.${{ github.run_number }}
-          token: ${{ secrets.TOKEN }}
-
-        # Optional Step 10: Deploy to Firebase App Distribution (Android) or TestFlight (iOS)
-    # For Android:
-    # - name: Deploy to Firebase App Distribution
-    #   uses: wzieba/Firebase-Distribution-Github-Action@v1
-    #   with:
-    #     appId: ${{ secrets.FIREBASE_APP_ID }}
-    #     token: ${{ secrets.FIREBASE_AUTH_TOKEN }}
-    #     groups: testers
-    #     file: build/app/outputs/flutter-apk/app-release.apk
+          appId: ${{ secrets.FIREBASE_APP_ID }}
+          token: ${{ secrets.FIREBASE_AUTH_TOKEN }}
+          groups: testers
+          file: build/app/outputs/flutter-apk/app-release.apk
 
     # For iOS:
     # - name: Deploy to TestFlight
