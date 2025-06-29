@@ -19,6 +19,9 @@ class AppTheme {
       ),
     ),
     textTheme: TextTheme(
+      labelSmall: GoogleFonts.poppins(
+        color: Colors.black,
+      ),
       headlineLarge: GoogleFonts.poppins(
         fontSize: 26,
         fontWeight: FontWeight.bold,
@@ -71,6 +74,9 @@ class AppTheme {
       ),
     ),
     textTheme: TextTheme(
+      labelSmall: GoogleFonts.poppins(
+        color: Colors.white,
+      ),
       headlineLarge: GoogleFonts.poppins(
         fontSize: 26,
         fontWeight: FontWeight.bold,

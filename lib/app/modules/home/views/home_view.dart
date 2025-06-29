@@ -501,8 +501,10 @@ class HomeView extends GetView<HomeController> {
                                                 categoryName,
                                                 style: Theme.of(context)
                                                     .textTheme
-                                                    .labelLarge
+                                                    .labelSmall
                                                     ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.normal,
                                                       fontSize:
                                                           shrink ? 12 : 14,
                                                       color: controller
