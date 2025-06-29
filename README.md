@@ -21,3 +21,6 @@ https://www.youtube.com/watch?v=9L7OfshBqX8&t=543s
 
 To get FIREBASE_AUTH_TOKEN
 run firebase login:ci in terminal
+
+Convert base 64
+Visit https://base64.guru/converter/encode/file

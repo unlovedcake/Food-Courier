@@ -1,53 +1,45 @@
-on:
-  pull_request:
-    branches:
-      - main
-      - master
-  push:
-    branches:
-      - main
-      - master
-      - develop
+build_android:
+  name: Build & Release Android
+  runs-on: macos-latest
+  steps:
+    - uses: actions/checkout@v3
 
-name: "Build & Release"
+    - uses: actions/setup-java@v3
+      with:
+        distribution: "zulu"
+        java-version: "17.x"
 
-jobs:
-  build_android:
-    name: Build & Release Android
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v3
+    - uses: subosito/flutter-action@v2
+      with:
+        channel: "stable"
+        architecture: x64
 
-      - uses: actions/setup-java@v3
-        with:
-          distribution: "zulu"
-          java-version: "17.x"
+    - name: Install dependencies
+      run: flutter pub get
 
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: "stable"
-          architecture: x64
+    - name: Create prod.json file from secret
+      run: |
+        mkdir -p assets/env
+        echo '${{ secrets.PROD_ENV_JSON }}' > assets/env/prod.json
 
-      - name: Install dependencies
-        run: flutter pub get
+    - name: Build Flutter APK with production env
+      run: flutter build apk --release --split-per-abi --dart-define=env=production
 
-      - name: Create prod.json file from secret
-        run: |
-          mkdir -p assets/env
-          echo '${{ secrets.PROD_ENV_JSON }}' > assets/env/prod.json
+    - name: Install Firebase CLI
+      run: npm install -g firebase-tools
 
-      - name: Build Flutter APK with production env
-        run: flutter build apk --release --split-per-abi --dart-define=env=production
+    - name: Authenticate using service account
+      run: |
+        echo "${{ secrets.GCLOUD_SERVICE_ACCOUNT_JSON }}" | base64 --decode > "${HOME}/gcloud.json"
+        export GOOGLE_APPLICATION_CREDENTIALS="${HOME}/gcloud.json"
 
-      - name: Install Firebase CLI
-        run: npm install -g firebase-tools
-
-      - name: Upload APK to Firebase App Distribution
-        run: |
-          firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
-            --app "${{ secrets.FIREBASE_APP_ID }}" \
-            --token "${{ secrets.FIREBASE_AUTH_TOKEN }}" \
-            --groups testers
+    - name: Upload APK to Firebase App Distribution
+      env:
+        GOOGLE_APPLICATION_CREDENTIALS: "${HOME}/gcloud.json"
+      run: |
+        firebase appdistribution:distribute build/app/outputs/flutter-apk/app-arm64-v8a-release.apk \
+          --app "${{ secrets.FIREBASE_APP_ID }}" \
+          --groups testers
 
   build_ios:
     name: Build & Release iOS
