@@ -24,3 +24,6 @@ run firebase login:ci in terminal
 
 Convert base 64
 Visit https://base64.guru/converter/encode/file
+
+Convert production.json to base64 locally
+PS C:\Users\User> [Convert]::ToBase64String([IO.File]::ReadAllBytes("D:\FlutterProject\food_courier\food_courier\assets\env\production.json")) | Out-File -Encoding ascii production_base64.txt

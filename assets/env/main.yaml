@@ -43,12 +43,7 @@ jobs:
       - name: 📁 Create production config
         run: |
           mkdir -p assets/env
-          echo "${{ secrets.PROD_ENV_JSON_BASE64 }}" | base64 --decode > assets/env/production.json
-
-      - name: 🪵 Preview production.json content (optional)
-        run: |
-          echo "📄 First 5 lines of production.json:"
-          head -n 5 assets/env/production.json
+          echo '${{ secrets.PROD_ENV_JSON }}' > assets/env/production.json
 
       # Step 6: Build APK with release flavor
       - name: 🏗️ Build Android APK
@@ -70,4 +65,4 @@ jobs:
           firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
             --app "${{ secrets.FIREBASE_APP_ID }}" \
             --groups testers \
-            --release-notes "New release from GitHub Actions"
+            --release-notes "Automated release from GitHub Actions"
