@@ -1,4 +1,18 @@
-build_android:
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+  push:
+    branches:
+      - main
+      - master
+      - develop
+
+name: "Build & Release"
+
+jobs:
+  build_android:
   name: Build & Release Android
   runs-on: macos-latest
   steps:
