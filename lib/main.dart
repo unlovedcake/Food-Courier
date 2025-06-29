@@ -42,7 +42,9 @@ Future<void> main() async {
         //theme: ThemeData.light(useMaterial3: false),
         //darkTheme: ThemeData.light(),
         title: json['flavor'] ?? '',
-        initialRoute: AppPages.ONBOARDING,
+        initialRoute: json['flavor'] == 'Development'
+            ? AppPages.DASHBOARD
+            : AppPages.ONBOARDING,
         getPages: AppPages.routes,
       ),
     ),

@@ -37,7 +37,7 @@ jobs:
           echo '${{ secrets.PROD_ENV_JSON }}' > assets/env/prod.json
 
       - name: Build Flutter APK with production env
-        run: flutter build apk --release --dart-define=env=production
+        run: flutter build apk --release --split-per-abi --dart-define=env=production
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
@@ -70,7 +70,7 @@ jobs:
           echo '${{ secrets.PROD_ENV_JSON }}' > assets/env/prod.json
 
       - name: Build iOS .ipa with production env
-        run: flutter build ipa --release --dart-define=env=production
+        run: flutter build ipa --release --no-codesign --dart-define=env=production
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
