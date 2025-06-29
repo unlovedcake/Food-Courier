@@ -35,12 +35,12 @@ jobs:
           channel: "stable"
           architecture: x64
 
-      # Step 4: Install Flutter dependencies
-      - name: 📦 Install dependencies
+      # Step 4: Install dependencies
+      - name: 📦 Install Flutter dependencies
         run: flutter pub get
 
       # Step 5: Create prod.json from secret
-      - name: 📁 Create env file
+      - name: 📁 Create production config
         run: |
           mkdir -p assets/env
           echo '${{ secrets.PROD_ENV_JSON }}' > assets/env/prod.json
@@ -54,15 +54,13 @@ jobs:
         run: npm install -g firebase-tools
 
       # Step 8: Authenticate with Firebase using Service Account
-      - name: 🔐 Setup Firebase Service Account
+      - name: 🔐 Authenticate with Firebase using Service Account
         run: |
-          echo "${{ secrets.GCLOUD_SERVICE_ACCOUNT_JSON }}" | base64 --decode > "${HOME}/gcloud.json"
-        shell: bash
+          echo "${{ secrets.GCLOUD_SERVICE_ACCOUNT_JSON }}" | base64 --decode > $HOME/firebase-service-account.json
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/firebase-service-account.json" >> $GITHUB_ENV
 
-      # Step 9: Distribute to Firebase
-      - name: 🚀 Upload to Firebase App Distribution
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ env.HOME }}/gcloud.json
+      # Step 9: Upload to Firebase App Distribution
+      - name: 🚀 Upload APK to Firebase
         run: |
           firebase appdistribution:distribute build/app/outputs/flutter-apk/app-arm64-v8a-release.apk \
             --app "${{ secrets.FIREBASE_APP_ID }}" \
