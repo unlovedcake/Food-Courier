@@ -560,7 +560,6 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
         }
 
         products.addAll(productList);
-        print('fetch products ${products.length}');
 
         skip += limit;
       }
@@ -792,109 +791,119 @@ class _ProductTileState extends State<ProductTile>
                 ],
               ),
 
-              AnimatedSize(
-                duration: const Duration(milliseconds: 400),
-                curve: Curves.easeInOut,
-                child: SizedBox(
-                  width: controller.cartProducts.containsKey(widget.product.id)
-                      ? 180
-                      : 150,
-                  height: 45,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            // controller.isAdded.putIfAbsent(
-                            //   widget.product.id,
-                            //   () => widget.product.id,
-                            // );
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: AnimatedSize(
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeInOut,
+                  child: SizedBox(
+                    width:
+                        controller.cartProducts.containsKey(widget.product.id)
+                            ? 180
+                            : 150,
+                    height: 45,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              // controller.isAdded.putIfAbsent(
+                              //   widget.product.id,
+                              //   () => widget.product.id,
+                              // );
 
-                            // if (!controller.isAdded
-                            //     .contains(widget.product.id)) {
-                            //   controller.isAdded.add(widget.product.id);
-                            // }
+                              // if (!controller.isAdded
+                              //     .contains(widget.product.id)) {
+                              //   controller.isAdded.add(widget.product.id);
+                              // }
 
-                            controller
-                              ..addToCart(widget.product)
-                              ..startAnimation(
-                                widget.imageKey,
-                                context,
-                                widget.product.thumbnail,
-                                widget.index,
-                              );
-                            // widget.product.isAdded.add(widget.product.id);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: controller.cartProducts
-                                    .containsKey(widget.product.id)
-                                ? Colors.white
-                                : Theme.of(context).colorScheme.primary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              controller
+                                ..addToCart(widget.product)
+                                ..startAnimation(
+                                  widget.imageKey,
+                                  context,
+                                  widget.product.thumbnail,
+                                  widget.index,
+                                );
+                              // widget.product.isAdded.add(widget.product.id);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: controller.cartProducts
+                                      .containsKey(widget.product.id)
+                                  ? Colors.white
+                                  : Theme.of(context).colorScheme.primary,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
-                          ),
-                          icon: Icon(
-                            Icons.add,
-                            color: controller.cartProducts
-                                    .containsKey(widget.product.id)
-                                ? Colors.black
-                                : Colors.white,
-                          ),
-                          label: Text(
-                            controller.cartProducts
-                                    .containsKey(widget.product.id)
-                                ? 'Added'
-                                : 'Add to Cart',
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                            icon: Icon(
+                              Icons.add,
+                              color: controller.cartProducts
+                                      .containsKey(widget.product.id)
+                                  ? Colors.black
+                                  : Colors.white,
+                            ),
+                            label: FittedBox(
+                              child: Text(
+                                controller.cartProducts
+                                        .containsKey(widget.product.id)
+                                    ? 'Added'
+                                    : 'Add to Cart',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
                                       color: controller.cartProducts
                                               .containsKey(widget.product.id)
                                           ? Colors.black
                                           : Colors.white,
                                     ),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                      AnimatedOpacity(
-                        opacity: controller.cartProducts
-                                .containsKey(widget.product.id)
-                            ? 1.0
-                            : 0.0,
-                        duration: const Duration(milliseconds: 400),
-                        curve: Curves.easeInOut,
-                        child: controller.cartProducts
-                                .containsKey(widget.product.id)
-                            ? Container(
-                                margin: const EdgeInsets.only(left: 6),
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    final ProductModel? cartProduct = controller
-                                        .cartProducts[widget.product.id];
+                        AnimatedOpacity(
+                          opacity: controller.cartProducts
+                                  .containsKey(widget.product.id)
+                              ? 1.0
+                              : 0.0,
+                          duration: const Duration(milliseconds: 400),
+                          curve: Curves.easeInOut,
+                          child: controller.cartProducts
+                                  .containsKey(widget.product.id)
+                              ? Container(
+                                  margin: const EdgeInsets.only(left: 6),
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      final ProductModel? cartProduct =
+                                          controller
+                                              .cartProducts[widget.product.id];
 
-                                    if (cartProduct != null &&
-                                        cartProduct.id == widget.product.id) {
-                                      if (cartProduct.countItem.value > 0) {
-                                        cartProduct.countItem.value -= 1;
-                                        if (cartProduct.countItem.value == 0) {
-                                          controller.cartProducts
-                                              .remove(widget.product.id);
+                                      if (cartProduct != null &&
+                                          cartProduct.id == widget.product.id) {
+                                        if (cartProduct.countItem.value > 0) {
+                                          cartProduct.countItem.value -= 1;
+                                          if (cartProduct.countItem.value ==
+                                              0) {
+                                            controller.cartProducts
+                                                .remove(widget.product.id);
+                                          }
                                         }
                                       }
-                                    }
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    padding: EdgeInsets.zero,
-                                    shape: const CircleBorder(),
-                                    minimumSize: const Size(40, 40),
-                                    backgroundColor: Colors.red,
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      padding: EdgeInsets.zero,
+                                      shape: const CircleBorder(),
+                                      minimumSize: const Size(40, 40),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                    child: const Icon(Icons.remove, size: 20),
                                   ),
-                                  child: const Icon(Icons.remove, size: 20),
-                                ),
-                              )
-                            : const SizedBox.shrink(),
-                      ),
-                    ],
+                                )
+                              : const SizedBox.shrink(),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

@@ -97,6 +97,7 @@ class HomeView extends GetView<HomeController> {
               automaticallyImplyLeading: false,
               floating: true,
               pinned: true,
+              collapsedHeight: 80,
               expandedHeight: 180,
               flexibleSpace: FlexibleSpaceBar(
                 stretchModes: const [StretchMode.blurBackground],
@@ -300,7 +301,15 @@ class HomeView extends GetView<HomeController> {
               ],
             ),
 
+            const SliverToBoxAdapter(
+              child: SizedBox(
+                height: 10,
+              ),
+            ),
+
             SliverAppBar(
+              collapsedHeight: 70,
+              expandedHeight: 60,
               pinned: true,
               centerTitle: true,
               backgroundColor: Colors.white,
@@ -309,54 +318,57 @@ class HomeView extends GetView<HomeController> {
               //   preferredSize: Size.fromHeight(20),
               //   child: SizedBox(),
               // ),
-              flexibleSpace: LayoutBuilder(
-                builder: (context, constraints) {
-                  bool isDesktop = constraints.maxWidth > 1024;
+              flexibleSpace: FlexibleSpaceBar(
+                centerTitle: true,
+                title: LayoutBuilder(
+                  builder: (context, constraints) {
+                    bool isDesktop = constraints.maxWidth > 1024;
 
-                  return Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isDesktop ? 300 : 4,
-                      vertical: 4,
-                    ),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 22,
+                    return Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isDesktop ? 300 : 4,
+                        vertical: 4,
                       ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        //color: Theme.of(context).colorScheme.surfaceContainer,
-                        borderRadius: BorderRadius.circular(28),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withValues(alpha: 0.2),
-                            blurRadius: 12,
-                            offset: const Offset(0, 6),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 22,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          //color: Theme.of(context).colorScheme.surfaceContainer,
+                          borderRadius: BorderRadius.circular(28),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withValues(alpha: 0.2),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: TextField(
+                          onChanged: controller.onSearchChanged,
+                          style: const TextStyle(fontSize: 18),
+                          decoration: InputDecoration(
+                            contentPadding:
+                                const EdgeInsets.symmetric(vertical: 16),
+                            icon: Icon(
+                              Icons.search,
+                              color: Colors.grey[600],
+                              size: 24,
+                            ),
+                            hintText: 'Search...',
+                            hintStyle: const TextStyle(fontSize: 16),
+                            border: InputBorder.none,
                           ),
-                        ],
-                      ),
-                      child: TextField(
-                        onChanged: controller.onSearchChanged,
-                        style: const TextStyle(fontSize: 18),
-                        decoration: InputDecoration(
-                          contentPadding:
-                              const EdgeInsets.symmetric(vertical: 16),
-                          icon: Icon(
-                            Icons.search,
-                            color: Colors.grey[600],
-                            size: 24,
-                          ),
-                          hintText: 'Search...',
-                          hintStyle: const TextStyle(fontSize: 16),
-                          border: InputBorder.none,
                         ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
 
@@ -374,7 +386,6 @@ class HomeView extends GetView<HomeController> {
                     padding: const EdgeInsets.all(4),
                     child: Column(
                       spacing: 10,
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         // ✅ Animated Search Field
                         // AnimatedContainer(
@@ -429,6 +440,7 @@ class HomeView extends GetView<HomeController> {
                                   controller.categories.entries.toList();
 
                               return ListView.builder(
+                                physics: const BouncingScrollPhysics(),
                                 scrollDirection: Axis.horizontal,
                                 itemCount: categoryEntries.length,
                                 itemBuilder: (context, index) {

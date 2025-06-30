@@ -156,100 +156,66 @@ class _DetailProductViewState extends State<DetailProductView>
     final HomeController homeController = Get.put(HomeController());
 
     return Scaffold(
-      body: Stack(
-        children: [
-          // 🖼️ Image container with ripple background
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(40),
-              bottomRight: Radius.circular(40),
-            ),
-            child: SizedBox(
-              height: size.height * 0.5,
-              width: double.infinity,
-              child: Stack(
-                children: [
-                  AnimatedBuilder(
-                    animation: _rippleAnimation1,
-                    builder: (_, __) {
-                      return CustomPaint(
-                        painter: GradientRipplePainter(
-                          radius: _rippleAnimation1.value * size.width * 1.5,
-                        ),
-                        child: ClipPath(
-                          clipper: RippleRevealClipper(_rippleAnimation.value),
-                          child: Obx(
-                            () => Center(
-                              child: GestureDetector(
-                                onPanUpdate: controller.updateRotation,
-                                // onPanEnd: (_) => controller.resetRotation(),
-                                child: Transform(
-                                  alignment: Alignment.center,
-                                  transform: Matrix4.identity()
-                                    ..rotateX(controller.rotateX.value)
-                                    ..rotateY(controller.rotateY.value),
-                                  child: Image.network(
-                                    product.thumbnail,
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 300,
+            pinned: true,
+            flexibleSpace: FlexibleSpaceBar(
+              stretchModes: const [
+                StretchMode.blurBackground,
+                StretchMode.zoomBackground,
+              ],
+              background: AnimatedBuilder(
+                animation: _rippleAnimation1,
+                builder: (_, __) {
+                  return CustomPaint(
+                    painter: GradientRipplePainter(
+                      radius: _rippleAnimation1.value * size.width * 1.5,
+                    ),
+                    child: ClipPath(
+                      clipper: RippleRevealClipper(_rippleAnimation.value),
+                      child: Obx(
+                        () => Center(
+                          child: GestureDetector(
+                            onPanUpdate: controller.updateRotation,
+                            // onPanEnd: (_) => controller.resetRotation(),
+                            child: Transform(
+                              alignment: Alignment.center,
+                              transform: Matrix4.identity()
+                                ..rotateX(controller.rotateX.value)
+                                ..rotateY(controller.rotateY.value),
+                              child: Image.network(
+                                product.thumbnail,
+                                fit: BoxFit.contain,
                               ),
                             ),
                           ),
                         ),
-                      );
-                    },
-                  ),
-
-                  // 🌈 Glossy ripple behind image
-                  // AnimatedBuilder(
-                  //   animation: _rippleAnimation,
-                  //   builder: (_, __) {
-                  //     return CustomPaint(
-                  //       painter: GradientRipplePainter(
-                  //         radius: _rippleAnimation.value * size.width * 1.5,
-                  //       ),
-                  //       child: Hero(
-                  //         tag: product.id,
-                  //         child: Image.network(
-                  //           product.thumbnail,
-                  //           height: size.height * 0.5,
-                  //           width: double.infinity,
-                  //           fit: BoxFit.contain,
-                  //         ),
-                  //       ),
-                  //     );
-                  //   },
-                  // ),
-
-                  //🖼️ Fade-in image on top of ripple
-                ],
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
-
-          // 🔙 Back button
-          Positioned(
-            top: 20,
-            left: 16,
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: Get.back,
-            ),
-          ),
-
-          // 📄 Fade-in content
-          DraggableScrollableSheet(
-            initialChildSize: 0.55,
-            builder: (_, controller) => Container(
-              padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-              ),
-              child: ListView(
-                //crossAxisAlignment: CrossAxisAlignment.start,
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // fadeInUpItem(
+                  //   0,
+                  //   Text(
+                  //     product.title,
+                  //     style: const TextStyle(
+                  //       fontSize: 24,
+                  //       fontWeight: FontWeight.bold,
+                  //     ),
+                  //   ),
+                  // ),
                   Table(
                     columnWidths: const {
                       0: FlexColumnWidth(), // For the title (takes remaining space)
@@ -272,29 +238,35 @@ class _DetailProductViewState extends State<DetailProductView>
                             ),
                           ),
                           fadeInUpItem(
-                            1,
+                            0,
                             Obx(() {
                               final bool isLiked =
                                   homeController.isLiked(product.id).value;
 
-                              return IconButton(
-                                onPressed: () =>
-                                    homeController.toggleLike(product.id),
-                                icon: AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 300),
-                                  transitionBuilder: (child, animation) {
-                                    return ScaleTransition(
-                                      scale: animation,
-                                      child: child,
-                                    );
-                                  },
-                                  child: Icon(
-                                    isLiked
-                                        ? Icons.favorite
-                                        : Icons.favorite_border,
-                                    key: ValueKey<bool>(isLiked),
-                                    color: isLiked ? Colors.red : Colors.grey,
-                                    size: 26,
+                              return Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                ),
+                                child: IconButton(
+                                  onPressed: () =>
+                                      homeController.toggleLike(product.id),
+                                  icon: AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 300),
+                                    transitionBuilder: (child, animation) {
+                                      return ScaleTransition(
+                                        scale: animation,
+                                        child: child,
+                                      );
+                                    },
+                                    child: Icon(
+                                      isLiked
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
+                                      key: ValueKey<bool>(isLiked),
+                                      color: isLiked ? Colors.red : Colors.grey,
+                                    ),
                                   ),
                                 ),
                               );
@@ -304,250 +276,218 @@ class _DetailProductViewState extends State<DetailProductView>
                       ),
                     ],
                   ),
-                  // Row(
-                  //   children: [
-                  //     fadeInUpItem(
-                  //       0,
-                  //       Text(
-                  //         product.title,
-                  //         style: const TextStyle(
-                  //           fontSize: 24,
-                  //           fontWeight: FontWeight.bold,
-                  //         ),
-                  //       ),
-                  //     ),
-                  //     const Spacer(),
-                  //     Obx(() {
-                  //       final bool isLiked =
-                  //           homeController.isLiked(product.id).value;
 
-                  //       return IconButton(
-                  //         onPressed: () =>
-                  //             homeController.toggleLike(product.id),
-                  //         icon: AnimatedSwitcher(
-                  //           duration: const Duration(milliseconds: 300),
-                  //           transitionBuilder: (child, animation) {
-                  //             return ScaleTransition(
-                  //               scale: animation,
-                  //               child: child,
-                  //             );
-                  //           },
-                  //           child: Icon(
-                  //             isLiked ? Icons.favorite : Icons.favorite_border,
-                  //             key: ValueKey<bool>(
-                  //               isLiked,
-                  //             ), // important for animation to trigger
-                  //             color: isLiked ? Colors.red : Colors.grey,
-                  //             size: 26,
-                  //           ),
-                  //         ),
-                  //       );
-                  //     }),
-                  //   ],
-                  // ),
-
-                  const SizedBox(height: 10),
                   fadeInUpItem(
-                    3,
-                    Text(
-                      '\$${product.price}',
-                      style: const TextStyle(fontSize: 22, color: Colors.green),
+                    1,
+                    StarRating(
+                      rating: product.rating,
+                      size: 20,
+                      filledColor: Colors.orange,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
+                  fadeInUpItem(
+                    2,
+                    Text(
+                      '\u20B1 ${product.price.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        color: Colors.green,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  fadeInUpItem(
+                    3,
+                    const Text(
+                      'Description',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   fadeInUpItem(
                     4,
                     Text(
                       product.description,
-                      style: const TextStyle(fontSize: 16, color: Colors.grey),
+                      style: const TextStyle(fontSize: 16, height: 1.5),
                     ),
                   ),
-
-                  const SizedBox(height: 30),
-
+                  const SizedBox(height: 20), // Space for the button
                   fadeInUpItem(
                     5,
-                    SizedBox(
-                      height: 280,
-                      child: ReviewToggleWidget(reviews: product.reviews),
-                      // child: ListView.separated(
-                      //   shrinkWrap: true,
-                      //   padding: const EdgeInsets.all(16),
-                      //   itemCount: product.reviews.length,
-                      //   separatorBuilder: (_, __) => const SizedBox(height: 12),
-                      //   itemBuilder: (context, index) {
-                      //     final Review review = product.reviews[index];
-                      //     return Card(
-                      //       elevation: 2,
-                      //       shape: RoundedRectangleBorder(
-                      //         borderRadius: BorderRadius.circular(16),
-                      //       ),
-                      //       child: Padding(
-                      //         padding: const EdgeInsets.all(16),
-                      //         child: Column(
-                      //           crossAxisAlignment: CrossAxisAlignment.start,
-                      //           children: [
-                      //             // ⭐ Star rating row
-                      //             Row(
-                      //               children: List.generate(5, (i) {
-                      //                 return Icon(
-                      //                   i < review.rating
-                      //                       ? Icons.star
-                      //                       : Icons.star_border,
-                      //                   color: Colors.amber,
-                      //                   size: 20,
-                      //                 );
-                      //               }),
-                      //             ),
-                      //             const SizedBox(height: 8),
-
-                      //             // 💬 Comment
-                      //             Text(
-                      //               review.comment,
-                      //               style:
-                      //                   Theme.of(context).textTheme.bodyMedium,
-                      //             ),
-                      //             const SizedBox(height: 12),
-
-                      //             // 👤 Reviewer name and 📅 date
-                      //             Row(
-                      //               mainAxisAlignment:
-                      //                   MainAxisAlignment.spaceBetween,
-                      //               children: [
-                      //                 Text(
-                      //                   review.reviewerName,
-                      //                   style: Theme.of(context)
-                      //                       .textTheme
-                      //                       .titleSmall
-                      //                       ?.copyWith(
-                      //                         fontWeight: FontWeight.w600,
-                      //                       ),
-                      //                 ),
-                      //                 // Text(
-                      //                 //   DateFormat('MMM d, yyyy').format(review.date),
-                      //                 //   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      //                 //         color: Colors.grey,
-                      //                 //       ),
-                      //                 // ),
-                      //               ],
-                      //             ),
-
-                      //             // Optional 📧 Email
-                      //             Text(
-                      //               review.reviewerEmail,
-                      //               style: Theme.of(context)
-                      //                   .textTheme
-                      //                   .bodySmall
-                      //                   ?.copyWith(
-                      //                     color: Colors.grey.shade600,
-                      //                   ),
-                      //             ),
-                      //           ],
-                      //         ),
-                      //       ),
-                      //     );
-                      //   },
-                      // ),
+                    Obx(
+                      () => TextButton(
+                        onPressed: controller.toggleReviews,
+                        child: Text(
+                          controller.showReviews.value
+                              ? 'Hide Reviews'
+                              : 'Show Reviews',
+                        ),
+                      ),
                     ),
                   ),
+                  // ReviewToggleWidget(
+                  //   reviews: product.reviews,
+                  // ),
                 ],
               ),
-              // child: ListView(
-              //   controller: controller,
-              //   children: [
-              //     FadeTransition(
-              //       opacity: _fadeAnimations[0],
-              //       child: Text(
-              //         product.title,
-              //         style: const TextStyle(
-              //           fontSize: 24,
-              //           fontWeight: FontWeight.bold,
-              //         ),
-              //       ),
-              //     ),
-              //     const SizedBox(height: 10),
-              //     FadeTransition(
-              //       opacity: _fadeAnimations[1],
-              //       child: Text(
-              //         '\$${product.price}',
-              //         style: const TextStyle(
-              //           fontSize: 22,
-              //           color: Colors.green,
-              //         ),
-              //       ),
-              //     ),
-              //     const SizedBox(height: 20),
-              //     FadeTransition(
-              //       opacity: _fadeAnimations[2],
-              //       child: Text(
-              //         product.description,
-              //         style: const TextStyle(fontSize: 16, color: Colors.grey),
-              //       ),
-              //     ),
-              //     const SizedBox(height: 30),
-              //     FadeTransition(
-              //       opacity: _fadeAnimations[3],
-              //       child: ElevatedButton(
-              //         style: ElevatedButton.styleFrom(
-              //           backgroundColor: Colors.black,
-              //           shape: RoundedRectangleBorder(
-              //             borderRadius: BorderRadius.circular(16),
-              //           ),
-              //           padding: const EdgeInsets.symmetric(vertical: 16),
-              //         ),
-              //         onPressed: () {},
-              //         child: const Text(
-              //           'Add to Cart',
-              //           style: TextStyle(fontSize: 18),
-              //         ),
-              //       ),
-              //     ),
-              //   ],
-              // ),
+            ),
+          ),
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final Review review = product.reviews[index];
+                return Obx(
+                  () => Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: AnimatedCrossFade(
+                      duration: const Duration(milliseconds: 100),
+                      firstChild: const SizedBox.shrink(),
+                      secondChild: Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // ⭐ Star rating row
+                              Row(
+                                children: List.generate(5, (i) {
+                                  return Icon(
+                                    i < review.rating
+                                        ? Icons.star
+                                        : Icons.star_border,
+                                    color: Colors.amber,
+                                    size: 20,
+                                  );
+                                }),
+                              ),
+                              const SizedBox(height: 8),
+
+                              // 💬 Comment
+                              Text(
+                                review.comment,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                              const SizedBox(height: 12),
+
+                              // 👤 Reviewer name and 📅 date
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    review.reviewerName,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                  ),
+                                ],
+                              ),
+
+                              // Optional 📧 Email
+                              Text(
+                                review.reviewerEmail,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: Colors.grey.shade600,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ), // from previous answer
+                      crossFadeState: controller.showReviews.value
+                          ? CrossFadeState.showSecond
+                          : CrossFadeState.showFirst,
+                    ),
+                  ),
+                );
+              },
+              childCount: product.reviews.length,
             ),
           ),
         ],
       ),
       bottomNavigationBar: fadeInUpItem(
-        5,
-        Padding(
-          padding: const EdgeInsets.all(12),
-          child: SizedBox(
-            width: double.infinity,
-            height: 40,
-            child: Obx(
-              () => ElevatedButton(
-                onPressed: () {
-                  if (homeController.cartProducts.containsKey(product.id)) {
-                    return;
-                  }
-                  homeController.addToCart(product);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      homeController.cartProducts.containsKey(product.id)
-                          ? Colors.white
-                          : Theme.of(context).colorScheme.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+        6,
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Obx(
+            () => ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: Colors.black,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text(
-                  homeController.cartProducts.containsKey(product.id)
-                      ? 'Added'
-                      : 'Add to Cart',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color:
-                            homeController.cartProducts.containsKey(product.id)
-                                ? Colors.black
-                                : Colors.white,
-                      ),
-                ),
+              ),
+              onPressed: () {
+                if (homeController.cartProducts.containsKey(product.id)) {
+                  return;
+                }
+                homeController.addToCart(product);
+              },
+              child: Text(
+                homeController.cartProducts.containsKey(product.id)
+                    ? 'Added'
+                    : 'Add to Cart',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
               ),
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class StarRating extends StatelessWidget {
+  const StarRating({
+    required this.rating,
+    super.key,
+    this.size = 24,
+    this.filledColor = Colors.amber,
+    this.emptyColor = Colors.grey,
+  });
+  final double rating;
+  final double size;
+  final Color filledColor;
+  final Color emptyColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final double rounded = (rating * 2).round() / 2;
+    final int fullStars = rounded.floor();
+    final hasHalf = (rounded - fullStars) == 0.5;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(5, (index) {
+        if (index < fullStars) {
+          return Icon(Icons.star, color: filledColor, size: size);
+        } else if (index == fullStars && hasHalf) {
+          return Icon(Icons.star_half, color: filledColor, size: size);
+        } else {
+          return Icon(Icons.star_border, color: emptyColor, size: size);
+        }
+      }),
     );
   }
 }

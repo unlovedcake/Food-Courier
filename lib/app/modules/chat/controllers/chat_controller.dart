@@ -127,12 +127,12 @@ class ChatController extends GetxController {
         final lastSeenTime = DateTime.fromMillisecondsSinceEpoch(
           lastSeenMs is int ? lastSeenMs : int.parse(lastSeenMs.toString()),
         );
-        lastSeenText.value = _formatLastSeen(lastSeenTime);
+        lastSeenText.value = formatLastSeen(lastSeenTime);
       }
     });
   }
 
-  String _formatLastSeen(DateTime dt) {
+  String formatLastSeen(DateTime dt) {
     final Duration diff = DateTime.now().difference(dt);
     if (diff.inSeconds < 60) return 'just now';
     if (diff.inMinutes < 60) return '${diff.inMinutes} min ago';
@@ -488,7 +488,7 @@ class ChatController extends GetxController {
         int.parse(timestampMillis.toString()),
       );
 
-      otherLastSeen.value = _formatLastSeen(lastSeenTime);
+      otherLastSeen.value = formatLastSeen(lastSeenTime);
     });
   }
 

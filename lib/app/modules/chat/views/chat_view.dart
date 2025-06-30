@@ -3,6 +3,7 @@ import 'package:food_courier/app/data/models/message_model.dart';
 import 'package:food_courier/app/widgets/emoji_reaction_bar.dart';
 import 'package:food_courier/app/widgets/floating_emoji.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 import '../controllers/chat_controller.dart';
 
@@ -45,124 +46,188 @@ class ChatView extends GetView<ChatController> {
               ),
               Expanded(
                 child: Obx(
-                  () => ListView.builder(
-                    controller: controller.scrollController,
-                    itemCount: controller.messages.length,
-                    itemBuilder: (_, index) {
-                      if (index == controller.messages.length) {
-                        // 🔄 Loading spinner at the top
-                        return Obx(
-                          () => controller.isFetchingMoreObs.value
-                              ? const Padding(
-                                  padding: EdgeInsets.all(8),
-                                  child: Center(
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                )
-                              : const SizedBox(),
-                        );
-                      }
-                      final MessageModel msg = controller.messages[index];
-                      final isMe = msg.senderId == controller.currentUserId;
-
-                      return GestureDetector(
-                        onLongPress: () async {
-                          if (msg.senderId == controller.currentUserId) {
-                            await showModalBottomSheet(
-                              context: context,
-                              builder: (_) => Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  ListTile(
-                                    leading: const Icon(Icons.edit),
-                                    title: const Text('Edit'),
-                                    onTap: () {
-                                      Navigator.pop(context);
-                                      controller.messageText.value = msg.text;
-                                      controller.editingMessageId.value =
-                                          msg.id;
-                                    },
-                                  ),
-                                  ListTile(
-                                    leading: const Icon(Icons.delete),
-                                    title: const Text('Delete'),
-                                    onTap: () async {
-                                      Navigator.pop(context);
-                                      await controller.deleteMessage(msg.id);
-                                    },
-                                  ),
-                                ],
-                              ),
-                            );
-                          } else {
-                            // Show emoji reaction bar
-                            showModalBottomSheet(
-                              context: context,
-                              builder: (_) => EmojiReactionBar(
-                                onReactionSelected: (emoji) {
-                                  controller.floatingEmoji.value = emoji;
-                                  controller.toggleReaction(msg.id, emoji);
-                                  Future.delayed(
-                                    const Duration(milliseconds: 800),
-                                    () => controller.floatingEmoji.value = null,
-                                  );
-                                },
-                              ),
-                            );
-                          }
-                          // showModalBottomSheet(
-                          //   context: context,
-                          //   builder: (_) => EmojiReactionBar(
-                          //     onReactionSelected: (emoji) {
-                          //       controller.floatingEmoji.value = emoji;
-                          //       controller.toggleReaction(
-                          //         msg.id,
-                          //         emoji,
-                          //       );
-                          //       Future.delayed(
-                          //         const Duration(milliseconds: 800),
-                          //         () => controller.floatingEmoji.value = null,
-                          //       );
-                          //     },
-                          //   ),
-                          // );
-                        },
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
-                          child: Align(
-                            key: ValueKey(msg.timestamp.toIso8601String()),
-                            alignment: isMe
-                                ? Alignment.centerRight
-                                : Alignment.centerLeft,
-                            child: Container(
-                              margin: EdgeInsets.all(isMe ? 1 : 8),
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color:
-                                    isMe ? Colors.blue[100] : Colors.grey[300],
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  if (msg.imageUrl != null)
-                                    Image.network(msg.imageUrl!)
-                                  else
-                                    Text(msg.text),
-                                  if (msg.reactions.isNotEmpty)
-                                    Wrap(
-                                      children: msg.reactions.values
-                                          .toSet()
-                                          .map((e) => Text(' $e '))
-                                          .toList(),
+                  () => Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: ListView.builder(
+                      controller: controller.scrollController,
+                      itemCount: controller.messages.length,
+                      itemBuilder: (_, index) {
+                        if (index == controller.messages.length) {
+                          // 🔄 Loading spinner at the top
+                          return Obx(
+                            () => controller.isFetchingMoreObs.value
+                                ? const Padding(
+                                    padding: EdgeInsets.all(8),
+                                    child: Center(
+                                      child: CircularProgressIndicator(),
                                     ),
-                                ],
+                                  )
+                                : const SizedBox(),
+                          );
+                        }
+                        final MessageModel msg = controller.messages[index];
+                        final isMe = msg.senderId == controller.currentUserId;
+
+                        String dateString = msg.timestamp.toString();
+                        DateTime dateTime = DateTime.parse(dateString);
+                        int timestampMillis = dateTime.millisecondsSinceEpoch;
+
+                        final lastSeenTime =
+                            DateTime.fromMillisecondsSinceEpoch(
+                          int.parse(timestampMillis.toString()),
+                        );
+
+                        bool isLastOfGroup = true;
+                        if (index < controller.messages.length - 1) {
+                          final MessageModel nextMsg =
+                              controller.messages[index + 1];
+                          if (nextMsg.senderId == msg.senderId) {
+                            final String currentTime =
+                                DateFormat('hh:mm a').format(msg.timestamp);
+                            final String nextTime =
+                                DateFormat('hh:mm a').format(nextMsg.timestamp);
+
+                            print(currentTime);
+                            print(nextTime);
+
+                            if (currentTime == nextTime) {
+                              isLastOfGroup = false;
+                            }
+                          } else {
+                            isLastOfGroup = true;
+                          }
+                        }
+
+                        return GestureDetector(
+                          onLongPress: () async {
+                            if (msg.senderId == controller.currentUserId) {
+                              await showModalBottomSheet(
+                                context: context,
+                                builder: (_) => Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    ListTile(
+                                      leading: const Icon(Icons.edit),
+                                      title: const Text('Edit'),
+                                      onTap: () {
+                                        Navigator.pop(context);
+                                        controller.messageText.value = msg.text;
+                                        controller.editingMessageId.value =
+                                            msg.id;
+                                      },
+                                    ),
+                                    ListTile(
+                                      leading: const Icon(Icons.delete),
+                                      title: const Text('Delete'),
+                                      onTap: () async {
+                                        Navigator.pop(context);
+                                        await controller.deleteMessage(msg.id);
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              );
+                            } else {
+                              // Show emoji reaction bar
+                              showModalBottomSheet(
+                                context: context,
+                                builder: (_) => EmojiReactionBar(
+                                  onReactionSelected: (emoji) {
+                                    controller.floatingEmoji.value = emoji;
+                                    controller.toggleReaction(msg.id, emoji);
+                                    Future.delayed(
+                                      const Duration(milliseconds: 800),
+                                      () =>
+                                          controller.floatingEmoji.value = null,
+                                    );
+                                  },
+                                ),
+                              );
+                            }
+                            // showModalBottomSheet(
+                            //   context: context,
+                            //   builder: (_) => EmojiReactionBar(
+                            //     onReactionSelected: (emoji) {
+                            //       controller.floatingEmoji.value = emoji;
+                            //       controller.toggleReaction(
+                            //         msg.id,
+                            //         emoji,
+                            //       );
+                            //       Future.delayed(
+                            //         const Duration(milliseconds: 800),
+                            //         () => controller.floatingEmoji.value = null,
+                            //       );
+                            //     },
+                            //   ),
+                            // );
+                          },
+                          child: Column(
+                            children: [
+                              AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 300),
+                                child: Align(
+                                  key:
+                                      ValueKey(msg.timestamp.toIso8601String()),
+                                  alignment: isMe
+                                      ? Alignment.centerRight
+                                      : Alignment.centerLeft,
+                                  child: Container(
+                                    margin: EdgeInsets.all(isMe ? 1 : 1),
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: isMe
+                                          ? Colors.blue[100]
+                                          : Colors.grey[300],
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        if (msg.imageUrl != null)
+                                          Image.network(msg.imageUrl!)
+                                        else
+                                          Text(msg.text),
+                                        if (msg.reactions.isNotEmpty)
+                                          Wrap(
+                                            children: msg.reactions.values
+                                                .toSet()
+                                                .map((e) => Text(' $e '))
+                                                .toList(),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
+                              if (isLastOfGroup)
+                                Padding(
+                                  padding: const EdgeInsets.all(4),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Expanded(
+                                        child: Divider(
+                                          endIndent: 10,
+                                        ),
+                                      ),
+                                      Text(
+                                        controller.formatLastSeen(lastSeenTime),
+                                        style: const TextStyle(fontSize: 10),
+                                      ),
+                                      const Expanded(
+                                        child: Divider(
+                                          indent: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
