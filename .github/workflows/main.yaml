@@ -1,4 +1,4 @@
-name: Build & Distribute Android (Firebase)
+name: Build & Distribute Android (Firebase AppDistribution)
 
 on:
   push:
