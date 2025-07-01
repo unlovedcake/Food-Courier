@@ -61,7 +61,7 @@ class ChatController extends GetxController {
         await loadMoreMessages(scrollController: scrollController);
       }
     });
-    // _listenToMessages();
+    _listenToMessages();
     _listenToTyping();
     _listenToLastSeen();
     //_startLastSeenTimer();
@@ -158,6 +158,8 @@ class ChatController extends GetxController {
             .toList();
 
         messages.assignAll(msgs.reversed.toList());
+
+        print(messages[0].imageUrl);
         // ✅ Wait for layout then scroll
         Future.delayed(const Duration(milliseconds: 100), () {
           if (scrollController.hasClients) {
@@ -270,15 +272,15 @@ class ChatController extends GetxController {
       final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
           snapshot.docs;
 
-      for (final doc in docs) {
-        final msg = MessageModel.fromJson(doc.data());
-        if (msg.senderId != currentUserId && !msg.isRead) {
-          doc.reference.update({
-            'isRead': true,
-            'readAt': DateTime.now().toIso8601String(),
-          });
-        }
-      }
+      //for (final doc in docs) {
+      //   final msg = MessageModel.fromJson(doc.data());
+      //   if (msg.senderId != currentUserId && !msg.isRead) {
+      //     doc.reference.update({
+      //       'isRead': true,
+      //       'readAt': DateTime.now().toIso8601String(),
+      //     });
+      //   }
+      // }
 
       messages.value =
           docs.map((doc) => MessageModel.fromJson(doc.data())).toList();

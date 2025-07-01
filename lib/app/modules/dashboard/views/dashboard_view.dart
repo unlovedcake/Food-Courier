@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:food_courier/app/modules/chat/views/chat_view.dart';
+import 'package:food_courier/app/modules/dashboard/views/fade_indexed_stack.dart';
 import 'package:food_courier/app/modules/home/views/home_view.dart';
 import 'package:get/get.dart';
 
@@ -18,7 +19,20 @@ class DashboardView extends GetView<DashboardController> {
     ];
     return Obx(
       () => Scaffold(
-        body: pages[controller.currentIndex],
+        body: Obx(
+          () => FadeIndexedStack(
+            index: controller.currentIndex,
+            duration: const Duration(milliseconds: 400),
+            animationType: AnimationType.fadeScale,
+            disableAnimationForIndexes: const [0],
+
+            children: pages, // index 0 (e.g. home) has no animation
+          ),
+          // FadeIndexedStack(
+          //   index: controller.currentIndex,
+          //   children: pages,
+          // ),
+        ),
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: controller.currentIndex,
           onTap: controller.changeTab,

@@ -144,22 +144,6 @@ class ChatView extends GetView<ChatController> {
                                 ),
                               );
                             }
-                            // showModalBottomSheet(
-                            //   context: context,
-                            //   builder: (_) => EmojiReactionBar(
-                            //     onReactionSelected: (emoji) {
-                            //       controller.floatingEmoji.value = emoji;
-                            //       controller.toggleReaction(
-                            //         msg.id,
-                            //         emoji,
-                            //       );
-                            //       Future.delayed(
-                            //         const Duration(milliseconds: 800),
-                            //         () => controller.floatingEmoji.value = null,
-                            //       );
-                            //     },
-                            //   ),
-                            // );
                           },
                           child: Column(
                             children: [
@@ -184,17 +168,59 @@ class ChatView extends GetView<ChatController> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        if (msg.imageUrl != null)
+                                        if (msg.imageUrl != null ||
+                                            msg.imageUrl == '')
                                           Image.network(msg.imageUrl!)
                                         else
                                           Text(msg.text),
                                         if (msg.reactions.isNotEmpty)
-                                          Wrap(
-                                            children: msg.reactions.values
-                                                .toSet()
-                                                .map((e) => Text(' $e '))
-                                                .toList(),
-                                          ),
+                                          // Wrap(
+                                          //   children: msg.reactions.values
+                                          //       .toSet()
+                                          //       .map((e) {
+                                          //     final int count = msg
+                                          //         .reactions.values
+                                          //         .where((v) => v == e)
+                                          //         .length;
+                                          //     return Padding(
+                                          //       padding: const EdgeInsets.only(
+                                          //         top: 4,
+                                          //         right: 6,
+                                          //       ),
+                                          //       child: Container(
+                                          //         padding: const EdgeInsets
+                                          //             .symmetric(
+                                          //           horizontal: 6,
+                                          //           vertical: 2,
+                                          //         ),
+                                          //         decoration: BoxDecoration(
+                                          //           color: Colors.white,
+                                          //           borderRadius:
+                                          //               BorderRadius.circular(
+                                          //             12,
+                                          //           ),
+                                          //           border: Border.all(
+                                          //             color: Colors.grey,
+                                          //           ),
+                                          //         ),
+                                          //         child: Text(
+                                          //           '$e $count',
+                                          //           style: const TextStyle(
+                                          //             fontSize: 12,
+                                          //           ),
+                                          //         ),
+                                          //       ),
+                                          //     );
+                                          //   }).toList(),
+                                          // ),
+
+                                          if (msg.reactions.isNotEmpty)
+                                            Wrap(
+                                              children: msg.reactions.values
+                                                  .toSet()
+                                                  .map((e) => Text(' $e '))
+                                                  .toList(),
+                                            ),
                                       ],
                                     ),
                                   ),
@@ -206,19 +232,11 @@ class ChatView extends GetView<ChatController> {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      const Expanded(
-                                        child: Divider(
-                                          endIndent: 10,
-                                        ),
-                                      ),
                                       Text(
-                                        controller.formatLastSeen(lastSeenTime),
+                                        DateFormat('MMM d, y h:mm a')
+                                            .format(msg.timestamp),
+                                        //controller.formatLastSeen(lastSeenTime),
                                         style: const TextStyle(fontSize: 10),
-                                      ),
-                                      const Expanded(
-                                        child: Divider(
-                                          indent: 12,
-                                        ),
                                       ),
                                     ],
                                   ),

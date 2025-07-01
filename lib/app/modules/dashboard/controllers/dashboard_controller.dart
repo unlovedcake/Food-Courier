@@ -37,9 +37,6 @@ class DashboardController extends GetxController {
 
   Future<void> getLastMessage() async {
     geUserIdAndChatId();
-    print('chatId: $chatId');
-    print('currentUserId: $currentUserId');
-    print('otherUserId: $otherUserId');
 
     final CollectionReference<Map<String, dynamic>> messagesRef =
         FirebaseFirestore.instance
@@ -59,12 +56,8 @@ class DashboardController extends GetxController {
       messageId = data['id'] ?? '';
       final String messageText = data['text'] ?? '';
       isRead.value = data['isRead'] ?? false;
-
-      print('messageId: $messageId');
-      print('Last Message: $messageText');
-      print('Is Read: $isRead');
     } else {
-      print('No messages found.');
+      debugPrint('No messages found.');
     }
   }
 

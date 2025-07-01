@@ -47,4 +47,29 @@ Future<void> main() async {
       ),
     ),
   );
+  // DevicePreview(
+  //     builder: (context) {
+  //       return Obx(
+  //         () => GetMaterialApp(
+  //           useInheritedMediaQuery: true,
+  //           locale: DevicePreview.locale(context),
+  //           builder: DevicePreview.appBuilder,
+  //           debugShowCheckedModeBanner: false,
+  //           theme: themeController.isDarkMode.value
+  //               ? AppTheme.darkTheme
+  //               : AppTheme.lightTheme,
+
+  //           themeMode: themeController.isDarkMode.value
+  //               ? ThemeMode.dark
+  //               : ThemeMode.light,
+
+  //           //theme: ThemeData.light(useMaterial3: false),
+  //           //darkTheme: ThemeData.light(),
+  //           title: json['flavor'] ?? '',
+  //           initialRoute: AppPages.ONBOARDING,
+  //           getPages: AppPages.routes,
+  //         ),
+  //       );
+  //     },
+  //   ),
 }
