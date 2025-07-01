@@ -48,6 +48,7 @@ jobs:
             echo "${{ secrets.DEV_ENV_JSON_BASE64 }}" | base64 --decode > assets/env/development.json
           else
             echo "${{ secrets.PROD_ENV_JSON_BASE64 }}" | base64 --decode > assets/env/production.json
+          fi
 
       # Step 6: Run tests
       - name: 🧪 Run tests
