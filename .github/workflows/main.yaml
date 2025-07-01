@@ -39,33 +39,35 @@ jobs:
       - name: 📦 Install Flutter dependencies
         run: flutter pub get
 
-      # Step 5: Create prod.json from secret
+      # Step 5: Create environment config dynamically
       - name: 📁 Create environment config
         run: |
           mkdir -p assets/env
-          if [[ "${GITHUB_REF##*/}" == "development" ]]; then
+          BRANCH_NAME="${GITHUB_REF##*/}"
+          if [[ "$BRANCH_NAME" == "development" ]]; then
             echo "${{ secrets.DEV_ENV_JSON_BASE64 }}" | base64 --decode > assets/env/development.json
           else
             echo "${{ secrets.PROD_ENV_JSON_BASE64 }}" | base64 --decode > assets/env/production.json
 
-      - name: Run tests
+      # Step 6: Run tests
+      - name: 🧪 Run tests
         run: flutter test
 
-      # Step 6: Build APK with release flavor
+      # Step 7: Build APK
       - name: 🏗️ Build Android APK
         run: flutter build apk --release --dart-define=env=production
 
-      # Step 7: Install Firebase CLI
+      # Step 8: Install Firebase CLI
       - name: 🔧 Install Firebase CLI
         run: npm install -g firebase-tools
 
-      # Step 8: Authenticate with Firebase using Service Account
-      - name: 🔐 Authenticate with Firebase using Service Account
+      # Step 9: Authenticate with Firebase using Service Account
+      - name: 🔐 Authenticate with Firebase
         run: |
           echo "${{ secrets.GCLOUD_SERVICE_ACCOUNT_JSON }}" | base64 --decode > $HOME/firebase-service-account.json
           echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/firebase-service-account.json" >> $GITHUB_ENV
 
-      # Step 9: Upload to Firebase App Distribution
+      # Step 10: Upload APK to Firebase App Distribution
       - name: 🚀 Upload APK to Firebase
         run: |
           firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
