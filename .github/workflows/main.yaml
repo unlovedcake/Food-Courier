@@ -46,9 +46,17 @@ jobs:
           BRANCH_NAME="${GITHUB_REF##*/}"
           if [[ "$BRANCH_NAME" == "development" ]]; then
             echo "${{ secrets.DEV_ENV_JSON_BASE64 }}" | base64 --decode > assets/env/development.json
+            echo "ENV_NAME=development" >> $GITHUB_ENV
           else
             echo "${{ secrets.PROD_ENV_JSON_BASE64 }}" | base64 --decode > assets/env/production.json
+            echo "ENV_NAME=production" >> $GITHUB_ENV
           fi
+
+      - name: 🐛 Print current branch
+        run: echo "Branch: ${GITHUB_REF##*/}"  
+
+      - name: 🐛 Print current branch
+        run: echo "Current env is: ${{ env.ENV_NAME }}"  
 
       # Step 6: Run tests
       - name: 🧪 Run tests
@@ -56,7 +64,7 @@ jobs:
 
       # Step 7: Build APK
       - name: 🏗️ Build Android APK
-        run: flutter build apk --release --dart-define=env=production
+        run: flutter build apk --release --dart-define=env=${{ env.ENV_NAME }}
 
       # Step 8: Install Firebase CLI
       - name: 🔧 Install Firebase CLI
