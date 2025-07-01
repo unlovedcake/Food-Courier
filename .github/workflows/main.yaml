@@ -52,11 +52,10 @@ jobs:
             echo "ENV_NAME=production" >> $GITHUB_ENV
           fi
 
-      - name: 🐛 Print current branch
-        run: echo "Branch: ${GITHUB_REF##*/}"  
-
-      - name: 🐛 Print current branch
-        run: echo "Current env is: ${{ env.ENV_NAME }}"  
+      - name: 🐛 Print current branch and environment
+        run: |
+          echo "Branch Name: ${GITHUB_REF##*/}"
+          echo "ENV_NAME: ${{ env.ENV_NAME }}"
 
       # Step 6: Run tests
       - name: 🧪 Run tests
