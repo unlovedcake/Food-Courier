@@ -366,14 +366,14 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
 
         if (productList.isEmpty) {
           debugPrint('Empty products ');
+          // Get.snackbar(
+          //   backgroundColor: Colors.black,
+          //   colorText: Colors.white,
+          //   'Empty',
+          //   'No more products available.',
+          //   snackPosition: SnackPosition.BOTTOM,
+          // );
           hasMoreData.value = false;
-          Get.snackbar(
-            backgroundColor: Colors.black,
-            colorText: Colors.white,
-            'Empty',
-            'No more products available.',
-            snackPosition: SnackPosition.BOTTOM,
-          );
         }
 
         products.addAll(productList);
