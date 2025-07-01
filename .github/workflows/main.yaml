@@ -17,12 +17,6 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - name: 🚫 Skip workflow if not on master
-        if: github.ref != 'refs/heads/master'
-        run: |
-          echo "This workflow only runs for the master branch."
-          exit 0
-
       # Step 1: Checkout code
       - name: 📥 Checkout source
         uses: actions/checkout@v3
@@ -73,16 +67,19 @@ jobs:
 
       # Step 8: Install Firebase CLI
       - name: 🔧 Install Firebase CLI
+        if: github.ref == 'refs/heads/master'
         run: npm install -g firebase-tools
 
       # Step 9: Authenticate with Firebase using Service Account
       - name: 🔐 Authenticate with Firebase
+        if: github.ref == 'refs/heads/master'
         run: |
           echo "${{ secrets.GCLOUD_SERVICE_ACCOUNT_JSON }}" | base64 --decode > $HOME/firebase-service-account.json
           echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/firebase-service-account.json" >> $GITHUB_ENV
 
       # Step 10: Upload APK to Firebase App Distribution
       - name: 🚀 Upload APK to Firebase
+        if: github.ref == 'refs/heads/master'
         run: |
           firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
             --app "${{ secrets.FIREBASE_APP_ID }}" \
