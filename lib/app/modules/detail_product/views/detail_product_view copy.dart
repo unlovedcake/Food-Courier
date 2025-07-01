@@ -350,8 +350,11 @@ class _DetailProductViewState extends State<DetailProductView>
                   fadeInUpItem(
                     3,
                     Text(
-                      '\$${product.price}',
-                      style: const TextStyle(fontSize: 22, color: Colors.green),
+                      '₱${product.price}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.green,
+                            fontSize: 22,
+                          ),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -536,7 +539,7 @@ class _DetailProductViewState extends State<DetailProductView>
                   homeController.cartProducts.containsKey(product.id)
                       ? 'Added'
                       : 'Add to Cart',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color:
                             homeController.cartProducts.containsKey(product.id)
                                 ? Colors.black

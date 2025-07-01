@@ -289,12 +289,11 @@ class _DetailProductViewState extends State<DetailProductView>
                   fadeInUpItem(
                     2,
                     Text(
-                      '\u20B1 ${product.price.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        color: Colors.green,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      '₱ ${product.price}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.green,
+                            fontSize: 22,
+                          ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -321,6 +320,9 @@ class _DetailProductViewState extends State<DetailProductView>
                     5,
                     Obx(
                       () => TextButton(
+                        style: ButtonStyle(
+                          foregroundColor: WidgetStateProperty.all(Colors.blue),
+                        ),
                         onPressed: controller.toggleReviews,
                         child: Text(
                           controller.showReviews.value
@@ -428,7 +430,7 @@ class _DetailProductViewState extends State<DetailProductView>
           child: Obx(
             () => ElevatedButton(
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: 22),
                 backgroundColor: Colors.black,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -444,7 +446,7 @@ class _DetailProductViewState extends State<DetailProductView>
                 homeController.cartProducts.containsKey(product.id)
                     ? 'Added'
                     : 'Add to Cart',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Colors.white,
                       fontSize: 18,
                       fontWeight: FontWeight.w500,

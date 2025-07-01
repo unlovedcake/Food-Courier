@@ -17,6 +17,12 @@ jobs:
     runs-on: macos-latest
 
     steps:
+      - name: 🚫 Skip workflow if not on master
+        if: github.ref != 'refs/heads/master'
+        run: |
+          echo "This workflow only runs for the master branch."
+          exit 0
+
       # Step 1: Checkout code
       - name: 📥 Checkout source
         uses: actions/checkout@v3

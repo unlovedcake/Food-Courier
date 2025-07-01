@@ -14,6 +14,10 @@ import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
 import '../modules/onboarding/bindings/onboarding_binding.dart';
 import '../modules/onboarding/views/onboarding_view.dart';
+import '../modules/profile/bindings/profile_binding.dart';
+import '../modules/profile/views/profile_view.dart';
+import '../modules/transaction/bindings/transaction_binding.dart';
+import '../modules/transaction/views/transaction_view.dart';
 import '../modules/webview/bindings/webview_binding.dart';
 import '../modules/webview/views/webview_view.dart';
 
@@ -30,6 +34,7 @@ class AppPages {
   static const WEBVIEW = Routes.WEBVIEW;
   static const CHAT = Routes.CHAT;
   static const AUTH = Routes.AUTH;
+  static const TRANSACTION = Routes.TRANSACTION;
 
   static final routes = [
     GetPage(
@@ -71,6 +76,16 @@ class AppPages {
       name: _Paths.AUTH,
       page: () => const AuthView(),
       binding: AuthBinding(),
+    ),
+    GetPage(
+      name: _Paths.TRANSACTION,
+      page: () => const TransactionView(),
+      binding: TransactionBinding(),
+    ),
+    GetPage(
+      name: _Paths.PROFILE,
+      page: () => const ProfileView(),
+      binding: ProfileBinding(),
     ),
   ];
 }

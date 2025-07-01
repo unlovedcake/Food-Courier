@@ -228,7 +228,7 @@ class ChatView extends GetView<ChatController> {
                               ),
                               if (isLastOfGroup)
                                 Padding(
-                                  padding: const EdgeInsets.all(4),
+                                  padding: const EdgeInsets.all(12),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [

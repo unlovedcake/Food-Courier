@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:food_courier/app/modules/chat/views/chat_view.dart';
 import 'package:food_courier/app/modules/dashboard/views/fade_indexed_stack.dart';
 import 'package:food_courier/app/modules/home/views/home_view.dart';
+import 'package:food_courier/app/modules/profile/views/profile_view.dart';
+import 'package:food_courier/app/modules/transaction/views/transaction_view.dart';
 import 'package:get/get.dart';
 
 import '../controllers/dashboard_controller.dart';
@@ -13,9 +15,9 @@ class DashboardView extends GetView<DashboardController> {
     final List<Widget> pages = [
       const HomeView(),
       const ChatView(),
-      const Center(child: Text('History')),
+      const TransactionView(),
       const Center(child: Text('Favorites')),
-      const Center(child: Text('Profile')),
+      const ProfileView(),
     ];
     return Obx(
       () => Scaffold(
@@ -37,7 +39,7 @@ class DashboardView extends GetView<DashboardController> {
           currentIndex: controller.currentIndex,
           onTap: controller.changeTab,
           type: BottomNavigationBarType.fixed,
-          selectedItemColor: Colors.blue,
+          selectedItemColor: Colors.black,
           unselectedItemColor: Colors.grey,
           items: [
             const BottomNavigationBarItem(
@@ -95,7 +97,7 @@ class DashboardView extends GetView<DashboardController> {
             // ),
             const BottomNavigationBarItem(
               icon: Icon(Icons.history),
-              label: 'History',
+              label: 'Transaction',
             ),
             const BottomNavigationBarItem(
               icon: Icon(Icons.favorite),
