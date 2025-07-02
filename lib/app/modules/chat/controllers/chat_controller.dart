@@ -6,7 +6,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:food_courier/app/core/helper_functions.dart';
+import 'package:food_courier/app/core/helper/helper_functions.dart'
+    show generateChatId, otherUserId;
 import 'package:food_courier/app/core/presence_service.dart';
 import 'package:food_courier/app/data/models/message_model.dart';
 import 'package:get/get.dart';

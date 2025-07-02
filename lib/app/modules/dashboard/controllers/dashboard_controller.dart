@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:food_courier/app/core/helper_functions.dart';
+import 'package:food_courier/app/core/helper/helper_functions.dart'
+    show generateChatId, otherUserId;
 import 'package:get/get.dart';
 
 class DashboardController extends GetxController {

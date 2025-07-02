@@ -403,8 +403,8 @@ class CartView extends GetView<CartController> {
                       ),
                       onPressed: homeController.cartProducts.isEmpty
                           ? null
-                          : () {
-                              controller.animateItems();
+                          : () async {
+                              await controller.saveCartItems();
                               //controller.createCheckoutSession();
                             },
                       child: const Text(

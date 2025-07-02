@@ -12,11 +12,10 @@ class TransactionView extends GetView<TransactionController> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 2,
         title: const Text(
-          'My Transactions',
-          style: TextStyle(color: Colors.black),
+          'Transactions',
         ),
       ),
       body: Obx(() {
@@ -47,25 +46,31 @@ class TransactionView extends GetView<TransactionController> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    OrderTrackingWidget(
+                      currentStep: tx.currentStep.isEmpty
+                          ? -1
+                          : tx.currentStep.length - 1,
+                    ),
+
                     /// 🧾 Summary
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Total: ₱${tx.totalPay}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                    RichText(
+                      text: TextSpan(
+                        style: const TextStyle(fontSize: 16), // default style
+                        children: [
+                          const TextSpan(
+                            text: 'Order ID: ',
+                            style: TextStyle(color: Colors.grey),
                           ),
-                        ),
-                        Text(
-                          'Items: ${tx.totalItems}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade600,
+                          TextSpan(
+                            text: tx.orderId,
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 12,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 12),
 
@@ -122,15 +127,48 @@ class TransactionView extends GetView<TransactionController> {
 
                     const SizedBox(height: 8),
 
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Text(
-                        _formatDate(tx.createdAt),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
+                    // Align(
+                    //   alignment: Alignment.centerRight,
+                    //   child: Text(
+                    //     _formatDate(tx.createdAt),
+                    //     style: TextStyle(
+                    //       fontSize: 12,
+                    //       color: Colors.grey.shade600,
+                    //     ),
+                    //   ),
+                    // ),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        RichText(
+                          text: TextSpan(
+                            style:
+                                const TextStyle(fontSize: 16), // default style
+                            children: [
+                              const TextSpan(
+                                text: 'Total: ',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                              TextSpan(
+                                text: '₱${tx.totalPay}',
+                                style: const TextStyle(
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                        Text(
+                          tx.createdAt.toString(),
+                          //_formatDate(tx.createdAt),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -146,5 +184,82 @@ class TransactionView extends GetView<TransactionController> {
     final DateTime? dt = DateTime.tryParse(isoDate);
     if (dt == null) return '';
     return '${dt.month}/${dt.day}/${dt.year} ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
+  }
+}
+
+class OrderTrackingWidget extends StatelessWidget {
+  const OrderTrackingWidget({required this.currentStep, super.key});
+
+  final int currentStep; // 0: Confirmed, 1: Shipped, 2: Delivered
+
+  final List<String> steps = const ['Confirmed', 'Shipped', 'Delivered'];
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Circles and lines
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(steps.length * 2 - 1, (index) {
+            if (index.isEven) {
+              final int stepIndex = index ~/ 2;
+              final bool isCompleted = stepIndex < currentStep;
+              final bool isCurrent = stepIndex == currentStep;
+
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInOut,
+                padding: isCurrent ? const EdgeInsets.all(4) : EdgeInsets.zero,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: isCurrent
+                      ? Border.all(color: Colors.green, width: 2)
+                      : null,
+                ),
+                child: CircleAvatar(
+                  radius: 14,
+                  backgroundColor: isCompleted || isCurrent
+                      ? Colors.green
+                      : Colors.grey.shade300,
+                  child: const Icon(
+                    Icons.check,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
+              );
+            } else {
+              final bool isPassed = index ~/ 2 < currentStep;
+              return Expanded(
+                child: Container(
+                  height: 4,
+                  color: isPassed ? Colors.green : Colors.grey.shade300,
+                ),
+              );
+            }
+          }),
+        ),
+        const SizedBox(height: 8),
+        // Labels
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(steps.length, (index) {
+            return Text(
+              steps[index],
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight:
+                    index <= currentStep ? FontWeight.bold : FontWeight.normal,
+                color: index <= currentStep ? Colors.black : Colors.grey,
+              ),
+            );
+          }),
+        ),
+        const SizedBox(
+          height: 20,
+        ),
+      ],
+    );
   }
 }

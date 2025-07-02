@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:food_courier/app/modules/chat/views/chat_view.dart';
 import 'package:food_courier/app/modules/dashboard/views/fade_indexed_stack.dart';
+import 'package:food_courier/app/modules/favorite/views/favorite_view.dart';
 import 'package:food_courier/app/modules/home/views/home_view.dart';
 import 'package:food_courier/app/modules/profile/views/profile_view.dart';
 import 'package:food_courier/app/modules/transaction/views/transaction_view.dart';
@@ -16,7 +17,7 @@ class DashboardView extends GetView<DashboardController> {
       const HomeView(),
       const ChatView(),
       const TransactionView(),
-      const Center(child: Text('Favorites')),
+      const FavoriteView(),
       const ProfileView(),
     ];
     return Obx(

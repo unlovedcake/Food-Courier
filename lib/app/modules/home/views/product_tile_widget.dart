@@ -161,8 +161,13 @@ class _ProductTileWidgetState extends State<ProductTileWidget>
                               controller.isLiked(widget.product.id).value;
 
                           return IconButton(
-                            onPressed: () =>
-                                controller.toggleLike(widget.product.id),
+                            onPressed: () {
+                              controller
+                                  .addFavoriteProductToCollectionUsersWithSubCollectionFavorites(
+                                widget.product,
+                              );
+                              //controller.toggleLike(widget.product.id);
+                            },
                             icon: AnimatedSwitcher(
                               duration: const Duration(milliseconds: 300),
                               transitionBuilder: (child, animation) {

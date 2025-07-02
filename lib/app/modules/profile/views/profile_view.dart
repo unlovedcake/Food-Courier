@@ -13,8 +13,10 @@ class ProfileView extends GetView<ProfileController> {
     if (user == null) throw Exception('User not logged in');
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ProfileView'),
+        title: const Text('Profile'),
+        backgroundColor: Theme.of(context).colorScheme.surface,
         centerTitle: true,
+        elevation: 2,
       ),
       body: Center(
         child: Column(

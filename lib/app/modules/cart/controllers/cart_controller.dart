@@ -1,8 +1,10 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:food_courier/app/data/models/product_model.dart';
+import 'package:food_courier/app/data/models/transaction_model.dart';
 import 'package:food_courier/app/modules/home/controllers/home_controller.dart';
 import 'package:food_courier/app/routes/app_pages.dart';
 import 'package:get/get.dart';
@@ -175,15 +177,8 @@ class CartController extends GetxController with GetTickerProviderStateMixin {
     }
   }
 
-  Future<void> animateItems() async {
-    // isVisibleList.assignAll(
-    //   List.generate(homeController.cartProducts.length, (_) => false),
-    // );
-    // for (int i = 0; i < homeController.cartProducts.length; i++) {
-    //   await Future.delayed(const Duration(milliseconds: 500));
-    //   isVisibleList[i] = true;
-    // }
-
+  Future<void> saveCartItems() async {
+    final User? user = FirebaseAuth.instance.currentUser;
     List<Map<String, dynamic>> selectedProductData =
         homeController.cartProducts.values.map((product) {
       return {
@@ -196,32 +191,45 @@ class CartController extends GetxController with GetTickerProviderStateMixin {
       };
     }).toList();
 
-    final Map<String, dynamic> finalPayload = {
-      'customerName': '',
-      'email': '',
-      'products': selectedProductData,
-      'totalItems': homeController.cartProducts.length,
-      'totalPay': totalPay.toStringAsFixed(2),
-      'createdAt': DateTime.now().toIso8601String(),
-    };
+    final finalPayload = TransactionModel(
+      orderId: '',
+      customerName: user?.displayName ?? '',
+      email: user?.email ?? '',
+      products: selectedProductData.map(ProductItem.fromJson).toList(),
+      totalItems: homeController.cartProducts.length,
+      totalPay: totalPay.toStringAsFixed(2),
+      createdAt: DateTime.now(),
+      currentStep: [],
+    );
 
-    finalPayload.forEach((key, value) {
-      print('$key: $value');
-    });
+    // final Map<String, dynamic> finalPayload = {
+    //   'orderId': '',
+    //   'customerName': '',
+    //   'email': '',
+    //   'products': selectedProductData,
+    //   'totalItems': homeController.cartProducts.length,
+    //   'totalPay': totalPay.toStringAsFixed(2),
+    //   'createdAt': DateTime.now().toIso8601String(),
+    // };
+
+    // finalPayload.forEach((key, value) {
+    //   print('$key: $value');
+    // });
 
     await saveTransactionToFirestore(finalPayload);
   }
 
   Future<void> saveTransactionToFirestore(
-    Map<String, dynamic> finalPayload,
+    TransactionModel finalPayload,
   ) async {
     try {
       // Get a reference to the collection
-      CollectionReference transactions =
-          FirebaseFirestore.instance.collection('transactions');
 
-      // Add the transaction
-      await transactions.add(finalPayload);
+      final DocumentReference<Map<String, dynamic>> docRef =
+          FirebaseFirestore.instance.collection('transactions').doc();
+      finalPayload.orderId = docRef.id;
+
+      await docRef.set(finalPayload.toJson());
 
       print('Transaction saved successfully!');
     } catch (e) {

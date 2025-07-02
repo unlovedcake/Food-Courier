@@ -27,6 +27,7 @@ class HomeView extends GetView<HomeController> {
           slivers: [
             SliverAppBar(
               backgroundColor: Theme.of(context).colorScheme.surface,
+              elevation: 2,
               automaticallyImplyLeading: false,
               floating: true,
               pinned: true,
@@ -272,7 +273,7 @@ class HomeView extends GetView<HomeController> {
             SliverPersistentHeader(
               pinned: true,
               delegate: MyCustomHeaderDelegate(
-                height: controller.showScrollToTop.value ? 70 : 90,
+                height: controller.showScrollToTop.value ? 60 : 80,
                 child: Obx(() {
                   final bool shrink = controller.showScrollToTop.value;
 

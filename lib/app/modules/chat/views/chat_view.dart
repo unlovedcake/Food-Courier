@@ -14,6 +14,9 @@ class ChatView extends GetView<ChatController> {
     final ChatController controller = Get.put(ChatController());
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        elevation: 2,
         title: Obx(
           () => Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -24,7 +27,7 @@ class ChatView extends GetView<ChatController> {
               else
                 Text(
                   'Last seen: ${controller.lastSeenText.value}',
-                  style: const TextStyle(fontSize: 12),
+                  style: const TextStyle(fontSize: 12, color: Colors.white),
                 ),
             ],
           ),

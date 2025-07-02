@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:food_courier/app/data/models/product_model.dart';
 import 'package:get/get.dart';
@@ -173,13 +175,113 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   final RxInt currentPage = 0.obs;
 
   Future<void> toggleLike(int productId) async {
+    //await toggleFavoriteProduct(productId: productId);
     if (likedProductIds.contains(productId)) {
       likedProductIds.remove(productId);
     } else {
       likedProductIds.add(productId);
     }
-    await _saveToPrefs();
+    // await _saveToPrefs();
   }
+
+  Future<void> fetchFavoriteProductIds() async {
+    final User? user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw Exception('User not logged in');
+
+    final QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
+        .instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('favorites')
+        .get();
+
+    final List<int> ids =
+        snapshot.docs.map((doc) => doc.data()['id'] as int).toList();
+
+    likedProductIds.value = Set<int>.from(ids ?? []);
+  }
+
+  Future<void> addFavoriteProductToCollectionUsersWithSubCollectionFavorites(
+    ProductModel product,
+  ) async {
+    await toggleLike(product.id);
+    final User? user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw Exception('User not logged in');
+
+    final productId = product.id.toString(); // ensure string key
+    final DocumentReference<Map<String, dynamic>> docRef = FirebaseFirestore
+        .instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('favorites')
+        .doc(productId);
+
+    try {
+      final DocumentSnapshot<Map<String, dynamic>> docSnapshot =
+          await docRef.get();
+
+      if (docSnapshot.exists) {
+        // 🔴 REMOVE favorite
+        await docRef.delete();
+        debugPrint('❌ Removed from favorites: $productId');
+      } else {
+        // ✅ ADD favorite
+        await docRef.set({
+          'id': product.id,
+          'title': product.title,
+          'description': product.description,
+          'price': product.price,
+          'category': product.category,
+          'thumbnail': product.thumbnail,
+          'stock': product.stock,
+          'rating': product.rating,
+          'createdAt': FieldValue.serverTimestamp(), // optional
+        });
+        debugPrint('✅ Added to favorites: $productId');
+      }
+    } catch (e) {
+      debugPrint('🔥 toggleFavoriteProduct error: $e');
+    }
+  }
+
+  // Future<void> toggleFavoriteProduct({int productId = 0}) async {
+  //   final User? user = FirebaseAuth.instance.currentUser;
+  //   if (user == null) {
+  //     throw Exception('User not logged in');
+  //   }
+
+  //   final DocumentReference<Map<String, dynamic>> docRef =
+  //       FirebaseFirestore.instance.collection('users').doc(user.uid).collection('favorites').doc();
+
+  //   try {
+  //     final DocumentSnapshot<Map<String, dynamic>> docSnapshot =
+  //         await docRef.get();
+  //     final Map<String, dynamic>? data = docSnapshot.data();
+
+  //     if (data == null) {
+  //       throw Exception('User data not found');
+  //     }
+  //     likedProductIds.value = Set<int>.from(data['favoriteProducts'] ?? []);
+
+  //     if (productId == 0) return;
+
+  //     if (likedProductIds.contains(productId)) {
+  //       // REMOVE product
+  //       await docRef.update({
+  //         'favoriteProducts': FieldValue.arrayRemove([productId]),
+  //       });
+  //       debugPrint('❌ Removed product $productId from favorites');
+  //     } else {
+  //       // ADD product
+  //       await docRef.update({
+  //         'favoriteProducts': FieldValue.arrayUnion([productId]),
+  //       });
+  //       debugPrint('✅ Added product $productId to favorites');
+  //     }
+  //   } catch (e) {
+  //     debugPrint('❌ toggleFavoriteProduct error: $e');
+  //   }
+  // }
 
   Future<void> _saveToPrefs() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -261,6 +363,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   Future<void> loadAllData() async {
     await Future.wait([
       fetchProducts(),
+      fetchFavoriteProductIds(),
     ]);
   }
 

@@ -1,14 +1,20 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class TransactionModel {
   TransactionModel({
+    required this.orderId,
     required this.customerName,
     required this.email,
     required this.products,
     required this.totalItems,
     required this.totalPay,
     required this.createdAt,
+    required this.currentStep,
   });
+
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
     return TransactionModel(
+      orderId: json['orderId'] ?? '',
       customerName: json['customerName'] ?? '',
       email: json['email'] ?? '',
       products: (json['products'] as List)
@@ -16,24 +22,30 @@ class TransactionModel {
           .toList(),
       totalItems: json['totalItems'] ?? 0,
       totalPay: json['totalPay'] ?? '0.00',
-      createdAt: json['createdAt'] ?? '',
+      createdAt: (json['createdAt'] as Timestamp).toDate(),
+      currentStep: List<String>.from(json['currentStep'] ?? []),
     );
   }
+
+  String orderId;
   final String customerName;
   final String email;
   final List<ProductItem> products;
   final int totalItems;
   final String totalPay;
-  final String createdAt;
+  final DateTime createdAt;
+  final List<String> currentStep; // 👈 New property
 
   Map<String, dynamic> toJson() {
     return {
+      'orderId': orderId,
       'customerName': customerName,
       'email': email,
       'products': products.map((e) => e.toJson()).toList(),
       'totalItems': totalItems,
       'totalPay': totalPay,
       'createdAt': createdAt,
+      'currentStep': currentStep, // 👈 Include in JSON
     };
   }
 }

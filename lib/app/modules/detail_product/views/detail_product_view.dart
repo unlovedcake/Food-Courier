@@ -250,8 +250,10 @@ class _DetailProductViewState extends State<DetailProductView>
                                   color: Colors.white.withValues(alpha: 0.9),
                                 ),
                                 child: IconButton(
-                                  onPressed: () =>
-                                      homeController.toggleLike(product.id),
+                                  onPressed: () => homeController
+                                      .addFavoriteProductToCollectionUsersWithSubCollectionFavorites(
+                                    product,
+                                  ),
                                   icon: AnimatedSwitcher(
                                     duration: const Duration(milliseconds: 300),
                                     transitionBuilder: (child, animation) {
