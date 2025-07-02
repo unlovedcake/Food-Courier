@@ -28,10 +28,10 @@ class HomeView extends GetView<HomeController> {
             SliverAppBar(
               backgroundColor: Theme.of(context).colorScheme.surface,
               elevation: 2,
+              leadingWidth: 100,
               automaticallyImplyLeading: false,
               floating: true,
               pinned: true,
-              collapsedHeight: 80,
               expandedHeight: 180,
               flexibleSpace: FlexibleSpaceBar(
                 stretchModes: const [StretchMode.blurBackground],
@@ -95,8 +95,8 @@ class HomeView extends GetView<HomeController> {
 
                     // Text at Top-Left
                     Positioned(
-                      top: 30,
-                      left: 20,
+                      top: 50,
+                      left: 30,
                       child: RichText(
                         text: TextSpan(
                           style:
@@ -128,13 +128,17 @@ class HomeView extends GetView<HomeController> {
                     horizontal: 8,
                   ),
                   child: AnimatedTextReveal(
-                    text: 'Click & Get',
+                    duration: const Duration(milliseconds: 450),
+                    text: 'Shop Swift',
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                           fontSize: 18,
-                          color: Colors.red,
+                          color: Colors.orange,
                         ),
                   ),
                 ),
+              ),
+              leading: Image.asset(
+                'assets/images/app_logo.png',
               ),
               actions: [
                 Obx(
@@ -345,7 +349,7 @@ class HomeView extends GetView<HomeController> {
                                               color: controller.selectedCategory
                                                           .value ==
                                                       categoryName
-                                                  ? Colors.deepOrange
+                                                  ? Colors.orange
                                                   : Colors.grey[300],
                                               borderRadius:
                                                   BorderRadius.circular(20),
@@ -527,7 +531,7 @@ class _AnimatedTextRevealState extends State<AnimatedTextReveal>
       vsync: this,
       duration:
           Duration(milliseconds: widget.duration.inMilliseconds * totalChars),
-    )..forward();
+    )..repeat();
   }
 
   @override

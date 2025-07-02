@@ -29,7 +29,7 @@ class _DetailProductViewState extends State<DetailProductView>
 
     _rippleController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2500),
+      duration: const Duration(milliseconds: 3000),
     );
 
     _rippleAnimation1 = Tween<double>(begin: 0, end: 1).animate(
@@ -160,6 +160,7 @@ class _DetailProductViewState extends State<DetailProductView>
         physics: const BouncingScrollPhysics(),
         slivers: [
           SliverAppBar(
+            backgroundColor: Colors.white24,
             expandedHeight: 300,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
@@ -643,12 +644,12 @@ class GradientRipplePainter extends CustomPainter {
 
     // 🎨 Radial gradient starting from bottom-left and expanding
     final gradient = RadialGradient(
-      center: const Alignment(-1, 1), // bottom-left in alignment space
+      center: Alignment.bottomLeft, // bottom-left in alignment space
       radius: 2, // wide enough to reach top-right
       colors: [
         Colors.white.withValues(alpha: 0.4),
         Colors.grey.shade300.withValues(alpha: 0.2),
-        Colors.blue.shade300,
+        Colors.black,
       ],
       stops: const [0.0, 0.4, 1.0],
     );

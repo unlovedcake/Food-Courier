@@ -26,7 +26,7 @@ class AuthController extends GetxController {
   final passwordController = TextEditingController();
 
   final isLoginPage = true.obs;
-  final isPasswordVisible = false.obs;
+  final isPasswordVisible = true.obs;
 
   // @override
   // void onReady() {

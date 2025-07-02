@@ -278,69 +278,76 @@ class OnboardingView extends GetView<OnboardingController> {
       ),
     ];
 
-    Widget buildDotIndicator(int index) {
-      return Obx(() {
-        final isActive = controller.pageIndex.value == index;
-        return TweenAnimationBuilder<double>(
-          tween: Tween<double>(
-            begin: 1,
-            end: isActive ? 1.5 : 1.0,
-          ),
-          duration: const Duration(milliseconds: 400),
-          curve: Curves.bounceOut, // 👈 gives it a bouncing motion
-          builder: (context, value, child) {
-            return Transform.scale(
-              scale: value,
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 6),
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: isActive ? Colors.deepOrange : Colors.grey[400],
-                  shape: BoxShape.circle,
-                ),
-              ),
-            );
-          },
-        );
-      });
-    }
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.pageIndex.value = 0;
     });
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color.fromARGB(255, 233, 180, 5),
-              Color(0xFFE0F7FA), // light cyan
-            ],
+      body: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: Get.height * 0.20,
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(30),
+                  bottomRight: Radius.circular(30),
+                ),
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    Colors.white,
+                    Colors.orange,
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
-        child: Stack(
-          children: [
-            PageView.builder(
-              controller: controller.pageController,
-              itemCount: pages.length,
-              onPageChanged: controller.changePage,
-              itemBuilder: (_, index) {
-                final OnboardingModel item = pages[index];
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: Get.height * 0.25,
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(30),
+                  topRight: Radius.circular(30),
+                ),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.white,
+                    Colors.orange,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          PageView.builder(
+            controller: controller.pageController,
+            itemCount: pages.length,
+            onPageChanged: controller.changePage,
+            itemBuilder: (_, index) {
+              final OnboardingModel item = pages[index];
 
-                return Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Obx(() {
-                        bool isActive = controller.pageIndex.value == index;
+              return Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Obx(() {
+                      bool isActive = controller.pageIndex.value == index;
 
-                        return AnimatedSlide(
+                      return RepaintBoundary(
+                        key: const ValueKey(int),
+                        child: AnimatedSlide(
                           offset: isActive ? Offset.zero : const Offset(0.2, 0),
                           duration: const Duration(milliseconds: 600),
                           curve: Curves.easeOut,
@@ -365,107 +372,152 @@ class OnboardingView extends GetView<OnboardingController> {
                               ),
                             ),
                           ),
-                        );
-                      }),
-                      const SizedBox(height: 30),
-                      Obx(() {
-                        bool isActive = controller.pageIndex.value == index;
-                        return AnimatedOpacity(
-                          opacity: isActive ? 1.0 : 0.0,
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 30),
+                    Obx(() {
+                      bool isActive = controller.pageIndex.value == index;
+                      return AnimatedOpacity(
+                        opacity: isActive ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 600),
+                        curve: Curves.easeInOut,
+                        child: AnimatedSlide(
+                          offset: isActive ? Offset.zero : const Offset(0, 0.3),
                           duration: const Duration(milliseconds: 600),
                           curve: Curves.easeInOut,
-                          child: AnimatedSlide(
-                            offset:
-                                isActive ? Offset.zero : const Offset(0, 0.3),
-                            duration: const Duration(milliseconds: 600),
-                            curve: Curves.easeInOut,
-                            child: Column(
-                              children: [
-                                Text(
-                                  item.title,
-                                  style: const TextStyle(
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          child: Column(
+                            spacing: 8,
+                            children: [
+                              Text(
+                                item.title,
+                                style: const TextStyle(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  item.description,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.grey[600],
-                                  ),
+                              ),
+                              Text(
+                                item.description,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey[600],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        );
-                      }),
-                    ],
-                  ),
-                );
-              },
-            ),
-
-            // Skip
-            Positioned(
-              top: 20,
-              right: 20,
-              child: TextButton(
-                onPressed: controller.navigateToHome,
-                child: const Text('Skip', style: TextStyle(color: Colors.grey)),
-              ),
-            ),
-
-            // Dots
-            Positioned(
-              bottom: 20,
-              left: 0,
-              right: 0,
-              child: BouncingDotIndicator(),
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: Obx(() {
-        final isLastPage = controller.pageIndex.value == pages.length - 1;
-
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18),
-          child: ElevatedButton(
-            onPressed: () async {
-              if (isLastPage) {
-                await controller.navigateToHome();
-              } else {
-                await controller.pageController.nextPage(
-                  duration: const Duration(milliseconds: 500),
-                  curve: Curves.bounceInOut,
-                );
-              }
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              );
             },
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size(100, 40),
-              backgroundColor: Colors.black,
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-            ),
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 400),
-              transitionBuilder: (child, animation) {
-                return ScaleTransition(scale: animation, child: child);
-              },
-              child: Text(
-                isLastPage ? 'Get Started' : 'Next',
-                key: ValueKey<bool>(isLastPage), // Key to animate text change
-                style: const TextStyle(fontSize: 16),
-              ),
+          ),
+
+          // Skip
+          Positioned(
+            top: 20,
+            right: 20,
+            child: TextButton(
+              onPressed: controller.navigateToHome,
+              child: const Text('Skip', style: TextStyle(color: Colors.grey)),
             ),
           ),
-        );
-      }),
+
+          // Dots
+          Positioned(
+            bottom: 60,
+            left: 0,
+            right: 0,
+            child: RepaintBoundary(child: BouncingDotIndicator()),
+          ),
+          Positioned(
+            bottom: 10,
+            left: 0,
+            right: 0,
+            child: Obx(() {
+              final isLastPage = controller.pageIndex.value == pages.length - 1;
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if (isLastPage) {
+                      await controller.navigateToHome();
+                    } else {
+                      await controller.pageController.nextPage(
+                        duration: const Duration(milliseconds: 100),
+                        curve: Curves.bounceInOut,
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(250, 50),
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 400),
+                    transitionBuilder: (child, animation) {
+                      return ScaleTransition(scale: animation, child: child);
+                    },
+                    child: Text(
+                      isLastPage ? 'Get Started' : 'Next',
+                      key: ValueKey<bool>(
+                        isLastPage,
+                      ), // Key to animate text change
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
+      // bottomNavigationBar: Obx(() {
+      //   final isLastPage = controller.pageIndex.value == pages.length - 1;
+
+      //   return Padding(
+      //     padding: const EdgeInsets.symmetric(horizontal: 18),
+      //     child: ElevatedButton(
+      //       onPressed: () async {
+      //         if (isLastPage) {
+      //           await controller.navigateToHome();
+      //         } else {
+      //           await controller.pageController.nextPage(
+      //             duration: const Duration(milliseconds: 500),
+      //             curve: Curves.bounceInOut,
+      //           );
+      //         }
+      //       },
+      //       style: ElevatedButton.styleFrom(
+      //         minimumSize: const Size(150, 50),
+      //         backgroundColor: Colors.black,
+      //         padding: const EdgeInsets.symmetric(horizontal: 24),
+      //         shape: RoundedRectangleBorder(
+      //           borderRadius: BorderRadius.circular(30),
+      //         ),
+      //       ),
+      //       child: AnimatedSwitcher(
+      //         duration: const Duration(milliseconds: 400),
+      //         transitionBuilder: (child, animation) {
+      //           return ScaleTransition(scale: animation, child: child);
+      //         },
+      //         child: Text(
+      //           isLastPage ? 'Get Started' : 'Next',
+      //           key: ValueKey<bool>(isLastPage), // Key to animate text change
+      //           style: const TextStyle(fontSize: 16),
+      //         ),
+      //       ),
+      //     ),
+      //   );
+      // }),
     );
   }
 }
