@@ -121,6 +121,11 @@ class _DetailProductViewState extends State<DetailProductView>
   void dispose() {
     _rippleController.dispose();
     _fadeController.dispose();
+
+    _fadeAnimations.clear();
+    _slideAnimations.clear();
+    _fadeAnimations = [];
+    _slideAnimations = [];
     super.dispose();
   }
 

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:food_courier/app/modules/cart/controllers/cart_controller.dart';
 import 'package:food_courier/app/routes/app_pages.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -43,7 +44,10 @@ class _WebviewViewState extends State<WebviewView> {
           },
           onNavigationRequest: (navigation) async {
             if (navigation.url.contains('https://www.youtube.com')) {
+              final CartController controller = Get.put(CartController());
               await fetchCheckoutSession(id);
+
+              await controller.saveCartItems();
               await Get.offAllNamed(AppPages.DASHBOARD);
             }
             return NavigationDecision.navigate;

@@ -47,6 +47,12 @@ class _ProductTileWidgetState extends State<ProductTileWidget>
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final HomeController controller = Get.put(HomeController());
 
@@ -195,7 +201,9 @@ class _ProductTileWidgetState extends State<ProductTileWidget>
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 8),
+                        horizontal: 8,
+                        vertical: 8,
+                      ),
                       child: Text(
                         widget.product.title,
                         overflow: TextOverflow.ellipsis,
@@ -328,11 +336,5 @@ class _ProductTileWidgetState extends State<ProductTileWidget>
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 }

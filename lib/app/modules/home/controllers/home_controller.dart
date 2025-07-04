@@ -362,8 +362,12 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
 
   @override
   void onClose() {
-    cartIconAnimationController.dispose();
     super.onClose();
+    cartIconAnimationController.dispose();
+    pageController.dispose();
+    scrollController.dispose();
+    overlayEntry?.remove();
+    cartKey.currentState?.dispose();
   }
 
   Future<void> loadAllData() async {

@@ -404,8 +404,7 @@ class CartView extends GetView<CartController> {
                       onPressed: homeController.cartProducts.isEmpty
                           ? null
                           : () async {
-                              await controller.saveCartItems();
-                              //controller.createCheckoutSession();
+                              await controller.createCheckoutSession();
                             },
                       child: const Text(
                         'Check Out',

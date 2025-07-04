@@ -28,23 +28,13 @@ class AuthController extends GetxController {
   final isLoginPage = true.obs;
   final isPasswordVisible = true.obs;
 
-  // @override
-  // void onReady() {
-  //   super.onReady();
-  //   _firebaseUser.bindStream(_auth.authStateChanges());
-  //   // This listener will automatically navigate the user
-  //   ever(_firebaseUser, _setInitialScreen);
-  // }
-
-  // _setInitialScreen(User? user) {
-  //   if (user == null) {
-  //     // if the user is not found then the user is navigated to the Login Screen
-  //     Get.offAllNamed(Routes.AUTH);
-  //   } else {
-  //     // if the user exists and is logged in the the user is navigated to the Home Screen
-  //     Get.offAllNamed(Routes.DASHBOARD);
-  //   }
-  // }
+  @override
+  void dispose() {
+    super.dispose();
+    nameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+  }
 
   void togglePassword() {
     isPasswordVisible.value = !isPasswordVisible.value;

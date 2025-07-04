@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:food_courier/app/core/helper/show_loading.dart';
 import 'package:food_courier/app/data/models/product_model.dart';
 import 'package:food_courier/app/data/models/transaction_model.dart';
 import 'package:food_courier/app/modules/home/controllers/home_controller.dart';
@@ -12,6 +14,8 @@ import 'package:http/http.dart' as http;
 
 class CartController extends GetxController with GetTickerProviderStateMixin {
   final isVisibleList = <bool>[].obs;
+
+  final isCheckout = false.obs;
 
   late AnimationController animationController;
   late List<Animation<double>> fadeAnimations;
@@ -142,6 +146,8 @@ class CartController extends GetxController with GetTickerProviderStateMixin {
     final String body = jsonEncode(data);
 
     try {
+      showLoading();
+      isCheckout.value = true;
       final http.Response response = await http.post(
         url,
         headers: headers,
@@ -149,7 +155,7 @@ class CartController extends GetxController with GetTickerProviderStateMixin {
       );
 
       if (response.statusCode == 200) {
-        final responseBody = jsonDecode(response.body);
+        final Map<String, dynamic> responseBody = jsonDecode(response.body);
 
         String checkoutUrl = responseBody['data']['attributes']['checkout_url'];
         String id = responseBody['data']['id'];
@@ -161,19 +167,43 @@ class CartController extends GetxController with GetTickerProviderStateMixin {
         //     mode: LaunchMode.externalApplication,
         //   );
         // }
+        Get.back();
 
-        Get.toNamed(
-          AppPages.WEBVIEW,
-          arguments: {
-            'checkout_url': checkoutUrl,
-            'id': id,
-          },
+        unawaited(
+          Get.toNamed(
+            AppPages.WEBVIEW,
+            arguments: {
+              'checkout_url': checkoutUrl,
+              'id': id,
+            },
+          ),
         );
       } else {
         debugPrint('Error creating checkout session: ${response.body}');
+        final Map<String, dynamic> json = jsonDecode(response.body);
+        final String message = json['errors']?[0]?['detail'] ?? 'Unknown error';
+        Get
+          ..back()
+          ..snackbar(
+            'Error',
+            message,
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red.withValues(alpha: 0.8),
+            colorText: Colors.white,
+          );
       }
-    } catch (error) {
+    } on Exception catch (error) {
       debugPrint('Error: $error');
+      Get
+        ..back()
+        ..snackbar(
+          'Error',
+          'Failed to create checkout session. Please try again later.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red.withValues(alpha: 0.8),
+          colorText: Colors.white,
+        );
+      return;
     }
   }
 

@@ -15,6 +15,7 @@ class ChatView extends GetView<ChatController> {
   Widget build(BuildContext context) {
     final ChatController controller = Get.put(ChatController());
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         foregroundColor: Colors.black,
         centerTitle: true,
@@ -365,7 +366,7 @@ class ChatView extends GetView<ChatController> {
                 children: [
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.all(4),
+                    padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       border: Border.all(),
@@ -468,7 +469,7 @@ class ChatView extends GetView<ChatController> {
                   //   ),
                   // ),
                   Container(
-                    padding: const EdgeInsets.all(4),
+                    padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       border: Border.all(),
