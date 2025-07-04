@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:food_courier/app/data/models/product_model.dart';
 import 'package:food_courier/app/modules/home/controllers/home_controller.dart';
@@ -111,11 +112,23 @@ class _ProductTileWidgetState extends State<ProductTileWidget>
                             ),
                             child: Hero(
                               tag: widget.product.id,
-                              child: Image.network(
+                              child: CachedNetworkImage(
                                 key: widget.imageKey,
-                                widget.product.thumbnail,
+                                imageUrl: widget.product.thumbnail,
                                 fit: BoxFit.cover,
+                                progressIndicatorBuilder:
+                                    (context, url, downloadProgress) =>
+                                        CircularProgressIndicator(
+                                  value: downloadProgress.progress,
+                                ),
+                                errorWidget: (context, url, error) =>
+                                    const Icon(Icons.error),
                               ),
+                              // Image.network(
+                              //   key: widget.imageKey,
+                              //   widget.product.thumbnail,
+                              //   fit: BoxFit.cover,
+                              // ),
                             ),
                           ),
                         ),

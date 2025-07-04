@@ -441,39 +441,46 @@ class OnboardingView extends GetView<OnboardingController> {
 
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 18),
-                child: ElevatedButton(
-                  onPressed: () async {
-                    if (isLastPage) {
-                      await controller.navigateToHome();
-                    } else {
-                      await controller.pageController.nextPage(
-                        duration: const Duration(milliseconds: 100),
-                        curve: Curves.bounceInOut,
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(250, 50),
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                child: Column(
+                  children: [
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (isLastPage) {
+                          await controller.navigateToHome();
+                        } else {
+                          await controller.pageController.nextPage(
+                            duration: const Duration(milliseconds: 100),
+                            curve: Curves.bounceInOut,
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(250, 50),
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 400),
+                        transitionBuilder: (child, animation) {
+                          return ScaleTransition(
+                            scale: animation,
+                            child: child,
+                          );
+                        },
+                        child: Text(
+                          isLastPage ? 'Get Started' : 'Next',
+                          key: ValueKey<bool>(
+                            isLastPage,
+                          ), // Key to animate text change
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ),
                     ),
-                  ),
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 400),
-                    transitionBuilder: (child, animation) {
-                      return ScaleTransition(scale: animation, child: child);
-                    },
-                    child: Text(
-                      isLastPage ? 'Get Started' : 'Next',
-                      key: ValueKey<bool>(
-                        isLastPage,
-                      ), // Key to animate text change
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                  ),
+                  ],
                 ),
               );
             }),
