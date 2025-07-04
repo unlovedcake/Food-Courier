@@ -6,7 +6,6 @@ class UserModel {
     required this.name,
     required this.imageUrl,
     required this.email,
-    required this.favoriteProducts,
     required this.createdAt,
   });
 
@@ -18,7 +17,6 @@ class UserModel {
       uid: data['uid'] ?? '',
       name: data['name'] ?? '',
       imageUrl: data['imageUrl'] ?? '',
-      favoriteProducts: List<int>.from(data['favoriteProducts'] ?? []),
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       email: data['email'] ?? '',
     );
@@ -27,7 +25,7 @@ class UserModel {
   final String name;
   final String imageUrl;
   final String email;
-  final List<int> favoriteProducts;
+
   final DateTime createdAt;
 
   // Method to convert UserModel to a map for writing to Firestore
@@ -37,7 +35,6 @@ class UserModel {
       'name': name,
       'imageUrl': imageUrl,
       'email': email,
-      'favoriteProducts': favoriteProducts,
       'createdAt': createdAt,
     };
   }

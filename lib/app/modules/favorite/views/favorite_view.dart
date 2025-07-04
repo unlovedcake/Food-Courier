@@ -12,7 +12,8 @@ class FavoriteView extends GetView<FavoriteController> {
       appBar: AppBar(
         centerTitle: true,
         title: const Text('Favorites'),
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         elevation: 2,
       ),
       body: Obx(() {

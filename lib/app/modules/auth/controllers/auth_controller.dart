@@ -57,7 +57,6 @@ class AuthController extends GetxController {
         name: nameController.text,
         imageUrl: '',
         email: firebaseUser.email!,
-        favoriteProducts: [],
         createdAt: DateTime.now(),
       );
       await FirebaseFirestore.instance
@@ -100,7 +99,7 @@ class AuthController extends GetxController {
           backgroundColor: Colors.redAccent,
           colorText: Colors.white,
         );
-    } catch (e) {
+    } on Exception catch (e) {
       Get
         ..back()
         ..snackbar('Error', 'An unknown error occurred.');
@@ -114,14 +113,6 @@ class AuthController extends GetxController {
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
-
-      otherUserId = _auth.currentUser?.uid ?? '';
-
-      if (otherUserId != 'ataJQe5vGYafW9Ay7QfVbGt2L453') {
-        otherUserId = 'ataJQe5vGYafW9Ay7QfVbGt2L453';
-      } else {
-        otherUserId = '4qYtKhUwkWheyGMeQ4BzeWzSVMq1';
-      }
 
       await Get.offAllNamed(AppPages.DASHBOARD);
     } on FirebaseAuthException catch (e) {

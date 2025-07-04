@@ -14,6 +14,7 @@ abstract class Routes {
   static const TRANSACTION = _Paths.TRANSACTION;
   static const PROFILE = _Paths.PROFILE;
   static const FAVORITE = _Paths.FAVORITE;
+  static const CHAT_LISTED = _Paths.CHAT_LISTED;
 }
 
 abstract class _Paths {
@@ -29,4 +30,5 @@ abstract class _Paths {
   static const TRANSACTION = '/transaction';
   static const PROFILE = '/profile';
   static const FAVORITE = '/favorite';
+  static const CHAT_LISTED = '/chat-listed';
 }

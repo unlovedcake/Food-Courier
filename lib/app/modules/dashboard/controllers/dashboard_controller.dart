@@ -14,9 +14,9 @@ class DashboardController extends GetxController {
   Future<void> changeTab(int index) async {
     _currentIndex.value = index;
 
-    if (index == 1) {
-      await markMessageAsRead();
-    }
+    // if (index == 1) {
+    //   await markMessageAsRead();
+    // }
   }
 
   final isRead = false.obs;
@@ -27,11 +27,12 @@ class DashboardController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    Future.delayed(const Duration(milliseconds: 100), getLastMessage);
+    Future.delayed(const Duration(milliseconds: 100), countUnreadMessages);
   }
 
   void geUserIdAndChatId() {
     currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+    otherUserId = '39oFpwnrhNdygpKnNTJPlNzuYhi1';
 
     chatId = generateChatId(currentUserId, otherUserId);
   }
@@ -39,26 +40,78 @@ class DashboardController extends GetxController {
   Future<void> getLastMessage() async {
     geUserIdAndChatId();
 
-    final CollectionReference<Map<String, dynamic>> messagesRef =
-        FirebaseFirestore.instance
-            .collection('chats')
-            .doc(chatId)
-            .collection('messages');
+    final DocumentReference<Map<String, dynamic>> chatDocRef =
+        FirebaseFirestore.instance.collection('chats').doc(chatId);
 
-    // Get last message based on timestamp
-    final QuerySnapshot<Map<String, dynamic>> querySnapshot =
-        await messagesRef.orderBy('timestamp', descending: true).limit(1).get();
+// Check if chat document exists
+    final DocumentSnapshot<Map<String, dynamic>> chatDoc =
+        await chatDocRef.get();
 
-    if (querySnapshot.docs.isNotEmpty) {
-      final QueryDocumentSnapshot<Map<String, dynamic>> doc =
-          querySnapshot.docs.first;
-      final Map<String, dynamic> data = doc.data();
+    if (chatDoc.exists) {
+      final CollectionReference<Map<String, dynamic>> messagesRef =
+          FirebaseFirestore.instance
+              .collection('chats')
+              .doc(chatId)
+              .collection('messages');
 
-      messageId = data['id'] ?? '';
-      final String messageText = data['text'] ?? '';
-      isRead.value = data['isRead'] ?? false;
+      // Get last message based on timestamp
+      final QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await messagesRef
+              .orderBy('timestamp', descending: true)
+              .limit(1)
+              .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final QueryDocumentSnapshot<Map<String, dynamic>> doc =
+            querySnapshot.docs.first;
+        final Map<String, dynamic> data = doc.data();
+
+        messageId = data['id'] ?? '';
+        final String messageText = data['text'] ?? '';
+        isRead.value = data['isRead'] ?? false;
+      } else {
+        debugPrint('No messages found.');
+      }
     } else {
-      debugPrint('No messages found.');
+      // ❌ chatId does not exist
+      print('Chat with ID $chatId does not exist');
+      return;
+    }
+  }
+
+  final RxInt unreadMessagesCount = 0.obs;
+
+  Future<void> countUnreadMessages() async {
+    try {
+      currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+      final QuerySnapshot<Map<String, dynamic>> chatSnapshots =
+          await FirebaseFirestore.instance
+              .collection('chats')
+              .where('users', arrayContains: currentUserId)
+              .get();
+
+      if (chatSnapshots.docs.isEmpty) {
+        return;
+      }
+
+      int unreadCount = 0;
+
+      for (final QueryDocumentSnapshot<Map<String, dynamic>> doc
+          in chatSnapshots.docs) {
+        final Map<String, dynamic> data = doc.data();
+
+        // Check if last message is unread by current user
+        if (data['isRead'] == false) {
+          unreadCount++;
+        }
+      }
+
+      // Log or use unread count
+      debugPrint('Total unread: $unreadCount');
+      unreadMessagesCount.value =
+          unreadCount; // Make sure you define it as RxInt
+    } catch (e) {
+      debugPrint('Error fetching count unread messages chatted users: $e');
     }
   }
 

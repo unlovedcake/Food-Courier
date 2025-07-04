@@ -11,8 +11,9 @@ class TransactionView extends GetView<TransactionController> {
     final TransactionController controller = Get.put(TransactionController());
     return Scaffold(
       appBar: AppBar(
+        foregroundColor: Colors.black,
         centerTitle: true,
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor: Colors.white,
         elevation: 2,
         title: const Text(
           'Transactions',

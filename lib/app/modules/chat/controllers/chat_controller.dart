@@ -6,8 +6,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:food_courier/app/core/helper/helper_functions.dart'
-    show generateChatId, otherUserId;
 import 'package:food_courier/app/core/presence_service.dart';
 import 'package:food_courier/app/data/models/message_model.dart';
 import 'package:get/get.dart';
@@ -21,7 +19,6 @@ class ChatController extends GetxController {
   final floatingEmoji = Rxn<String>();
   final ScrollController scrollController = ScrollController();
   String chatId = ''; // Replace with real chatId
-  String currentUserId = ''; // Replace with auth ID
 
   final _firestore = FirebaseFirestore.instance;
   final _storage = FirebaseStorage.instance;
@@ -32,7 +29,9 @@ class ChatController extends GetxController {
   final isOtherUserOnline = false.obs;
   final lastSeenText = ''.obs;
 
-  // final String otherUserId =
+  final isLoading = false.obs;
+
+  // final String receiverId =
   //     '4qYtKhUwkWheyGMeQ4BzeWzSVMq1'; //ataJQe5vGYafW9Ay7QfVbGt2L453';
 
   StreamSubscription<DatabaseEvent>? _presenceSub;
@@ -45,15 +44,32 @@ class ChatController extends GetxController {
 
   MessageModel? _lastObservedMessage;
 
+  final arguments = Get.arguments as Map<String, dynamic>;
+
+  String receiverImageUrl = '';
+  String receiverName = '';
+  String receiverId = '';
+
+  String currentUserId = '';
+
+  final User? user = FirebaseAuth.instance.currentUser;
+
   @override
   void onInit() {
     super.onInit();
 
-    currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+    currentUserId = user?.uid ?? '';
 
-    chatId = generateChatId(currentUserId, otherUserId);
+    chatId = arguments['chatId'];
+    receiverId = arguments['receiverId'];
+    receiverName = arguments['receiverName'];
+    receiverImageUrl = arguments['receiverImageUrl'];
 
-    Future.microtask(loadInitialMessages);
+    print('Chat ID: $chatId');
+    print('Current User ID: $currentUserId');
+
+    //Future.microtask(loadInitialMessages);
+    loadInitialMessages();
 
     scrollController.addListener(() async {
       if (scrollController.position.pixels ==
@@ -85,7 +101,9 @@ class ChatController extends GetxController {
   }
 
   void _onMessagesChanged() {
-    if (messages.isEmpty) return;
+    if (messages.isEmpty) {
+      return;
+    }
 
     final MessageModel latest = messages.last;
 
@@ -103,23 +121,31 @@ class ChatController extends GetxController {
   }
 
   bool _isNearBottom({double threshold = 100}) {
-    if (!scrollController.hasClients) return false;
+    if (!scrollController.hasClients) {
+      return false;
+    }
     final ScrollPosition position = scrollController.position;
     return position.maxScrollExtent - position.pixels <= threshold;
   }
 
   Future<void> _startPresenceTracking() async {
+    final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+    if (currentUserId.isEmpty) {
+      return;
+    }
     await PresenceService(userId: currentUserId).setupPresenceTracking();
   }
 
-  void _listenToOtherUserPresence() {
-    _presenceSub?.cancel(); // cleanup before subscribing again
+  Future<void> _listenToOtherUserPresence() async {
+    await _presenceSub?.cancel(); // cleanup before subscribing again
 
     final DatabaseReference otherRef =
-        FirebaseDatabase.instance.ref('status/$otherUserId');
+        FirebaseDatabase.instance.ref('status/$receiverId');
     _presenceSub = otherRef.onValue.listen((event) {
       final data = event.snapshot.value as Map?;
-      if (data == null) return;
+      if (data == null) {
+        return;
+      }
 
       isOtherUserOnline.value = data['online'] ?? false;
 
@@ -135,21 +161,34 @@ class ChatController extends GetxController {
 
   String formatLastSeen(DateTime dt) {
     final Duration diff = DateTime.now().difference(dt);
-    if (diff.inSeconds < 60) return 'just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes} min ago';
-    if (diff.inHours < 24) return '${diff.inHours} hr ago';
+    if (diff.inSeconds < 60) {
+      return 'just now';
+    }
+    if (diff.inMinutes < 60) {
+      return '${diff.inMinutes} min ago';
+    }
+    if (diff.inHours < 24) {
+      return '${diff.inHours} hr ago';
+    }
     return '${diff.inDays} day${diff.inDays > 1 ? 's' : ''} ago';
   }
 
   Future<void> loadInitialMessages() async {
+    print('Loading initial messages for chatId: $chatId');
+    isLoading.value = true;
     try {
       final QuerySnapshot<Map<String, dynamic>> snapshot = await _firestore
           .collection('chats')
           .doc(chatId)
           .collection('messages')
-          .orderBy('timestamp', descending: true)
+          .orderBy('createAd', descending: true)
           .limit(20)
           .get();
+
+      if (snapshot.docs.isEmpty) {
+        print('No messages found for chatId: $chatId');
+        return;
+      }
 
       if (snapshot.docs.isNotEmpty) {
         lastDocument = snapshot.docs.last;
@@ -189,11 +228,15 @@ class ChatController extends GetxController {
       });
     } catch (e) {
       debugPrint('Fetch Initial Mesages $e');
+    } finally {
+      isLoading.value = false;
     }
   }
 
   Future<void> loadMoreMessages({ScrollController? scrollController}) async {
-    if (isFetchingMore || !hasMore || lastDocument == null) return;
+    if (isFetchingMore || !hasMore || lastDocument == null) {
+      return;
+    }
     isFetchingMore = true;
     isFetchingMoreObs.value = true;
 
@@ -267,7 +310,7 @@ class ChatController extends GetxController {
         .collection('chats')
         .doc(chatId)
         .collection('messages')
-        .orderBy('timestamp')
+        .orderBy('createAd', descending: false)
         .snapshots()
         .listen((snapshot) {
       final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
@@ -314,48 +357,95 @@ class ChatController extends GetxController {
   // }
 
   Future<void> sendMessage() async {
-    final String text = messageText.value.trim();
-    if (text.isEmpty) return;
+    try {
+      final String text = messageText.value.trim();
+      if (text.isEmpty) {
+        return;
+      }
 
-    if (editingMessageId.value != null) {
-      // Editing existing message
-      await _firestore
-          .collection('chats')
-          .doc(chatId)
-          .collection('messages')
-          .doc(editingMessageId.value)
-          .update({
-        'text': text,
-        'isEdited': true,
-      });
-      editingMessageId.value = null; // reset edit mode
-    } else {
-      // Sending new message
-      final DocumentReference<Map<String, dynamic>> docRef = _firestore
-          .collection('chats')
-          .doc(chatId)
-          .collection('messages')
-          .doc(); // get new ID
+      if (editingMessageId.value != null) {
+        // Editing existing message
+        await _firestore
+            .collection('chats')
+            .doc(chatId)
+            .collection('messages')
+            .doc(editingMessageId.value)
+            .update({
+          'text': text,
+          'isEdited': true,
+        });
+        editingMessageId.value = null; // reset edit mode
+      } else {
+        final DocumentReference<Map<String, dynamic>> chatDoc =
+            _firestore.collection('chats').doc(chatId);
+        // Sending new message
+        final DocumentReference<Map<String, dynamic>> docRef = _firestore
+            .collection('chats')
+            .doc(chatId)
+            .collection('messages')
+            .doc(); // get new ID
 
-      final msg = MessageModel(
-        id: docRef.id,
-        senderId: currentUserId,
-        text: text,
-        isRead: isOtherUserOnline.value,
-        timestamp: DateTime.now(),
+        final msg = MessageModel(
+          id: docRef.id,
+          senderId: currentUserId,
+          text: text,
+          createAd: DateTime.now(),
+        );
+
+        await docRef.set(msg.toJson());
+        // await docRef.set({
+        //   ...msg.toJson(),
+        //   'timestamp': FieldValue.serverTimestamp(), // 🔥 override for Firestore
+        // });
+
+        // Update chat metadata with lastMessage and users
+
+        await chatDoc.set(
+          {
+            'chatId': chatId,
+            'users': [currentUserId, receiverId],
+            'lastMessage': text,
+            'isRead': isOtherUserOnline.value,
+            'isDeleted': false,
+            'createdAt': FieldValue.serverTimestamp(),
+            'sender': {
+              'senderId': currentUserId,
+              'senderName':
+                  FirebaseAuth.instance.currentUser?.displayName ?? '',
+              'senderImage': FirebaseAuth.instance.currentUser?.photoURL ??
+                  'https://militaryhealthinstitute.org/wp-content/uploads/sites/37/2021/08/blank-profile-picture-png.png',
+            },
+            'receiver': {
+              'receiverId': receiverId,
+              'receiverName': receiverName,
+              'receiverImage': receiverImageUrl,
+            },
+          },
+          SetOptions(merge: true),
+        );
+      }
+
+      messageText.value = '';
+      scrollToBottom();
+    } catch (e) {
+      debugPrint('Error sending message: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to send message. Please try again later.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.8),
+        colorText: Colors.white,
       );
-
-      await docRef.set(msg.toJson());
+      return;
     }
-
-    messageText.value = '';
-    scrollToBottom();
   }
 
   Future<void> sendImage() async {
     final picker = ImagePicker();
     final XFile? picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked == null) return;
+    if (picked == null) {
+      return;
+    }
 
     final Reference ref = _storage.ref(
       'chat_images/$chatId/${DateTime.now().millisecondsSinceEpoch}.jpg',
@@ -374,9 +464,10 @@ class ChatController extends GetxController {
     final msg = MessageModel(
       id: docRef.id, // ✅ use generated Firestore ID
       senderId: currentUserId,
+
       text: '',
       imageUrl: imageUrl,
-      timestamp: DateTime.now(),
+      createAd: DateTime.now(),
     );
 
     // Step 3: Save message to Firestore
@@ -423,6 +514,10 @@ class ChatController extends GetxController {
     });
   }
 
+  final scale = 1.0.obs;
+
+  final RxMap<String, double> reactionScales = <String, double>{}.obs;
+
   Future<void> toggleReaction(String messageId, String emoji) async {
     try {
       final DocumentReference<Map<String, dynamic>> ref = _firestore
@@ -437,11 +532,17 @@ class ChatController extends GetxController {
         reactions.remove(currentUserId);
       } else {
         reactions[currentUserId] = emoji;
+        scale.value = 1.5;
+        reactionScales[messageId] = 1.5;
       }
 
       await ref.update({'reactions': reactions});
     } catch (e) {
       debugPrint(e.toString());
+    } finally {
+      Future.delayed(const Duration(milliseconds: 200), () {
+        reactionScales[messageId] = 1.0;
+      });
     }
   }
 
@@ -458,12 +559,37 @@ class ChatController extends GetxController {
   }
 
   Future<void> deleteMessage(String messageId) async {
-    await _firestore
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .doc(messageId)
-        .delete();
+    try {
+      // await _firestore
+      //     .collection('chats')
+      //     .doc(chatId)
+      //     .collection('messages')
+      //     .doc(messageId)
+      //     .delete();
+
+      await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .doc(messageId)
+          .update({
+        'isDeleted': true,
+      });
+
+      await _firestore.collection('chats').doc(chatId).update({
+        'isDeleted': true,
+      });
+    } on Exception catch (e) {
+      debugPrint('Error deleting message: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to delete message. Please try again later.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.8),
+        colorText: Colors.white,
+      );
+      return;
+    }
   }
 
   void _listenToLastSeen() {

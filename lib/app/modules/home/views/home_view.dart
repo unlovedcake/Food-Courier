@@ -26,13 +26,15 @@ class HomeView extends GetView<HomeController> {
           controller: controller.scrollController,
           slivers: [
             SliverAppBar(
-              backgroundColor: Theme.of(context).colorScheme.surface,
+              backgroundColor: Colors.white,
               elevation: 2,
               leadingWidth: 100,
               automaticallyImplyLeading: false,
               floating: true,
               pinned: true,
               expandedHeight: 180,
+              collapsedHeight: 80,
+              stretch: true,
               flexibleSpace: FlexibleSpaceBar(
                 stretchModes: const [StretchMode.blurBackground],
                 centerTitle: true,
@@ -46,11 +48,10 @@ class HomeView extends GetView<HomeController> {
                         controller.currentPage.value = index;
                       },
                       itemBuilder: (context, index) {
-                        return Image.network(
+                        return Image.asset(
                           controller.carouselImages[index],
                           key: ValueKey(controller.carouselImages[index]),
                           fit: BoxFit.cover,
-                          width: double.infinity,
                         );
                       },
                     ),
@@ -78,99 +79,115 @@ class HomeView extends GetView<HomeController> {
                     ),
 
                     // Dark Top Gradient Overlay
-                    Positioned.fill(
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.black54, // darker at top
-                              Colors.transparent, // fades out
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+                    // Positioned.fill(
+                    //   child: Container(
+                    //     decoration: const BoxDecoration(
+                    //       gradient: LinearGradient(
+                    //         begin: Alignment.topCenter,
+                    //         end: Alignment.bottomCenter,
+                    //         colors: [
+                    //           Colors.black54, // darker at top
+                    //           Colors.transparent, // fades out
+                    //         ],
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
 
                     // Text at Top-Left
-                    Positioned(
-                      top: 50,
-                      left: 30,
-                      child: RichText(
-                        text: TextSpan(
-                          style:
-                              Theme.of(context).textTheme.labelLarge?.copyWith(
-                                    fontSize: 18,
-                                    color: Colors.white,
-                                  ),
-                          children: [
-                            const TextSpan(text: 'Up to\n'),
-                            TextSpan(
-                              text: '70% ',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelLarge
-                                  ?.copyWith(
-                                    fontSize: 35,
-                                    color: Colors.red,
-                                  ),
-                            ),
-                            const TextSpan(text: 'Off\nwith free delivery'),
-                          ],
-                        ),
-                      ),
-                    ),
+                    // Positioned(
+                    //   top: 50,
+                    //   left: 30,
+                    //   child: RichText(
+                    //     text: TextSpan(
+                    //       style:
+                    //           Theme.of(context).textTheme.labelLarge?.copyWith(
+                    //                 fontSize: 18,
+                    //                 color: Colors.white,
+                    //               ),
+                    //       children: [
+                    //         const TextSpan(text: 'Up to\n'),
+                    //         TextSpan(
+                    //           text: '70% ',
+                    //           style: Theme.of(context)
+                    //               .textTheme
+                    //               .labelLarge
+                    //               ?.copyWith(
+                    //                 fontSize: 35,
+                    //                 color: Colors.red,
+                    //               ),
+                    //         ),
+                    //         const TextSpan(text: 'Off\nwith free delivery'),
+                    //       ],
+                    //     ),
+                    //   ),
+                    // ),
                   ],
                 ),
                 title: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
                   ),
-                  child: AnimatedTextReveal(
-                    duration: const Duration(milliseconds: 450),
-                    text: 'Shop Swift',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          fontSize: 18,
-                          color: Colors.orange,
-                        ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      AnimatedTextReveal(
+                        duration: const Duration(milliseconds: 450),
+                        text: 'Shop Swift',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              fontSize: 18,
+                              color: Colors.orange,
+                            ),
+                      ),
+                      Text(
+                        'Up to 50% off with free delivery',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black,
+                            ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              leading: Image.asset(
-                'assets/images/app_logo.png',
+              leading: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Image.asset(
+                  'assets/images/app_logo.png',
+                ),
               ),
               actions: [
-                Obx(
-                  () => IconButton(
-                    tooltip: 'Notification',
-                    onPressed: () async {
-                      await dashBoardController.markMessageAsRead();
-                      await Get.toNamed(AppPages.CHAT);
-                    },
-                    icon: Badge(
-                      backgroundColor: Colors.white,
-                      label: dashBoardController.isRead.value
-                          ? null
-                          : const CircleAvatar(
-                              radius: 2,
-                              backgroundColor: Colors.red,
-                            ),
-                      offset: const Offset(6, -6),
-                      child: const Icon(
-                        Icons.notification_important,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
+                // Obx(
+                //   () => IconButton(
+                //     tooltip: 'Notification',
+                //     onPressed: () async {
+                //       await dashBoardController.markMessageAsRead();
+                //       await Get.toNamed(AppPages.CHAT);
+                //     },
+                //     icon: Badge(
+                //       backgroundColor: Colors.white,
+                //       label: dashBoardController.isRead.value
+                //           ? null
+                //           : const CircleAvatar(
+                //               radius: 2,
+                //               backgroundColor: Colors.red,
+                //             ),
+                //       offset: const Offset(6, -6),
+                //       child: const Icon(
+                //         Icons.notification_important,
+                //         color: Colors.white,
+                //       ),
+                //     ),
+                //   ),
+                // ),
                 Obx(
                   () => IconButton(
                     icon: Icon(
                       themeController.isDarkMode.value
                           ? Icons.dark_mode
                           : Icons.light_mode,
-                      color: Colors.white,
+                      color: Colors.grey,
                     ),
                     onPressed: themeController.toggleTheme,
                   ),
@@ -198,7 +215,7 @@ class HomeView extends GetView<HomeController> {
                         offset: const Offset(6, -6),
                         child: const Icon(
                           Icons.shopping_cart,
-                          color: Colors.white,
+                          color: Colors.grey,
                         ),
                       ),
                     ),

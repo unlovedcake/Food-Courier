@@ -6,6 +6,8 @@ import '../modules/cart/bindings/cart_binding.dart';
 import '../modules/cart/views/cart_view.dart';
 import '../modules/chat/bindings/chat_binding.dart';
 import '../modules/chat/views/chat_view.dart';
+import '../modules/chat_listed/bindings/chat_listed_binding.dart';
+import '../modules/chat_listed/views/chat_listed_view.dart';
 import '../modules/dashboard/bindings/dashboard_binding.dart';
 import '../modules/dashboard/views/dashboard_view.dart';
 import '../modules/detail_product/bindings/detail_product_binding.dart';
@@ -93,6 +95,11 @@ class AppPages {
       name: _Paths.FAVORITE,
       page: () => const FavoriteView(),
       binding: FavoriteBinding(),
+    ),
+    GetPage(
+      name: _Paths.CHAT_LISTED,
+      page: () => const ChatListedView(),
+      binding: ChatListedBinding(),
     ),
   ];
 }
