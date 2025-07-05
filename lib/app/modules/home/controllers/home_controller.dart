@@ -494,6 +494,8 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
         products.addAll(productList);
 
         skip += limit;
+
+        Print.success('Loaded products data!');
       }
     } catch (e) {
       Print.error('Failed to Fetch Products $e');
