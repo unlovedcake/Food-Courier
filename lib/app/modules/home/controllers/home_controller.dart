@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:food_courier/app/core/helper/custom_log.dart';
 import 'package:food_courier/app/data/models/product_model.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -136,7 +137,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
           cartIconAnimationController.reverse();
         });
       } catch (e) {
-        debugPrint(e.toString());
+        Print.error(e.toString());
       }
     });
   }
@@ -229,7 +230,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       if (docSnapshot.exists) {
         // 🔴 REMOVE favorite
         await docRef.delete();
-        debugPrint('❌ Removed from favorites: $productId');
+        Print.info('Removed from favorites: $productId');
       } else {
         // ✅ ADD favorite
         await docRef.set({
@@ -243,10 +244,10 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
           'rating': product.rating,
           'createdAt': FieldValue.serverTimestamp(), // optional
         });
-        debugPrint('✅ Added to favorites: $productId');
+        Print.success('Added to favorites: $productId');
       }
     } catch (e) {
-      debugPrint('🔥 toggleFavoriteProduct error: $e');
+      Print.error('Toggle Favorite Product error: $e');
     }
   }
 
@@ -412,7 +413,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
             .toList();
 
         if (productList.isEmpty) {
-          debugPrint('Empty products ');
+          Print.info('Empty products ');
           productsCategory.clear();
           return;
         }
@@ -423,7 +424,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       }
     } on Exception catch (e) {
       productsCategory.clear();
-      debugPrint('Error: $e');
+      Print.error('Error: $e');
     } finally {
       isLoading.value = false;
     }
@@ -447,7 +448,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
             .toList();
 
         if (productList.isEmpty) {
-          debugPrint('Empty products');
+          Print.info('Empty products');
           productsSearch.clear();
 
           return;
@@ -457,7 +458,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       }
     } on Exception catch (e) {
       productsSearch.clear();
-      debugPrint('Error: $e');
+      Print.error('Error: $e');
     } finally {
       isLoading.value = false;
     }
@@ -473,12 +474,13 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
+
         final List<ProductModel> productList = (data['products'] as List)
             .map((e) => ProductModel.fromJson(e))
             .toList();
 
         if (productList.isEmpty) {
-          debugPrint('Empty products ');
+          Print.info('Empty products ');
           // Get.snackbar(
           //   backgroundColor: Colors.black,
           //   colorText: Colors.white,
@@ -494,7 +496,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
         skip += limit;
       }
     } catch (e) {
-      debugPrint('Failed to Fetch Products $e');
+      Print.error('Failed to Fetch Products $e');
     } finally {
       isLoading.value = false;
     }

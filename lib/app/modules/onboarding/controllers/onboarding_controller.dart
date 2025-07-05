@@ -16,7 +16,6 @@ class OnboardingController extends GetxController
   final RxInt previousPageIndex = 0.obs;
 
   void changePage(int index) {
-    throw Exception();
     pageIndex.value = index;
     animationController.forward(from: 0);
   }

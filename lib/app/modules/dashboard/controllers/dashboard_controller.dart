@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
+import 'package:food_courier/app/core/helper/custom_log.dart';
 import 'package:food_courier/app/core/helper/helper_functions.dart'
     show generateChatId, otherUserId;
 import 'package:get/get.dart';
@@ -70,11 +70,11 @@ class DashboardController extends GetxController {
         final String messageText = data['text'] ?? '';
         isRead.value = data['isRead'] ?? false;
       } else {
-        debugPrint('No messages found.');
+        Print.warn('No messages found.');
       }
     } else {
       // ❌ chatId does not exist
-      print('Chat with ID $chatId does not exist');
+      Print.error('Chat with ID $chatId does not exist');
       return;
     }
   }
@@ -107,31 +107,11 @@ class DashboardController extends GetxController {
       }
 
       // Log or use unread count
-      debugPrint('Total unread: $unreadCount');
+      Print.info('Total unread: $unreadCount');
       unreadMessagesCount.value =
           unreadCount; // Make sure you define it as RxInt
     } catch (e) {
-      debugPrint('Error fetching count unread messages chatted users: $e');
-    }
-  }
-
-  Future<void> markMessageAsRead() async {
-    if (isRead.value) {
-      return;
-    }
-    try {
-      final DocumentReference<Map<String, dynamic>> messageRef =
-          FirebaseFirestore.instance
-              .collection('chats')
-              .doc(chatId)
-              .collection('messages')
-              .doc(messageId);
-
-      await messageRef.update({'isRead': true});
-      isRead.value = true;
-      debugPrint('Mark As Read Successfully Updated');
-    } catch (e) {
-      debugPrint('Mark As Read Error $e');
+      Print.error('Error fetching count unread messages chatted users: $e');
     }
   }
 }

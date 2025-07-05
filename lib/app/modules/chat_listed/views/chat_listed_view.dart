@@ -59,7 +59,7 @@ class ChatListedView extends GetView<ChatListedController> {
                                     : chat.sender.senderImage,
                               )
                             : const NetworkImage(
-                                'https://sm.ign.com/ign_ap/cover/a/avatar-gen/avatar-generations_hugw.jpg',
+                                'https://militaryhealthinstitute.org/wp-content/uploads/sites/37/2021/08/blank-profile-picture-png.png',
                               ) as ImageProvider,
                         radius: 25,
                       ),

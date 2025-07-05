@@ -1,15 +1,18 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:food_courier/app/core/helper/custom_log.dart';
 import 'package:food_courier/app/core/presence_service.dart';
 import 'package:food_courier/app/data/models/message_model.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as supa;
 
 class ChatController extends GetxController {
   final messages = <MessageModel>[].obs;
@@ -30,6 +33,8 @@ class ChatController extends GetxController {
   final lastSeenText = ''.obs;
 
   final isLoading = false.obs;
+
+  final isToggleReaction = false.obs;
 
   // final String receiverId =
   //     '4qYtKhUwkWheyGMeQ4BzeWzSVMq1'; //ataJQe5vGYafW9Ay7QfVbGt2L453';
@@ -54,6 +59,10 @@ class ChatController extends GetxController {
 
   final User? user = FirebaseAuth.instance.currentUser;
 
+  final supabase = supa.Supabase.instance.client;
+
+  final selectedImageUrl = ''.obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -64,9 +73,6 @@ class ChatController extends GetxController {
     receiverId = arguments['receiverId'];
     receiverName = arguments['receiverName'];
     receiverImageUrl = arguments['receiverImageUrl'];
-
-    print('Chat ID: $chatId');
-    print('Current User ID: $currentUserId');
 
     //Future.microtask(loadInitialMessages);
     loadInitialMessages();
@@ -80,7 +86,7 @@ class ChatController extends GetxController {
     });
     _listenToMessages();
     _listenToTyping();
-    _listenToLastSeen();
+    //_listenToLastSeen();
     //_startLastSeenTimer();
     //ever(messages, (_) => scrollToBottom());
     // Start smart message scroll tracker
@@ -174,7 +180,6 @@ class ChatController extends GetxController {
   }
 
   Future<void> loadInitialMessages() async {
-    print('Loading initial messages for chatId: $chatId');
     isLoading.value = true;
     try {
       final QuerySnapshot<Map<String, dynamic>> snapshot = await _firestore
@@ -182,11 +187,11 @@ class ChatController extends GetxController {
           .doc(chatId)
           .collection('messages')
           .orderBy('createAd', descending: true)
-          .limit(20)
+          .limit(10)
           .get();
 
       if (snapshot.docs.isEmpty) {
-        print('No messages found for chatId: $chatId');
+        Print.error('No messages found for chatId: $chatId');
         return;
       }
 
@@ -199,13 +204,16 @@ class ChatController extends GetxController {
 
         messages.assignAll(msgs.reversed.toList());
 
-        print(messages[0].imageUrl);
         // ✅ Wait for layout then scroll
         Future.delayed(const Duration(milliseconds: 100), () {
           if (scrollController.hasClients) {
             scrollController.jumpTo(scrollController.position.maxScrollExtent);
           }
         });
+
+        Print.error(
+          'Current User ID: $currentUserId /n Current User ID: $currentUserId Current User ID: $currentUserId /n Current User ID: $currentUserId ',
+        );
       } else {
         hasMore = false;
       }
@@ -215,7 +223,7 @@ class ChatController extends GetxController {
           .collection('chats')
           .doc(chatId)
           .collection('messages')
-          .orderBy('timestamp', descending: true)
+          .orderBy('createAd', descending: true)
           .limit(1)
           .snapshots()
           .listen((snapshot) {
@@ -227,7 +235,7 @@ class ChatController extends GetxController {
         }
       });
     } catch (e) {
-      debugPrint('Fetch Initial Mesages $e');
+      Print.error('Error Fetch Initial Mesages $e');
     } finally {
       isLoading.value = false;
     }
@@ -246,14 +254,25 @@ class ChatController extends GetxController {
         .collection('chats')
         .doc(chatId)
         .collection('messages')
-        .orderBy('timestamp', descending: true)
+        .orderBy('createAd', descending: true)
         .startAfterDocument(lastDocument!)
-        .limit(20)
+        .limit(10)
         .get();
 
     if (snapshot.docs.isEmpty) {
       hasMore = false;
+
+      Print.info(
+        'No more messages to load for chatId: $chatId',
+      );
+
+      isFetchingMore = false;
+      isFetchingMoreObs.value = false;
     } else {
+      Print.info(
+        'Loaded ${snapshot.docs.length} more messages for chatId: $chatId',
+      );
+
       lastDocument = snapshot.docs.last;
 
       final List<MessageModel> more = snapshot.docs
@@ -263,47 +282,17 @@ class ChatController extends GetxController {
       messages.insertAll(0, more.reversed.toList());
 
       // 🔁 Scroll offset compensation
+      // await Future.delayed(const Duration(milliseconds: 50)); // wait layout
+      // final double afterHeight = scrollController?.position.extentAfter ?? 0;
+      // final double diff = afterHeight - beforeHeight;
+      // scrollController?.jumpTo(scrollController.offset + diff);
       await Future.delayed(const Duration(milliseconds: 50)); // wait layout
-      final double afterHeight = scrollController?.position.extentAfter ?? 0;
-      final double diff = afterHeight - beforeHeight;
-      scrollController?.jumpTo(scrollController.offset + diff);
+      scrollController?.jumpTo(scrollController.offset + 80);
     }
 
     isFetchingMore = false;
     isFetchingMoreObs.value = false;
   }
-
-  // Future<void> loadMoreMessages() async {
-  //   if (isFetchingMore || !hasMore || lastDocument == null) {
-  //     print('NO more');
-  //     return;
-  //   }
-  //   isFetchingMore = true;
-
-  //   final QuerySnapshot<Map<String, dynamic>> snapshot = await _firestore
-  //       .collection('chats')
-  //       .doc(chatId)
-  //       .collection('messages')
-  //       .orderBy('timestamp', descending: true)
-  //       .startAfterDocument(lastDocument!)
-  //       .limit(10)
-  //       .get();
-
-  //   if (snapshot.docs.isEmpty) {
-  //     hasMore = false;
-  //   } else {
-  //     lastDocument = snapshot.docs.last;
-
-  //     final List<MessageModel> more = snapshot.docs
-  //         .map((doc) => MessageModel.fromJson(doc.data()))
-  //         .toList();
-
-  //     // Prepend to current messages
-  //     messages.insertAll(0, more.reversed.toList());
-  //   }
-
-  //   isFetchingMore = false;
-  // }
 
   void _listenToMessages() {
     _firestore
@@ -316,48 +305,14 @@ class ChatController extends GetxController {
       final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
           snapshot.docs;
 
-      //for (final doc in docs) {
-      //   final msg = MessageModel.fromJson(doc.data());
-      //   if (msg.senderId != currentUserId && !msg.isRead) {
-      //     doc.reference.update({
-      //       'isRead': true,
-      //       'readAt': DateTime.now().toIso8601String(),
-      //     });
-      //   }
-      // }
-
       messages.value =
           docs.map((doc) => MessageModel.fromJson(doc.data())).toList();
     });
   }
 
-  // Future<void> sendMessage() async {
-  //   final timestamp = DateTime.now();
-
-  //   // Step 1: Create Firestore doc reference (but don’t set data yet)
-  //   final DocumentReference<Map<String, dynamic>> docRef = _firestore
-  //       .collection('chats')
-  //       .doc(chatId)
-  //       .collection('messages')
-  //       .doc(); // generates a new ID but doesn’t save yet
-
-  //   // Step 2: Create the message model with the generated ID
-  //   final msg = MessageModel(
-  //     id: docRef.id, // ✅ use generated Firestore ID
-  //     senderId: currentUserId,
-  //     text: messageText.value,
-  //     timestamp: timestamp,
-  //   );
-
-  //   // Step 3: Save message to Firestore
-  //   await docRef.set(msg.toJson());
-
-  //   messageText.value = '';
-  //   scrollToBottom();
-  // }
-
   Future<void> sendMessage() async {
     try {
+      isToggleReaction.value = false; // reset toggle reaction state
       final String text = messageText.value.trim();
       if (text.isEmpty) {
         return;
@@ -428,7 +383,7 @@ class ChatController extends GetxController {
       messageText.value = '';
       scrollToBottom();
     } catch (e) {
-      debugPrint('Error sending message: $e');
+      Print.error('Error sending message: $e');
       Get.snackbar(
         'Error',
         'Failed to send message. Please try again later.',
@@ -440,38 +395,97 @@ class ChatController extends GetxController {
     }
   }
 
-  Future<void> sendImage() async {
+  Rx<File?> imageFile = Rx<File?>(null);
+
+  Rx<XFile?> fileImage = Rx<XFile?>(null);
+  Rx<Uint8List?> imageBytes = Rx<Uint8List?>(null);
+
+  Future<void> selectImage() async {
     final picker = ImagePicker();
-    final XFile? picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked == null) {
-      return;
+    fileImage.value = await picker.pickImage(source: ImageSource.gallery);
+
+    final XFile? file = fileImage.value;
+    if (file != null) {
+      imageBytes.value = await file.readAsBytes();
     }
 
-    final Reference ref = _storage.ref(
-      'chat_images/$chatId/${DateTime.now().millisecondsSinceEpoch}.jpg',
-    );
-    await ref.putFile(File(picked.path));
-    final String imageUrl = await ref.getDownloadURL();
+    Print.info('Selected image: ${fileImage.value?.path}');
+  }
 
-    // Step 1: Create Firestore doc reference (but don’t set data yet)
-    final DocumentReference<Map<String, dynamic>> docRef = _firestore
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .doc(); // generates a new ID but doesn’t save yet
+  Future<void> sendImage() async {
+    isToggleReaction.value = false; // reset toggle reaction state
+    try {
+      if (fileImage.value == null) {
+        return;
+      }
 
-    // Step 2: Create the message model with the generated ID
-    final msg = MessageModel(
-      id: docRef.id, // ✅ use generated Firestore ID
-      senderId: currentUserId,
+      String filePath = fileImage.value?.path ?? '';
+      // Get full path
 
-      text: '',
-      imageUrl: imageUrl,
-      createAd: DateTime.now(),
-    );
+// Get file name with extension
+      String fileName = filePath.split('/').last;
 
-    // Step 3: Save message to Firestore
-    await docRef.set(msg.toJson());
+// Get extension
+      String extension = fileName.contains('.') ? fileName.split('.').last : '';
+
+      imageFile.value = File(fileImage.value?.path ?? '');
+
+      await supabase.storage.from('bucket-shop-swift').upload(
+            'chat/$fileName',
+            imageFile.value ?? File(''),
+            fileOptions: supa.FileOptions(
+              contentType: 'image/$extension',
+            ),
+          );
+
+      // Get public URL
+      selectedImageUrl.value = supabase.storage
+          .from('bucket-shop-swift')
+          .getPublicUrl('chat/$fileName');
+      selectedImageUrl.value = Uri.parse(selectedImageUrl.value).replace(
+        queryParameters: {
+          't': DateTime.now().millisecondsSinceEpoch.toString(),
+        },
+      ).toString();
+
+      final String text = messageText.value.trim();
+      // await ref.putFile(File(fileImage.path));
+      // final String imageUrl = await ref.getDownloadURL();
+
+      // Step 1: Create Firestore doc reference (but don’t set data yet)
+      final DocumentReference<Map<String, dynamic>> docRef = _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .doc(); // generates a new ID but doesn’t save yet
+
+      // Step 2: Create the message model with the generated ID
+      final msg = MessageModel(
+        id: docRef.id, // ✅ use generated Firestore ID
+        senderId: currentUserId,
+        text: text,
+        imageUrl: selectedImageUrl.value,
+        createAd: DateTime.now(),
+      );
+
+      // Step 3: Save message to Firestore
+      await docRef.set(msg.toJson());
+      messageText.value = '';
+      imageFile.value = null;
+      imageBytes.value = null;
+      selectedImageUrl.value = '';
+      fileImage.value = null;
+    } catch (e) {
+      Print.error('Error sending image: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to send image. Please try again later.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.8),
+        colorText: Colors.white,
+      );
+      return;
+    }
   }
 
   void updateTypingStatus(bool isTyping) {
@@ -514,11 +528,10 @@ class ChatController extends GetxController {
     });
   }
 
-  final scale = 1.0.obs;
-
   final RxMap<String, double> reactionScales = <String, double>{}.obs;
 
   Future<void> toggleReaction(String messageId, String emoji) async {
+    isToggleReaction.value = true;
     try {
       final DocumentReference<Map<String, dynamic>> ref = _firestore
           .collection('chats')
@@ -532,16 +545,16 @@ class ChatController extends GetxController {
         reactions.remove(currentUserId);
       } else {
         reactions[currentUserId] = emoji;
-        scale.value = 1.5;
+
         reactionScales[messageId] = 1.5;
       }
 
       await ref.update({'reactions': reactions});
     } catch (e) {
-      debugPrint(e.toString());
+      Print.error('Error: $e');
     } finally {
       Future.delayed(const Duration(milliseconds: 200), () {
-        reactionScales[messageId] = 1.0;
+        reactionScales[messageId] = 1.2;
       });
     }
   }
@@ -580,7 +593,7 @@ class ChatController extends GetxController {
         'isDeleted': true,
       });
     } on Exception catch (e) {
-      debugPrint('Error deleting message: $e');
+      Print.error('Error deleting message: $e');
       Get.snackbar(
         'Error',
         'Failed to delete message. Please try again later.',
@@ -637,7 +650,7 @@ class ChatController extends GetxController {
 
   void scrollToBottom() {
     Future.delayed(const Duration(milliseconds: 200), () {
-      if (scrollController.hasClients) {
+      if (scrollController.hasClients && !isToggleReaction.value) {
         scrollController.animateTo(
           scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 300),

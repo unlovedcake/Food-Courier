@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:typed_data';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:food_courier/app/data/models/message_model.dart';
 import 'package:food_courier/app/widgets/emoji_reaction_bar.dart';
@@ -22,7 +24,7 @@ class ChatView extends GetView<ChatController> {
         backgroundColor: Colors.white,
         elevation: 2,
         title: Obx(
-          () => Row(
+          () => Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Stack(
@@ -35,7 +37,7 @@ class ChatView extends GetView<ChatController> {
                         : const NetworkImage(
                             'https://www.shutterstock.com/image-vector/vector-flat-illustration-grayscale-avatar-600nw-2264922221.jpg',
                           ) as ImageProvider,
-                    radius: 20,
+                    radius: 15,
                   ),
                   if (controller.isOtherUserOnline.value)
                     Positioned(
@@ -110,15 +112,6 @@ class ChatView extends GetView<ChatController> {
                         }
                         final MessageModel msg = controller.messages[index];
                         final isMe = msg.senderId == controller.currentUserId;
-
-                        String dateString = msg.createAd.toString();
-                        DateTime dateTime = DateTime.parse(dateString);
-                        int timestampMillis = dateTime.millisecondsSinceEpoch;
-
-                        final lastSeenTime =
-                            DateTime.fromMillisecondsSinceEpoch(
-                          int.parse(timestampMillis.toString()),
-                        );
 
                         bool isLastOfGroup = true;
                         if (index < controller.messages.length - 1) {
@@ -263,10 +256,64 @@ class ChatView extends GetView<ChatController> {
                                                 : Colors.grey[300],
                                           ),
                                           child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
-                                              if (msg.imageUrl != null ||
-                                                  msg.imageUrl == '')
-                                                Image.network(msg.imageUrl!)
+                                              if (msg.imageUrl != null)
+                                                !msg.isDeleted
+                                                    ? Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        spacing: 5,
+                                                        children: [
+                                                          CachedNetworkImage(
+                                                            imageUrl:
+                                                                msg.imageUrl ??
+                                                                    '',
+                                                            progressIndicatorBuilder: (
+                                                              context,
+                                                              url,
+                                                              downloadProgress,
+                                                            ) =>
+                                                                CircularProgressIndicator(
+                                                              value:
+                                                                  downloadProgress
+                                                                      .progress,
+                                                            ),
+                                                            errorWidget: (
+                                                              context,
+                                                              url,
+                                                              error,
+                                                            ) =>
+                                                                const Icon(
+                                                              Icons.error,
+                                                            ),
+                                                          ),
+                                                          if (msg.text != '')
+                                                            Text(
+                                                              msg.text,
+                                                              style:
+                                                                  const TextStyle(
+                                                                color: Colors
+                                                                    .black,
+                                                              ),
+                                                            )
+                                                          else
+                                                            const SizedBox
+                                                                .shrink(),
+                                                        ],
+                                                      )
+                                                    : Text(
+                                                        isMe
+                                                            ? 'You unsent a message'
+                                                            : 'User unsent the message',
+                                                        style: const TextStyle(
+                                                          color: Colors.grey,
+                                                          fontStyle:
+                                                              FontStyle.italic,
+                                                        ),
+                                                      )
                                               else
                                                 Text(
                                                   !msg.isDeleted
@@ -316,7 +363,7 @@ class ChatView extends GetView<ChatController> {
                                                         final double scale =
                                                             controller.reactionScales[
                                                                     msg.id] ??
-                                                                1.0;
+                                                                1.2;
                                                         return AnimatedScale(
                                                           scale: scale,
                                                           duration:
@@ -362,52 +409,79 @@ class ChatView extends GetView<ChatController> {
                   ),
                 ),
               ),
+              Obx(() {
+                return controller.editingMessageId.value != null
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                        child: Row(
+                          children: [
+                            const Text(
+                              'Editing...',
+                              style: TextStyle(color: Colors.orange),
+                            ),
+                            const SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: () {
+                                controller.editingMessageId.value = null;
+                                controller.messageText.value = '';
+                              },
+                              child: const Icon(Icons.close, size: 18),
+                            ),
+                          ],
+                        ),
+                      )
+                    : controller.imageBytes.value != null
+                        ? InkWell(
+                            onTap: () {
+                              controller.imageBytes.value = null;
+                              controller.selectedImageUrl.value = '';
+                              controller.fileImage.value = null;
+                              controller.imageFile.value = null;
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.memory(
+                                  controller.imageBytes.value ?? Uint8List(0),
+                                  width: 50,
+                                  height: 50,
+                                  fit: BoxFit.cover,
+                                ),
+                                const Icon(Icons.close, size: 18),
+                              ],
+                            ),
+                          )
+                        : const SizedBox();
+              }),
               Row(
                 children: [
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.all(2),
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       border: Border.all(),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: IconButton(
-                      onPressed: controller.sendImage,
+                      onPressed: controller.selectImage,
                       icon: const Icon(Icons.image),
                     ),
                   ),
                   Expanded(
-                    child: Obx(() {
-                      final isEditing =
-                          controller.editingMessageId.value != null;
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: 4,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (isEditing)
-                              Row(
-                                children: [
-                                  const Text(
-                                    'Editing...',
-                                    style: TextStyle(color: Colors.orange),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  GestureDetector(
-                                    onTap: () {
-                                      controller.editingMessageId.value = null;
-                                      controller.messageText.value = '';
-                                    },
-                                    child: const Icon(Icons.close, size: 18),
-                                  ),
-                                ],
-                              ),
-                            SizedBox(height: isEditing ? 8 : 0),
-                            TextField(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 4,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Obx(
+                            () => TextField(
                               onChanged: (val) {
                                 controller.messageText.value = val;
                                 controller.updateTypingStatus(val.isNotEmpty);
@@ -441,10 +515,10 @@ class ChatView extends GetView<ChatController> {
                                 ),
                               ),
                             ),
-                          ],
-                        ),
-                      );
-                    }),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
 
                   // Expanded(
@@ -469,14 +543,20 @@ class ChatView extends GetView<ChatController> {
                   //   ),
                   // ),
                   Container(
-                    padding: const EdgeInsets.all(2),
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       border: Border.all(),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: IconButton(
-                      onPressed: controller.sendMessage,
+                      onPressed: () async {
+                        if (controller.imageBytes.value == null) {
+                          await controller.sendMessage();
+                        } else {
+                          await controller.sendImage();
+                        }
+                      },
                       icon: const Icon(Icons.send),
                     ),
                   ),

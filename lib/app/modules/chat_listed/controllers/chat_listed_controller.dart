@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:food_courier/app/core/helper/custom_log.dart';
 import 'package:food_courier/app/data/models/chatted_user_model.dart';
 import 'package:get/get.dart';
 
@@ -14,7 +15,7 @@ class ChatListedController extends GetxController {
   Future<void> fetchAllUsersExceptCurrent() async {
     try {
       isLoading.value = true;
-      print('Current User ID: $currentUserId');
+      Print.info('Current User ID: $currentUserId');
 
       final QuerySnapshot<Map<String, dynamic>> snapshot =
           await FirebaseFirestore.instance
@@ -24,7 +25,7 @@ class ChatListedController extends GetxController {
 
       allUsers.assignAll(snapshot.docs.map((doc) => doc.data()).toList());
     } catch (e) {
-      debugPrint('Error fetching all users: $e');
+      Print.error('Error fetching all users: $e');
       Get.snackbar(
         'Error',
         'Failed to load users. Please try again later.',
@@ -61,7 +62,7 @@ class ChatListedController extends GetxController {
 
       chattedUsers.assignAll(usersList);
     } catch (e) {
-      debugPrint('Error fetching chatted users: $e');
+      Print.error('Error fetching chatted users: $e');
       Get.snackbar(
         'Error',
         'Failed to load chatted users. Please try again later.',

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
+import 'package:food_courier/app/core/helper/custom_log.dart';
 import 'package:food_courier/app/data/models/transaction_model.dart';
 import 'package:get/get.dart';
 
@@ -16,7 +16,7 @@ class TransactionController extends GetxController {
   void listenToTransactionsForUser() {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      debugPrint('User not logged in');
+      Print.warn('User not logged in');
       return;
     }
 
@@ -34,7 +34,7 @@ class TransactionController extends GetxController {
         isLoading.value = false;
       },
       onError: (error) {
-        debugPrint('Error listening to transactions: $error');
+        Print.error('Error listening to transactions: $error');
         isLoading.value = false;
       },
     );

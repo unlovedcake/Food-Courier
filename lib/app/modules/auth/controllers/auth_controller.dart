@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:food_courier/app/core/helper/custom_log.dart';
 import 'package:food_courier/app/core/helper/helper_functions.dart'
     show otherUserId;
 import 'package:food_courier/app/core/helper/show_loading.dart';
@@ -54,7 +55,7 @@ class AuthController extends GetxController {
           .doc(firebaseUser.uid)
           .set(newUser.toJson());
     } on Exception catch (e) {
-      debugPrint('Error Add User $e');
+      Print.error('Error Add User $e');
       Get
         ..back()
         ..snackbar('Error', 'An unknown error occurred.');
@@ -106,7 +107,7 @@ class AuthController extends GetxController {
 
       await Get.offAllNamed(AppPages.DASHBOARD);
     } on FirebaseAuthException catch (e) {
-      debugPrint('Error $e');
+      Print.error('Error $e');
       Get
         ..back()
         ..snackbar(
@@ -117,7 +118,7 @@ class AuthController extends GetxController {
           colorText: Colors.white,
         );
     } catch (e) {
-      debugPrint('Error $e');
+      Print.error('Error $e');
       Get
         ..back()
         ..snackbar('Error', 'An unknown error occurred.');

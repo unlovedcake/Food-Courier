@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:food_courier/app/core/helper/custom_log.dart';
 import 'package:food_courier/app/core/helper/show_loading.dart';
 import 'package:food_courier/app/data/models/product_model.dart';
 import 'package:food_courier/app/data/models/transaction_model.dart';
@@ -159,7 +160,7 @@ class CartController extends GetxController with GetTickerProviderStateMixin {
 
         String checkoutUrl = responseBody['data']['attributes']['checkout_url'];
         String id = responseBody['data']['id'];
-        debugPrint('Checkout session created successfully: $id');
+        Print.success('Checkout session created successfully: $id');
 
         // if (await canLaunchUrl(Uri.parse(checkoutUrl))) {
         //   await launchUrl(
@@ -179,7 +180,7 @@ class CartController extends GetxController with GetTickerProviderStateMixin {
           ),
         );
       } else {
-        debugPrint('Error creating checkout session: ${response.body}');
+        Print.error('Error creating checkout session: ${response.body}');
         final Map<String, dynamic> json = jsonDecode(response.body);
         final String message = json['errors']?[0]?['detail'] ?? 'Unknown error';
         Get
@@ -193,7 +194,7 @@ class CartController extends GetxController with GetTickerProviderStateMixin {
           );
       }
     } on Exception catch (error) {
-      debugPrint('Error: $error');
+      Print.error('Error: $error');
       Get
         ..back()
         ..snackbar(
@@ -261,9 +262,9 @@ class CartController extends GetxController with GetTickerProviderStateMixin {
 
       await docRef.set(finalPayload.toJson());
 
-      print('Transaction saved successfully!');
+      Print.success('Transaction saved successfully!');
     } catch (e) {
-      print('Error saving transaction: $e');
+      Print.error('Error saving transaction: $e');
     }
   }
 }
