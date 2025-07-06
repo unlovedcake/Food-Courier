@@ -70,3 +70,97 @@ jobs:
             --app "${{ secrets.FIREBASE_APP_ID }}" \
             --groups testers \
             --release-notes "New release from GitHub Actions"
+
+
+
+
+
+
+
+name: Build & Distribute Android (Firebase AppDistribution)
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - development
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  build_android:
+    name: Build & Distribute Android APK
+    runs-on: macos-latest
+
+    steps:
+      # Step 1: Checkout code
+      - name: 📥 Checkout source
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Java
+      - name: 🔧 Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: "zulu"
+          java-version: "17"
+
+      # Step 3: Set up Flutter
+      - name: 🔧 Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          architecture: x64
+
+      # Step 4: Install dependencies
+      - name: 📦 Install Flutter dependencies
+        run: flutter pub get
+
+      # Step 5: Create environment config dynamically
+      - name: 📁 Create environment config
+        run: |
+          mkdir -p assets/env
+          BRANCH_NAME="${GITHUB_REF##*/}"
+          if [[ "$BRANCH_NAME" == "development" ]]; then
+            echo "${{ secrets.DEV_ENV_JSON_BASE64 }}" | base64 --decode > assets/env/development.json
+            echo "${{ secrets.ENV_BASE64 }}" | base64 --decode > assets/env/.env
+            echo "ENV_NAME=development" >> $GITHUB_ENV
+          else
+            echo "${{ secrets.PROD_ENV_JSON_BASE64 }}" | base64 --decode > assets/env/production.json
+            echo "${{ secrets.ENV_BASE64 }}" | base64 --decode > assets/env/.env
+            echo "ENV_NAME=production" >> $GITHUB_ENV
+          fi
+
+      - name: 🐛 Print current branch and environment
+        run: |
+          echo "Branch Name: ${GITHUB_REF##*/}"
+          echo "ENV_NAME: ${{ env.ENV_NAME }}"
+
+      # Step 6: Run tests
+      - name: 🧪 Run tests
+        run: flutter test
+
+      # Step 7: Build APK
+      - name: 🏗️ Build Android APK
+        run: flutter build apk --release --dart-define=env=${{ env.ENV_NAME }}
+
+      # Step 8: Install Firebase CLI
+      - name: 🔧 Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      # Step 9: Authenticate with Firebase using Service Account
+      - name: 🔐 Authenticate with Firebase
+        run: |
+          echo "${{ secrets.GCLOUD_SERVICE_ACCOUNT_JSON }}" | base64 --decode > $HOME/firebase-service-account.json
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/firebase-service-account.json" >> $GITHUB_ENV
+
+      # Step 10: Upload APK to Firebase App Distribution
+      - name: 🚀 Upload APK to Firebase
+        run: |
+          firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
+            --app "${{ secrets.FIREBASE_APP_ID }}" \
+            --groups testers \
+            --release-notes "New release from GitHub Actions"
+

@@ -8,7 +8,6 @@ class MessageModel {
     required this.createAd,
     this.imageUrl,
     this.isDeleted = false,
-    this.readAt,
     this.reactions = const {},
     this.isEdited = false,
   });
@@ -21,9 +20,10 @@ class MessageModel {
       imageUrl: json['imageUrl'],
       isDeleted: json['isDeleted'] ?? false,
 
-      createAd: (json['createAd'] as Timestamp).toDate(),
-      // timestamp: DateTime.parse(json['timestamp']),
-      readAt: json['readAt'] != null ? DateTime.parse(json['readAt']) : null,
+      createAd: (json['createAd'] as Timestamp?)?.toDate() ?? DateTime.now(),
+
+      //createAd: (json['createAd'] as Timestamp).toDate(),
+
       reactions: Map<String, String>.from(json['reactions'] ?? {}),
       isEdited: json['isEdited'] ?? false,
     );
@@ -34,7 +34,7 @@ class MessageModel {
   final String? imageUrl;
   final bool isDeleted;
   final DateTime createAd;
-  final DateTime? readAt;
+
   final Map<String, String> reactions;
   final bool isEdited;
 
@@ -45,7 +45,6 @@ class MessageModel {
         'imageUrl': imageUrl,
         'isDeleted': isDeleted,
         'createAd': createAd,
-        'readAt': readAt?.toIso8601String(),
         'reactions': reactions,
         'isEdited': isEdited,
       };

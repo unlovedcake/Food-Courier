@@ -81,7 +81,8 @@ class ChatController extends GetxController {
 
     scrollController.addListener(() async {
       if (scrollController.position.pixels ==
-          scrollController.position.minScrollExtent) {
+              scrollController.position.minScrollExtent &&
+          !isFetchingMoreObs.value) {
         // User scrolled to top
         await loadMoreMessages(scrollController: scrollController);
       }
@@ -137,10 +138,10 @@ class ChatController extends GetxController {
   }
 
   Future<void> _startPresenceTracking() async {
-    final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
-    if (currentUserId.isEmpty) {
-      return;
-    }
+    // final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+    // if (currentUserId.isEmpty) {
+    //   return;
+    // }
     await PresenceService(userId: currentUserId).setupPresenceTracking();
   }
 
@@ -151,9 +152,7 @@ class ChatController extends GetxController {
         FirebaseDatabase.instance.ref('status/$receiverId');
     _presenceSub = otherRef.onValue.listen((event) {
       final data = event.snapshot.value as Map?;
-      if (data == null) {
-        return;
-      }
+      if (data == null) return;
 
       isOtherUserOnline.value = data['online'] ?? false;
 
@@ -220,22 +219,22 @@ class ChatController extends GetxController {
         hasMore = false;
       }
 
-      // Real-time listener for new messages after initial load
-      _firestore
-          .collection('chats')
-          .doc(chatId)
-          .collection('messages')
-          .orderBy('createAd', descending: true)
-          .limit(1)
-          .snapshots()
-          .listen((snapshot) {
-        if (snapshot.docs.isNotEmpty) {
-          final latest = MessageModel.fromJson(snapshot.docs.first.data());
-          if (!messages.any((m) => m.id == latest.id)) {
-            messages.add(latest);
-          }
-        }
-      });
+      // // Real-time listener for new messages after initial load
+      // _firestore
+      //     .collection('chats')
+      //     .doc(chatId)
+      //     .collection('messages')
+      //     .orderBy('createAd', descending: true)
+      //     .limit(1)
+      //     .snapshots()
+      //     .listen((snapshot) {
+      //   if (snapshot.docs.isNotEmpty) {
+      //     final latest = MessageModel.fromJson(snapshot.docs.first.data());
+      //     if (!messages.any((m) => m.id == latest.id)) {
+      //       messages.add(latest);
+      //     }
+      //   }
+      // });
     } catch (e) {
       Log.error('Error Fetch Initial Mesages $e');
     } finally {
@@ -271,10 +270,6 @@ class ChatController extends GetxController {
       isFetchingMore = false;
       isFetchingMoreObs.value = false;
     } else {
-      Log.info(
-        'Loaded ${snapshot.docs.length} more messages for chatId: $chatId',
-      );
-
       lastDocument = snapshot.docs.last;
 
       final List<MessageModel> more = snapshot.docs
@@ -292,24 +287,44 @@ class ChatController extends GetxController {
       scrollController?.jumpTo(scrollController.offset + 80);
     }
 
+    Log.info(
+      'Loaded ${messages.length} more messages for chatId: $chatId',
+    );
+
     isFetchingMore = false;
     isFetchingMoreObs.value = false;
   }
 
   void _listenToMessages() {
+    // // Real-time listener for new messages after initial load
     _firestore
         .collection('chats')
         .doc(chatId)
         .collection('messages')
-        .orderBy('createAd', descending: false)
+        .orderBy('createAd', descending: true)
+        .limit(1)
         .snapshots()
         .listen((snapshot) {
-      final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
-          snapshot.docs;
-
-      messages.value =
-          docs.map((doc) => MessageModel.fromJson(doc.data())).toList();
+      if (snapshot.docs.isNotEmpty) {
+        final latest = MessageModel.fromJson(snapshot.docs.first.data());
+        if (!messages.any((m) => m.id == latest.id)) {
+          messages.add(latest);
+        }
+      }
     });
+    // _firestore
+    //     .collection('chats')
+    //     .doc(chatId)
+    //     .collection('messages')
+    //     .orderBy('createAd', descending: false)
+    //     .snapshots()
+    //     .listen((snapshot) {
+    //   final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
+    //       snapshot.docs;
+
+    //   messages.value =
+    //       docs.map((doc) => MessageModel.fromJson(doc.data())).toList();
+    // });
   }
 
   Future<void> sendMessage() async {
@@ -393,7 +408,6 @@ class ChatController extends GetxController {
               'type': 'private chat',
             },
           );
-          Log.info('FCM Token: $token');
         }
       }
     } catch (e) {
