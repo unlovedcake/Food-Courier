@@ -30,7 +30,7 @@ Future<Map<String, dynamic>> loadConfig() async {
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  Print.info('Handling background message: ${message.messageId}');
+  Log.info('Handling background message: ${message.messageId}');
 }
 
 Future<void> main() async {

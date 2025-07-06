@@ -200,7 +200,7 @@ class ChatView extends GetView<ChatController> {
                                   children: [
                                     ConstrainedBox(
                                       constraints: BoxConstraints(
-                                        maxWidth: Get.width * 0.7,
+                                        maxWidth: Get.width * 0.8,
                                       ),
                                       child: Container(
                                         margin: const EdgeInsets.all(1.5),
@@ -264,27 +264,40 @@ class ChatView extends GetView<ChatController> {
                                                               .start,
                                                       spacing: 5,
                                                       children: [
-                                                        CachedNetworkImage(
-                                                          imageUrl:
-                                                              msg.imageUrl ??
-                                                                  '',
-                                                          progressIndicatorBuilder: (
-                                                            context,
-                                                            url,
-                                                            downloadProgress,
-                                                          ) =>
-                                                              CircularProgressIndicator(
-                                                            value:
-                                                                downloadProgress
-                                                                    .progress,
+                                                        ConstrainedBox(
+                                                          constraints:
+                                                              BoxConstraints(
+                                                            maxWidth:
+                                                                Get.width / 2,
+                                                            minWidth:
+                                                                Get.width / 2,
+                                                            maxHeight: 200,
+                                                            minHeight: 200,
                                                           ),
-                                                          errorWidget: (
-                                                            context,
-                                                            url,
-                                                            error,
-                                                          ) =>
-                                                              const Icon(
-                                                            Icons.error,
+                                                          child:
+                                                              CachedNetworkImage(
+                                                            fit: BoxFit.contain,
+                                                            imageUrl:
+                                                                msg.imageUrl ??
+                                                                    '',
+                                                            progressIndicatorBuilder: (
+                                                              context,
+                                                              url,
+                                                              downloadProgress,
+                                                            ) =>
+                                                                CircularProgressIndicator(
+                                                              value:
+                                                                  downloadProgress
+                                                                      .progress,
+                                                            ),
+                                                            errorWidget: (
+                                                              context,
+                                                              url,
+                                                              error,
+                                                            ) =>
+                                                                const Icon(
+                                                              Icons.error,
+                                                            ),
                                                           ),
                                                         ),
                                                         if (msg.text != '')

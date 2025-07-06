@@ -16,7 +16,7 @@ class TransactionController extends GetxController {
   void listenToTransactionsForUser() {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      Print.warn('User not logged in');
+      Log.warn('User not logged in');
       return;
     }
 
@@ -34,7 +34,7 @@ class TransactionController extends GetxController {
         isLoading.value = false;
       },
       onError: (error) {
-        Print.error('Error listening to transactions: $error');
+        Log.error('Error listening to transactions: $error');
         isLoading.value = false;
       },
     );
@@ -68,7 +68,7 @@ class TransactionController extends GetxController {
   //       return TransactionModel.fromJson(doc.data());
   //     }).toList();
   //   } on Exception catch (e) {
-  //     debugPrint('Error fetching transaction $e');
+  //     debugLog('Error fetching transaction $e');
   //   } finally {
   //     isLoading.value = false;
   //   }

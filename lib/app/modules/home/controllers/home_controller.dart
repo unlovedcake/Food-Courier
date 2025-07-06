@@ -137,7 +137,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
           cartIconAnimationController.reverse();
         });
       } catch (e) {
-        Print.error(e.toString());
+        Log.error(e.toString());
       }
     });
   }
@@ -230,7 +230,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       if (docSnapshot.exists) {
         // 🔴 REMOVE favorite
         await docRef.delete();
-        Print.info('Removed from favorites: $productId');
+        Log.info('Removed from favorites: $productId');
       } else {
         // ✅ ADD favorite
         await docRef.set({
@@ -244,10 +244,10 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
           'rating': product.rating,
           'createdAt': FieldValue.serverTimestamp(), // optional
         });
-        Print.success('Added to favorites: $productId');
+        Log.success('Added to favorites: $productId');
       }
     } catch (e) {
-      Print.error('Toggle Favorite Product error: $e');
+      Log.error('Toggle Favorite Product error: $e');
     }
   }
 
@@ -277,16 +277,16 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   //       await docRef.update({
   //         'favoriteProducts': FieldValue.arrayRemove([productId]),
   //       });
-  //       debugPrint('❌ Removed product $productId from favorites');
+  //       debugLog('❌ Removed product $productId from favorites');
   //     } else {
   //       // ADD product
   //       await docRef.update({
   //         'favoriteProducts': FieldValue.arrayUnion([productId]),
   //       });
-  //       debugPrint('✅ Added product $productId to favorites');
+  //       debugLog('✅ Added product $productId to favorites');
   //     }
   //   } catch (e) {
-  //     debugPrint('❌ toggleFavoriteProduct error: $e');
+  //     debugLog('❌ toggleFavoriteProduct error: $e');
   //   }
   // }
 
@@ -413,7 +413,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
             .toList();
 
         if (productList.isEmpty) {
-          Print.info('Empty products ');
+          Log.info('Empty products ');
           productsCategory.clear();
           return;
         }
@@ -424,7 +424,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       }
     } on Exception catch (e) {
       productsCategory.clear();
-      Print.error('Error: $e');
+      Log.error('Error: $e');
     } finally {
       isLoading.value = false;
     }
@@ -448,7 +448,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
             .toList();
 
         if (productList.isEmpty) {
-          Print.info('Empty products');
+          Log.info('Empty products');
           productsSearch.clear();
 
           return;
@@ -458,7 +458,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       }
     } on Exception catch (e) {
       productsSearch.clear();
-      Print.error('Error: $e');
+      Log.error('Error: $e');
     } finally {
       isLoading.value = false;
     }
@@ -480,7 +480,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
             .toList();
 
         if (productList.isEmpty) {
-          Print.info('Empty products ');
+          Log.info('Empty products ');
           // Get.snackbar(
           //   backgroundColor: Colors.black,
           //   colorText: Colors.white,
@@ -495,10 +495,10 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
 
         skip += limit;
 
-        Print.success('Loaded products data!');
+        Log.success('Loaded products data!');
       }
     } catch (e) {
-      Print.error('Failed to Fetch Products $e');
+      Log.error('Failed to Fetch Products $e');
     } finally {
       isLoading.value = false;
     }

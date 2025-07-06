@@ -15,7 +15,7 @@ class ChatListedController extends GetxController {
   Future<void> fetchAllUsersExceptCurrent() async {
     try {
       isLoading.value = true;
-      Print.info('Current User ID: $currentUserId');
+      Log.info('Current User ID: $currentUserId');
 
       final QuerySnapshot<Map<String, dynamic>> snapshot =
           await FirebaseFirestore.instance
@@ -25,7 +25,7 @@ class ChatListedController extends GetxController {
 
       allUsers.assignAll(snapshot.docs.map((doc) => doc.data()).toList());
     } catch (e) {
-      Print.error('Error fetching all users: $e');
+      Log.error('Error fetching all users: $e');
       Get.snackbar(
         'Error',
         'Failed to load users. Please try again later.',
@@ -62,7 +62,7 @@ class ChatListedController extends GetxController {
 
       chattedUsers.assignAll(usersList);
     } catch (e) {
-      Print.error('Error fetching chatted users: $e');
+      Log.error('Error fetching chatted users: $e');
       Get.snackbar(
         'Error',
         'Failed to load chatted users. Please try again later.',

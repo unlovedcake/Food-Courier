@@ -35,8 +35,10 @@ class ChatListedView extends GetView<ChatListedController> {
             children: [
               const AllUsersHorizontalView(),
               Expanded(
-                child: ListView.builder(
+                child: ListView.separated(
                   itemCount: controller.chattedUsers.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 8),
                   itemBuilder: (_, index) {
                     if (controller.chattedUsers.isEmpty) {
                       return const Center(child: Text('No conversations yet'));
@@ -46,6 +48,7 @@ class ChatListedView extends GetView<ChatListedController> {
                         controller.chattedUsers[index];
 
                     return ListTile(
+                      tileColor: Colors.white,
                       contentPadding: const EdgeInsets.all(12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),

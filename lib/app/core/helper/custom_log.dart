@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
 
-enum LogLevel {
+enum LogEnum {
   info('INFO  ℹ️ℹ️ℹ️ \n', TextColor.brightCyan),
-  success('SUCCESS ✅✅✅ \n', TextColor.green),
+  success('SUCCESS ✅✅✅ \n', TextColor.brightGreen),
   warn('WARNING ⚠️⚠️⚠️ \n', TextColor.yellow),
   error('ERROR ❌❌❌ \n', TextColor.red),
   debug('DEBUG 🐞🐞🐞 \n', TextColor.magenta);
 
-  const LogLevel(this.label, this.defaultColor);
+  const LogEnum(this.label, this.defaultColor);
   final String label;
   final TextColor defaultColor;
 }
@@ -35,8 +35,8 @@ enum TextColor {
   final String ansi;
 }
 
-class Print {
-  Print._();
+class Log {
+  Log._();
 
   static void success(
     String message, {
@@ -46,7 +46,7 @@ class Print {
   }) =>
       _log(
         message,
-        level: LogLevel.success,
+        level: LogEnum.success,
         textColor: textColor,
         stackTrace: stackTrace,
         stopwatch: stopwatch,
@@ -60,7 +60,7 @@ class Print {
   }) =>
       _log(
         message,
-        level: LogLevel.error,
+        level: LogEnum.error,
         textColor: textColor,
         stackTrace: stackTrace,
         stopwatch: stopwatch,
@@ -74,7 +74,7 @@ class Print {
   }) =>
       _log(
         message,
-        level: LogLevel.warn,
+        level: LogEnum.warn,
         textColor: textColor,
         stackTrace: stackTrace,
         stopwatch: stopwatch,
@@ -88,7 +88,7 @@ class Print {
   }) =>
       _log(
         message,
-        level: LogLevel.info,
+        level: LogEnum.info,
         textColor: textColor,
         stackTrace: stackTrace,
         stopwatch: stopwatch,
@@ -102,7 +102,7 @@ class Print {
   }) =>
       _log(
         message,
-        level: LogLevel.debug,
+        level: LogEnum.debug,
         textColor: textColor,
         stackTrace: stackTrace,
         stopwatch: stopwatch,
@@ -110,7 +110,7 @@ class Print {
 
   static void _log(
     String message, {
-    required LogLevel level,
+    required LogEnum level,
     TextColor? textColor,
     bool stackTrace = true,
     Stopwatch? stopwatch,
@@ -184,7 +184,7 @@ class Print {
     for (final line in lines) {
       if (line.contains('package:') &&
           !line.contains('custom_log.dart') && // Replace with your filename
-          !line.contains('Print.') &&
+          !line.contains('Log.') &&
           !line.contains('_log')) {
         final RegExpMatch? match =
             RegExp(r'#\d+\s+(.+)\s+\((.+):(\d+):\d+\)').firstMatch(line);
@@ -192,7 +192,7 @@ class Print {
           final String? method = match.group(1);
           final String? file = match.group(2);
           final String? lineNum = match.group(3);
-          return '🔍 ${TextColor.red.ansi}➡️ $colorCode$file:$lineNum $white in $method';
+          return '🔍 $colorCode$file:$lineNum  in $white 🚀 $method';
         }
       }
     }
@@ -201,14 +201,14 @@ class Print {
   }
 }
 
-// enum LogLevel {
+// enum LogEnum {
 //   info('INFO  ℹ️ℹ️ℹ️ \n', TextColor.brightCyan),
 //   success('SUCCESS ✅✅✅ \n', TextColor.green),
 //   warn('WARNING ⚠️⚠️⚠️ \n', TextColor.yellow),
 //   error('ERROR ❌❌❌ \n', TextColor.red),
 //   debug('DEBUG 🐞🐞🐞 \n', TextColor.magenta);
 
-//   const LogLevel(this.label, this.defaultColor);
+//   const LogEnum(this.label, this.defaultColor);
 //   final String label;
 //   final TextColor defaultColor;
 // }
@@ -236,39 +236,39 @@ class Print {
 //   final String ansi;
 // }
 
-// class Print {
-//   Print._();
+// class Log {
+//   Log._();
 
 //   static void success(String message,
 //           {TextColor? textColor, bool stackTrace = true}) =>
 //       _log(message,
-//           level: LogLevel.success,
+//           level: LogEnum.success,
 //           textColor: textColor,
 //           stackTrace: stackTrace);
 
 //   static void error(String message,
 //           {TextColor? textColor, bool stackTrace = true}) =>
 //       _log(message,
-//           level: LogLevel.error, textColor: textColor, stackTrace: stackTrace);
+//           level: LogEnum.error, textColor: textColor, stackTrace: stackTrace);
 
 //   static void warn(String message,
 //           {TextColor? textColor, bool stackTrace = true}) =>
 //       _log(message,
-//           level: LogLevel.warn, textColor: textColor, stackTrace: stackTrace);
+//           level: LogEnum.warn, textColor: textColor, stackTrace: stackTrace);
 
 //   static void info(String message,
 //           {TextColor? textColor, bool stackTrace = true}) =>
 //       _log(message,
-//           level: LogLevel.info, textColor: textColor, stackTrace: stackTrace);
+//           level: LogEnum.info, textColor: textColor, stackTrace: stackTrace);
 
 //   static void debug(String message,
 //           {TextColor? textColor, bool stackTrace = true}) =>
 //       _log(message,
-//           level: LogLevel.debug, textColor: textColor, stackTrace: stackTrace);
+//           level: LogEnum.debug, textColor: textColor, stackTrace: stackTrace);
 
 //   static void _log(
 //     String message, {
-//     required LogLevel level,
+//     required LogEnum level,
 //     TextColor? textColor,
 //     bool stackTrace = true,
 //   }) {
@@ -321,7 +321,7 @@ class Print {
 //     for (int i = 0; i < output.length; i += chunkSize) {
 //       final String chunk =
 //           output.substring(i, (i + chunkSize).clamp(0, output.length));
-//       debugPrint(chunk);
+//       debugLog(chunk);
 //     }
 //   }
 
@@ -333,7 +333,7 @@ class Print {
 //       if (line.contains('package:') &&
 //           !line.contains(
 //               'custom_log.dart') && // Replace with your file name if different
-//           !line.contains('Print.') &&
+//           !line.contains('Log.') &&
 //           !line.contains('_log')) {
 //         final RegExpMatch? match =
 //             RegExp(r'#\d+\s+(.+)\s+\((.+):(\d+):\d+\)').firstMatch(line);
@@ -350,14 +350,14 @@ class Print {
 //   }
 // }
 
-// enum LogLevel {
+// enum LogEnum {
 //   info('INFO  ℹ️ℹ️ℹ️ \n', TextColor.brightCyan),
 //   success('SUCCESS ✅✅✅ \n', TextColor.green),
 //   warn('WARNING ⚠️⚠️⚠️ \n', TextColor.yellow),
 //   error('ERROR ❌❌❌ \n', TextColor.red),
 //   debug('DEBUG 🐞🐞🐞 \n', TextColor.magenta);
 
-//   const LogLevel(this.label, this.defaultColor);
+//   const LogEnum(this.label, this.defaultColor);
 //   final String label;
 //   final TextColor defaultColor;
 // }
@@ -385,23 +385,23 @@ class Print {
 //   final String ansi;
 // }
 
-// class Print {
-//   Print._();
+// class Log {
+//   Log._();
 
 //   static void success(String message, {TextColor? textColor}) =>
-//       _log(message, level: LogLevel.success, textColor: textColor);
+//       _log(message, level: LogEnum.success, textColor: textColor);
 
 //   static void error(String message, {TextColor? textColor}) =>
-//       _log(message, level: LogLevel.error, textColor: textColor);
+//       _log(message, level: LogEnum.error, textColor: textColor);
 
 //   static void warn(String message, {TextColor? textColor}) =>
-//       _log(message, level: LogLevel.warn, textColor: textColor);
+//       _log(message, level: LogEnum.warn, textColor: textColor);
 
 //   static void info(String message, {TextColor? textColor}) =>
-//       _log(message, level: LogLevel.info, textColor: textColor);
+//       _log(message, level: LogEnum.info, textColor: textColor);
 
 //   static void debug(String message, {TextColor? textColor}) =>
-//       _log(message, level: LogLevel.debug, textColor: textColor);
+//       _log(message, level: LogEnum.debug, textColor: textColor);
 
 //   static String _getCallerInfo(StackTrace stackTrace, String colorCode) {
 //     final List<String> lines = stackTrace.toString().split('\n');
@@ -410,8 +410,8 @@ class Print {
 
 //     for (final line in lines) {
 //       if (line.contains('package:') &&
-//           !line.contains('custom_log.dart') && // <-- your Print file
-//           !line.contains('Print.') && // <-- skip Print.info, etc.
+//           !line.contains('custom_log.dart') && // <-- your Log file
+//           !line.contains('Log.') && // <-- skip Log.info, etc.
 //           !line.contains('_log')) {
 //         final RegExpMatch? match =
 //             RegExp(r'#\d+\s+(.+)\s+\((.+):(\d+):\d+\)').firstMatch(line);
@@ -429,7 +429,7 @@ class Print {
 
 //   static void _log(
 //     String message, {
-//     required LogLevel level,
+//     required LogEnum level,
 //     TextColor? textColor,
 //   }) {
 //     const int maxLineLength = 100;
@@ -476,45 +476,45 @@ class Print {
 //     final String output =
 //         '$colorCode$timestamp ${level.label} $stackTraceInfo\n$top\n$boxedLines\n$bottom$reset';
 
-//     // Safely print output in chunks (Flutter has a limit per log line)
+//     // Safely Log output in chunks (Flutter has a limit per log line)
 //     const chunkSize = 800;
 //     for (int i = 0; i < output.length; i += chunkSize) {
 //       final String chunk =
 //           output.substring(i, (i + chunkSize).clamp(0, output.length));
-//       debugPrint(chunk);
+//       debugLog(chunk);
 //     }
 //   }
 // }
 
-// enum LogLevel {
+// enum LogEnum {
 //   info('ℹ️ INFO', 'white'),
 //   success('✅ SUCCESS', 'green'),
 //   warn('⚠️ WARNING', 'yellow'),
 //   error('🛑 ERROR', 'red'),
 //   debug('🐞 DEBUG', 'magenta');
 
-//   const LogLevel(this.label, this.color); // ✅ Constructor comes first
+//   const LogEnum(this.label, this.color); // ✅ Constructor comes first
 
 //   final String label;
 //   final String color;
 // }
 
-// class Print {
-//   Print._();
+// class Log {
+//   Log._();
 //   static void success(String message, {String? textColor}) =>
-//       _log('✅ $message', level: LogLevel.success, textColor: textColor);
+//       _log('✅ $message', level: LogEnum.success, textColor: textColor);
 //   static void error(String message, {String? textColor}) =>
-//       _log('🛑 $message', level: LogLevel.error, textColor: textColor);
+//       _log('🛑 $message', level: LogEnum.error, textColor: textColor);
 //   static void warn(String message, {String? textColor}) =>
-//       _log('⚠️ $message', level: LogLevel.warn, textColor: textColor);
+//       _log('⚠️ $message', level: LogEnum.warn, textColor: textColor);
 //   static void info(String message, {String? textColor}) =>
-//       _log('ℹ️ $message', level: LogLevel.info, textColor: textColor);
+//       _log('ℹ️ $message', level: LogEnum.info, textColor: textColor);
 //   static void debug(String message, {String? textColor}) =>
-//       _log('🐞 $message', level: LogLevel.debug, textColor: textColor);
+//       _log('🐞 $message', level: LogEnum.debug, textColor: textColor);
 
 //   static void _log(
 //     String message, {
-//     required LogLevel level,
+//     required LogEnum level,
 //     String? textColor,
 //   }) {
 //     //ANSI color codes
@@ -548,16 +548,16 @@ class Print {
 //     final String boxedLines =
 //         lines.map((l) => '│ ${l.padRight(maxWidth)} │').join('\n');
 
-//     debugPrint(
+//     debugLog(
 //       '$colorCode$timestamp ${level.label}\n$top\n$colorCode$boxedLines\n$bottom$reset',
 //     );
 //   }
 // }
 
 // Emoji	Meaning	Example
-// ✅	Success/Loaded	debugPrint('✅ Messages loaded for $chatId');
-// ⚠️	Warning	debugPrint('⚠️ Something might be wrong');
-// 🛑	Error/Stop	debugPrint('🛑 Failed to load messages');
-// 📭	No more content	debugPrint('📭 No more messages to load');
-// 🔄	Loading	debugPrint('🔄 Fetching messages...');
-// 💬	Chat related	debugPrint('💬 New chat started: $chatId');
+// ✅	Success/Loaded	debugLog('✅ Messages loaded for $chatId');
+// ⚠️	Warning	debugLog('⚠️ Something might be wrong');
+// 🛑	Error/Stop	debugLog('🛑 Failed to load messages');
+// 📭	No more content	debugLog('📭 No more messages to load');
+// 🔄	Loading	debugLog('🔄 Fetching messages...');
+// 💬	Chat related	debugLog('💬 New chat started: $chatId');

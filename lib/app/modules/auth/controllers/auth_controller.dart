@@ -59,7 +59,7 @@ class AuthController extends GetxController {
           .doc(firebaseUser.uid)
           .set(newUser.toJson());
     } on Exception catch (e) {
-      Print.error('Error Add User $e');
+      Log.error('Error Add User $e');
       Get
         ..back()
         ..snackbar('Error', 'An unknown error occurred $e.');
@@ -118,7 +118,7 @@ class AuthController extends GetxController {
 
       await Get.offAllNamed(AppPages.DASHBOARD);
     } on FirebaseAuthException catch (e) {
-      Print.error('Error $e');
+      Log.error('Error $e');
       Get
         ..back()
         ..snackbar(
@@ -129,7 +129,7 @@ class AuthController extends GetxController {
           colorText: Colors.white,
         );
     } catch (e) {
-      Print.error('Error $e');
+      Log.error('Error $e');
       Get
         ..back()
         ..snackbar('Error', 'An unknown error occurred.');
@@ -185,7 +185,7 @@ class AuthController extends GetxController {
   //     otherUserId = _auth.currentUser?.uid ?? '';
   //     await Get.offAllNamed(AppPages.DASHBOARD);
   //   } catch (e) {
-  //     debugPrint('Error Register $e');
+  //     debugLog('Error Register $e');
   //   }
   // }
 
@@ -203,7 +203,7 @@ class AuthController extends GetxController {
 
   //     await Get.offAllNamed(AppPages.DASHBOARD);
   //   } catch (e) {
-  //     debugPrint('Error Login $e');
+  //     debugLog('Error Login $e');
   //   }
   // }
 

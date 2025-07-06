@@ -5,11 +5,13 @@ import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:food_courier/app/core/helper/custom_log.dart';
 import 'package:food_courier/app/core/presence_service.dart';
 import 'package:food_courier/app/data/models/message_model.dart';
+import 'package:food_courier/app/modules/services/notification_service.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supa;
@@ -191,7 +193,7 @@ class ChatController extends GetxController {
           .get();
 
       if (snapshot.docs.isEmpty) {
-        Print.error('No messages found for chatId: $chatId');
+        Log.error('No messages found for chatId: $chatId');
         return;
       }
 
@@ -205,14 +207,14 @@ class ChatController extends GetxController {
         messages.assignAll(msgs.reversed.toList());
 
         // ✅ Wait for layout then scroll
-        Future.delayed(const Duration(milliseconds: 100), () {
-          if (scrollController.hasClients) {
-            scrollController.jumpTo(scrollController.position.maxScrollExtent);
-          }
-        });
-
-        Print.error(
-          'Current User ID: $currentUserId /n Current User ID: $currentUserId Current User ID: $currentUserId /n Current User ID: $currentUserId ',
+        // Future.delayed(const Duration(milliseconds: 100), () {
+        //   if (scrollController.hasClients) {
+        //     scrollController.jumpTo(scrollController.position.maxScrollExtent);
+        //   }
+        // });
+        scrollToBottom();
+        Log.success(
+          'Initial Messages Loaded...',
         );
       } else {
         hasMore = false;
@@ -235,7 +237,7 @@ class ChatController extends GetxController {
         }
       });
     } catch (e) {
-      Print.error('Error Fetch Initial Mesages $e');
+      Log.error('Error Fetch Initial Mesages $e');
     } finally {
       isLoading.value = false;
     }
@@ -262,14 +264,14 @@ class ChatController extends GetxController {
     if (snapshot.docs.isEmpty) {
       hasMore = false;
 
-      Print.info(
+      Log.info(
         'No more messages to load for chatId: $chatId',
       );
 
       isFetchingMore = false;
       isFetchingMoreObs.value = false;
     } else {
-      Print.info(
+      Log.info(
         'Loaded ${snapshot.docs.length} more messages for chatId: $chatId',
       );
 
@@ -358,9 +360,8 @@ class ChatController extends GetxController {
             'createdAt': FieldValue.serverTimestamp(),
             'sender': {
               'senderId': currentUserId,
-              'senderName':
-                  FirebaseAuth.instance.currentUser?.displayName ?? '',
-              'senderImage': FirebaseAuth.instance.currentUser?.photoURL ??
+              'senderName': user?.displayName ?? '',
+              'senderImage': user?.photoURL ??
                   'https://militaryhealthinstitute.org/wp-content/uploads/sites/37/2021/08/blank-profile-picture-png.png',
             },
             'receiver': {
@@ -375,8 +376,28 @@ class ChatController extends GetxController {
 
       messageText.value = '';
       scrollToBottom();
+
+      if (!isOtherUserOnline.value) {
+        // Get the token
+        final FirebaseMessaging fcm = FirebaseMessaging.instance;
+        final String? token = await fcm.getToken();
+        if (token != null) {
+          await FCM().sendPushNotification(
+            deviceToken: token,
+            title: user?.displayName ?? '',
+            body: text,
+            data: {
+              'chatId': chatId,
+              'senderId': currentUserId,
+              'receiverId': receiverId,
+              'type': 'private chat',
+            },
+          );
+          Log.info('FCM Token: $token');
+        }
+      }
     } catch (e) {
-      Print.error('Error sending message: $e');
+      Log.error('Error sending message: $e');
       Get.snackbar(
         'Error',
         'Failed to send message. Please try again later.',
@@ -402,7 +423,7 @@ class ChatController extends GetxController {
       imageBytes.value = await file.readAsBytes();
     }
 
-    Print.info('Selected image: ${fileImage.value?.path}');
+    Log.info('Selected image: ${fileImage.value?.path}');
   }
 
   Future<void> sendImage() async {
@@ -469,7 +490,7 @@ class ChatController extends GetxController {
       selectedImageUrl.value = '';
       fileImage.value = null;
     } catch (e) {
-      Print.error('Error sending image: $e');
+      Log.error('Error sending image: $e');
       Get.snackbar(
         'Error',
         'Failed to send image. Please try again later.',
@@ -544,7 +565,7 @@ class ChatController extends GetxController {
 
       await ref.update({'reactions': reactions});
     } catch (e) {
-      Print.error('Error: $e');
+      Log.error('Error: $e');
     } finally {
       Future.delayed(const Duration(milliseconds: 200), () {
         reactionScales[messageId] = 1.2;
@@ -586,7 +607,7 @@ class ChatController extends GetxController {
         'isDeleted': true,
       });
     } on Exception catch (e) {
-      Print.error('Error deleting message: $e');
+      Log.error('Error deleting message: $e');
       Get.snackbar(
         'Error',
         'Failed to delete message. Please try again later.',
@@ -598,34 +619,34 @@ class ChatController extends GetxController {
     }
   }
 
-  void _listenToLastSeen() {
-    _firestore
-        .collection('chats')
-        .doc(chatId)
-        .collection('status')
-        .doc('presence')
-        .snapshots()
-        .listen((doc) {
-      final Map<String, dynamic>? data = doc.data();
-      final String? otherId =
-          data?.keys.firstWhere((k) => k != currentUserId, orElse: () => '');
-      if (otherId!.isNotEmpty) {
-        otherLastSeen.value = data![otherId];
+  // void _listenToLastSeen() {
+  //   _firestore
+  //       .collection('chats')
+  //       .doc(chatId)
+  //       .collection('status')
+  //       .doc('presence')
+  //       .snapshots()
+  //       .listen((doc) {
+  //     final Map<String, dynamic>? data = doc.data();
+  //     final String? otherId =
+  //         data?.keys.firstWhere((k) => k != currentUserId, orElse: () => '');
+  //     if (otherId!.isNotEmpty) {
+  //       otherLastSeen.value = data![otherId];
 
-        print('otherLastSeen $otherLastSeen');
-      }
+  //       Log.info('otherLastSeen $otherLastSeen');
+  //     }
 
-      String dateString = otherLastSeen.toString();
-      DateTime dateTime = DateTime.parse(dateString);
-      int timestampMillis = dateTime.millisecondsSinceEpoch;
+  //     String dateString = otherLastSeen.toString();
+  //     DateTime dateTime = DateTime.parse(dateString);
+  //     int timestampMillis = dateTime.millisecondsSinceEpoch;
 
-      final lastSeenTime = DateTime.fromMillisecondsSinceEpoch(
-        int.parse(timestampMillis.toString()),
-      );
+  //     final lastSeenTime = DateTime.fromMillisecondsSinceEpoch(
+  //       int.parse(timestampMillis.toString()),
+  //     );
 
-      otherLastSeen.value = formatLastSeen(lastSeenTime);
-    });
-  }
+  //     otherLastSeen.value = formatLastSeen(lastSeenTime);
+  //   });
+  // }
 
   // void _startLastSeenTimer() {
   //   Timer.periodic(const Duration(seconds: 30), (_) {

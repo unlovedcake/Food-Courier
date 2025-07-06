@@ -70,11 +70,11 @@ class DashboardController extends GetxController {
         final String messageText = data['text'] ?? '';
         isRead.value = data['isRead'] ?? false;
       } else {
-        Print.warn('No messages found.');
+        Log.warn('No messages found.');
       }
     } else {
       // ❌ chatId does not exist
-      Print.error('Chat with ID $chatId does not exist');
+      Log.error('Chat with ID $chatId does not exist');
       return;
     }
   }
@@ -107,11 +107,11 @@ class DashboardController extends GetxController {
       }
 
       // Log or use unread count
-      Print.info('Total unread: $unreadCount');
+      Log.info('Total unread: $unreadCount');
       unreadMessagesCount.value =
           unreadCount; // Make sure you define it as RxInt
     } catch (e) {
-      Print.error('Error fetching count unread messages chatted users: $e');
+      Log.error('Error fetching count unread messages chatted users: $e');
     }
   }
 }

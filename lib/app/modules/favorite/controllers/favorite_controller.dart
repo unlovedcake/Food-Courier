@@ -22,7 +22,7 @@ class FavoriteController extends GetxController {
         favoriteProducts.value = products;
       });
     } catch (e) {
-      Print.error('Error fetching favorites product');
+      Log.error('Error fetching favorites product');
     }
   }
 

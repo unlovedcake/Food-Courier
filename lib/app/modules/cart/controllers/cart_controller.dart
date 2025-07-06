@@ -160,7 +160,7 @@ class CartController extends GetxController with GetTickerProviderStateMixin {
 
         String checkoutUrl = responseBody['data']['attributes']['checkout_url'];
         String id = responseBody['data']['id'];
-        Print.success('Checkout session created successfully: $id');
+        Log.success('Checkout session created successfully: $id');
 
         // if (await canLaunchUrl(Uri.parse(checkoutUrl))) {
         //   await launchUrl(
@@ -180,7 +180,7 @@ class CartController extends GetxController with GetTickerProviderStateMixin {
           ),
         );
       } else {
-        Print.error('Error creating checkout session: ${response.body}');
+        Log.error('Error creating checkout session: ${response.body}');
         final Map<String, dynamic> json = jsonDecode(response.body);
         final String message = json['errors']?[0]?['detail'] ?? 'Unknown error';
         Get
@@ -194,7 +194,7 @@ class CartController extends GetxController with GetTickerProviderStateMixin {
           );
       }
     } on Exception catch (error) {
-      Print.error('Error: $error');
+      Log.error('Error: $error');
       Get
         ..back()
         ..snackbar(
@@ -244,7 +244,7 @@ class CartController extends GetxController with GetTickerProviderStateMixin {
     // };
 
     // finalPayload.forEach((key, value) {
-    //   print('$key: $value');
+    //   Log('$key: $value');
     // });
 
     await saveTransactionToFirestore(finalPayload);
@@ -262,9 +262,9 @@ class CartController extends GetxController with GetTickerProviderStateMixin {
 
       await docRef.set(finalPayload.toJson());
 
-      Print.success('Transaction saved successfully!');
+      Log.success('Transaction saved successfully!');
     } catch (e) {
-      Print.error('Error saving transaction: $e');
+      Log.error('Error saving transaction: $e');
     }
   }
 }

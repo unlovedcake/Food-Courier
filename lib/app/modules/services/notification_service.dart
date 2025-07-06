@@ -30,18 +30,18 @@ class NotificationService {
     final String? token = await _fcm.getToken();
     if (token != null) {
       fcmToken.value = token;
-      Print.info('FCM Token: $token');
+      Log.info('FCM Token: $token');
     }
 
     // Listen to foreground messages
     FirebaseMessaging.onMessage.listen((message) async {
-      Print.info('🔔 Foreground message: ${message.notification?.title}');
+      Log.info('🔔 Foreground message: ${message.notification?.title}');
       await _showLocalNotification(message);
     });
 
     // On background click
     FirebaseMessaging.onMessageOpenedApp.listen((message) {
-      Print.info('On background click Notification Clicked!');
+      Log.info('On background click Notification Clicked!');
     });
   }
 
@@ -68,21 +68,21 @@ class NotificationService {
     final int? notificationId = response.id;
     final String? payload = response.payload;
 
-    Print.warn('🔔 Notification $actionId');
+    Log.warn('🔔 Notification $actionId');
     if (actionId != null) {
       if (actionId == 'open_chat') {
-        Print.info("🔗 User tapped 'Open Chat' $payload");
+        Log.info("🔗 User tapped 'Open Chat' $payload");
       } else if (actionId == 'mark_read') {
         // ✅ Dismiss notification
         if (notificationId != null) {
           await _localNotificationsPlugin.cancel(notificationId);
-          Print.info("✅ User tapped 'Mark as Read'");
+          Log.info("✅ User tapped 'Mark as Read'");
         }
       } else {
-        Print.info('🟡 Unknown action tapped: $actionId');
+        Log.info('🟡 Unknown action tapped: $actionId');
       }
     } else {
-      Print.info('🔔 Notification tapped (no action)');
+      Log.info('🔔 Notification tapped (no action)');
     }
   }
 
@@ -149,7 +149,7 @@ class FCM {
 
     final AutoRefreshingAuthClient client =
         await clientViaServiceAccount(serviceAccount, scopes);
-    Print.info('Client Credentials: ${client.credentials}');
+    Log.info('Client Credentials: ${client.credentials}');
     return client.credentials;
   }
 
@@ -165,7 +165,7 @@ class FCM {
     final String accessToken = credentials.accessToken.data;
     const projectId = 'phone-auth-ed201';
 
-    Print.info('AccessToken: $accessToken ');
+    Log.info('AccessToken: $accessToken ');
 
     final Uri url = Uri.parse(
       'https://fcm.googleapis.com/v1/projects/$projectId/messages:send',
@@ -189,10 +189,10 @@ class FCM {
     );
 
     if (response.statusCode == 200) {
-      Print.info('Notification sent successfully. ${response.body}');
+      Log.info('Notification sent successfully. ${response.body}');
       return true;
     } else {
-      Print.error('Failed to send notification: ${response.body}');
+      Log.error('Failed to send notification: ${response.body}');
       return false;
     }
   }
