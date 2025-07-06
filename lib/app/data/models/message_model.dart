@@ -1,12 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class MessageModel {
   MessageModel({
     required this.id,
     required this.senderId,
     required this.text,
-    required this.timestamp,
+    required this.createAd,
     this.imageUrl,
-    this.isRead = false,
-    this.readAt,
+    this.isDeleted = false,
     this.reactions = const {},
     this.isEdited = false,
   });
@@ -17,9 +18,12 @@ class MessageModel {
       senderId: json['senderId'],
       text: json['text'] ?? '',
       imageUrl: json['imageUrl'],
-      isRead: json['isRead'] ?? false,
-      timestamp: DateTime.parse(json['timestamp']),
-      readAt: json['readAt'] != null ? DateTime.parse(json['readAt']) : null,
+      isDeleted: json['isDeleted'] ?? false,
+
+      createAd: (json['createAd'] as Timestamp?)?.toDate() ?? DateTime.now(),
+
+      //createAd: (json['createAd'] as Timestamp).toDate(),
+
       reactions: Map<String, String>.from(json['reactions'] ?? {}),
       isEdited: json['isEdited'] ?? false,
     );
@@ -28,9 +32,9 @@ class MessageModel {
   final String senderId;
   final String text;
   final String? imageUrl;
-  final bool isRead;
-  final DateTime timestamp;
-  final DateTime? readAt;
+  final bool isDeleted;
+  final DateTime createAd;
+
   final Map<String, String> reactions;
   final bool isEdited;
 
@@ -39,9 +43,8 @@ class MessageModel {
         'senderId': senderId,
         'text': text,
         'imageUrl': imageUrl,
-        'isRead': isRead,
-        'timestamp': timestamp.toIso8601String(),
-        'readAt': readAt?.toIso8601String(),
+        'isDeleted': isDeleted,
+        'createAd': createAd,
         'reactions': reactions,
         'isEdited': isEdited,
       };

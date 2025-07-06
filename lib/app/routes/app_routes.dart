@@ -11,6 +11,10 @@ abstract class Routes {
   static const DETAIL_PRODUCT = _Paths.DETAIL_PRODUCT;
   static const CHAT = _Paths.CHAT;
   static const AUTH = _Paths.AUTH;
+  static const TRANSACTION = _Paths.TRANSACTION;
+  static const PROFILE = _Paths.PROFILE;
+  static const FAVORITE = _Paths.FAVORITE;
+  static const CHAT_LISTED = _Paths.CHAT_LISTED;
 }
 
 abstract class _Paths {
@@ -23,4 +27,8 @@ abstract class _Paths {
   static const DETAIL_PRODUCT = '/detail-product';
   static const CHAT = '/chat';
   static const AUTH = '/auth';
+  static const TRANSACTION = '/transaction';
+  static const PROFILE = '/profile';
+  static const FAVORITE = '/favorite';
+  static const CHAT_LISTED = '/chat-listed';
 }

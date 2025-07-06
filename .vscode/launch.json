@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
       {
-        "name": "Food Courier Dev",
+        "name": "Shop Swift Dev",
         "program": "lib/main.dart",
         "request": "launch",
         "type": "dart",
@@ -15,7 +15,7 @@
         ]
       },
       {
-        "name": "Food Courier Staging",
+        "name": "Shop Swift Staging",
        "program": "lib/main.dart",
         "request": "launch",
         "type": "dart",
@@ -25,7 +25,7 @@
         ]
       },
       {
-        "name": "Food Courier Production",
+        "name": "Shop Swift Production",
         "program": "lib/main.dart",
         "request": "launch",
         "type": "dart",

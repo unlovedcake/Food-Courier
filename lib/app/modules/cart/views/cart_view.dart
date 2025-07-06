@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:food_courier/app/data/models/product_model.dart';
 import 'package:food_courier/app/modules/home/controllers/home_controller.dart';
 import 'package:get/get.dart';
+import 'package:lottie/lottie.dart';
 
 import '../controllers/cart_controller.dart';
 
@@ -23,8 +24,27 @@ class CartView extends GetView<CartController> {
         final List<ProductModel> items =
             homeController.cartProducts.values.toList();
         if (items.isEmpty) {
-          return const Center(
-            child: Text('Your cart is empty', style: TextStyle(fontSize: 18)),
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Lottie.asset(
+                  'assets/lottie/cart_empty.json',
+                  width: 200,
+                  height: 200,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Your cart is empty',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
           );
         }
 
@@ -88,10 +108,20 @@ class CartView extends GetView<CartController> {
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
+                                  color: Colors.black,
                                 ),
                               ),
                               const SizedBox(height: 4),
-                              Text('Price: ${product.price}'),
+                              Text(
+                                'Price: ${product.price}',
+                                style: const TextStyle(color: Colors.grey),
+                              ),
+                              Obx(
+                                () => Text(
+                                  'Qty: ${product.countItem.value}',
+                                  style: const TextStyle(color: Colors.grey),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -116,11 +146,6 @@ class CartView extends GetView<CartController> {
                                   product.countItem.value--;
                                 }
                               },
-                            ),
-                            Obx(
-                              () => Text(
-                                product.countItem.value.toString(),
-                              ),
                             ),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
@@ -319,7 +344,7 @@ class CartView extends GetView<CartController> {
         // final int totalItems = homeController.cartProducts.values
         //     .fold<int>(0, (sum, p) => sum + p.countItem.value);
 
-        final double totalPay =
+        controller.totalPay.value =
             homeController.cartProducts.values.fold(0, (sum, product) {
           return sum + (product.price * product.countItem.value);
         });
@@ -348,13 +373,15 @@ class CartView extends GetView<CartController> {
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
+                      color: Colors.black,
                     ),
                   ),
                   Text(
-                    'Total: \u20B1${totalPay.toStringAsFixed(2)}',
+                    'Total: ₱ ${controller.totalPay.toStringAsFixed(2)}',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
                   ),
                 ],
@@ -365,7 +392,7 @@ class CartView extends GetView<CartController> {
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        // backgroundColor: Colors.green,
+                        backgroundColor: Colors.black,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 24,
                           vertical: 16,
@@ -374,10 +401,19 @@ class CartView extends GetView<CartController> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: () {
-                        controller.createCheckoutSession();
-                      },
-                      child: const Text('Checkout'),
+                      onPressed: homeController.cartProducts.isEmpty
+                          ? null
+                          : () async {
+                              await controller.createCheckoutSession();
+                            },
+                      child: const Text(
+                        'Check Out',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -567,7 +603,10 @@ class CartView extends GetView<CartController> {
                           children: [
                             TextButton(
                               onPressed: Get.back,
-                              child: const Text('Cancel'),
+                              child: const Text(
+                                'Cancel',
+                                style: TextStyle(color: Colors.black),
+                              ),
                             ),
                             const SizedBox(width: 12),
                             ElevatedButton.icon(

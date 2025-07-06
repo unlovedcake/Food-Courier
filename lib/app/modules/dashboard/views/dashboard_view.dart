@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:food_courier/app/modules/chat/views/chat_view.dart';
+import 'package:food_courier/app/modules/chat_listed/views/chat_listed_view.dart';
 import 'package:food_courier/app/modules/dashboard/views/fade_indexed_stack.dart';
+import 'package:food_courier/app/modules/favorite/views/favorite_view.dart';
 import 'package:food_courier/app/modules/home/views/home_view.dart';
+import 'package:food_courier/app/modules/profile/views/profile_view.dart';
+import 'package:food_courier/app/modules/transaction/views/transaction_view.dart';
 import 'package:get/get.dart';
 
 import '../controllers/dashboard_controller.dart';
@@ -12,10 +15,10 @@ class DashboardView extends GetView<DashboardController> {
   Widget build(BuildContext context) {
     final List<Widget> pages = [
       const HomeView(),
-      const ChatView(),
-      const Center(child: Text('History')),
-      const Center(child: Text('Favorites')),
-      const Center(child: Text('Profile')),
+      const ChatListedView(),
+      const TransactionView(),
+      const FavoriteView(),
+      const ProfileView(),
     ];
     return Obx(
       () => Scaffold(
@@ -37,7 +40,7 @@ class DashboardView extends GetView<DashboardController> {
           currentIndex: controller.currentIndex,
           onTap: controller.changeTab,
           type: BottomNavigationBarType.fixed,
-          selectedItemColor: Colors.blue,
+          selectedItemColor: Colors.black,
           unselectedItemColor: Colors.grey,
           items: [
             const BottomNavigationBarItem(
@@ -46,20 +49,32 @@ class DashboardView extends GetView<DashboardController> {
             ),
             BottomNavigationBarItem(
               icon: Stack(
+                clipBehavior: Clip.none,
                 children: [
                   const Icon(Icons.chat),
-                  if (controller.isRead.value)
+                  if (controller.unreadMessagesCount.value == 0)
                     const SizedBox()
                   else
                     Positioned(
                       right: 0,
-                      top: 0,
+                      top: -3,
                       child: Container(
-                        width: 10,
-                        height: 10,
+                        alignment: Alignment.center,
+                        width: 14,
+                        height: 14,
                         decoration: const BoxDecoration(
                           color: Colors.red,
                           shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          controller.unreadMessagesCount.value > 0
+                              ? controller.unreadMessagesCount.value.toString()
+                              : '',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 8,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -95,7 +110,7 @@ class DashboardView extends GetView<DashboardController> {
             // ),
             const BottomNavigationBarItem(
               icon: Icon(Icons.history),
-              label: 'History',
+              label: 'Transaction',
             ),
             const BottomNavigationBarItem(
               icon: Icon(Icons.favorite),

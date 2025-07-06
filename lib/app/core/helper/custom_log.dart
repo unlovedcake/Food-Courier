@@ -1,0 +1,563 @@
+import 'package:flutter/foundation.dart';
+
+enum LogEnum {
+  info('INFO  ℹ️ℹ️ℹ️ \n', TextColor.brightCyan),
+  success('SUCCESS ✅✅✅ \n', TextColor.brightGreen),
+  warn('WARNING ⚠️⚠️⚠️ \n', TextColor.yellow),
+  error('ERROR ❌❌❌ \n', TextColor.red),
+  debug('DEBUG 🐞🐞🐞 \n', TextColor.magenta);
+
+  const LogEnum(this.label, this.defaultColor);
+  final String label;
+  final TextColor defaultColor;
+}
+
+enum TextColor {
+  black('\x1B[30m'),
+  red('\x1B[31m'),
+  green('\x1B[32m'),
+  yellow('\x1B[33m'),
+  blue('\x1B[34m'),
+  magenta('\x1B[35m'),
+  cyan('\x1B[36m'),
+  white('\x1B[37m'),
+  brightBlack('\x1B[90m'),
+  brightRed('\x1B[91m'),
+  brightGreen('\x1B[92m'),
+  brightYellow('\x1B[93m'),
+  brightBlue('\x1B[94m'),
+  brightMagenta('\x1B[95m'),
+  brightCyan('\x1B[96m'),
+  brightWhite('\x1B[97m'),
+  reset('\x1B[0m');
+
+  const TextColor(this.ansi);
+  final String ansi;
+}
+
+class Log {
+  Log._();
+
+  static void success(
+    String message, {
+    TextColor? textColor,
+    bool stackTrace = true,
+    Stopwatch? stopwatch,
+  }) =>
+      _log(
+        message,
+        level: LogEnum.success,
+        textColor: textColor,
+        stackTrace: stackTrace,
+        stopwatch: stopwatch,
+      );
+
+  static void error(
+    String message, {
+    TextColor? textColor,
+    bool stackTrace = true,
+    Stopwatch? stopwatch,
+  }) =>
+      _log(
+        message,
+        level: LogEnum.error,
+        textColor: textColor,
+        stackTrace: stackTrace,
+        stopwatch: stopwatch,
+      );
+
+  static void warn(
+    String message, {
+    TextColor? textColor,
+    bool stackTrace = true,
+    Stopwatch? stopwatch,
+  }) =>
+      _log(
+        message,
+        level: LogEnum.warn,
+        textColor: textColor,
+        stackTrace: stackTrace,
+        stopwatch: stopwatch,
+      );
+
+  static void info(
+    String message, {
+    TextColor? textColor,
+    bool stackTrace = true,
+    Stopwatch? stopwatch,
+  }) =>
+      _log(
+        message,
+        level: LogEnum.info,
+        textColor: textColor,
+        stackTrace: stackTrace,
+        stopwatch: stopwatch,
+      );
+
+  static void debug(
+    String message, {
+    TextColor? textColor,
+    bool stackTrace = true,
+    Stopwatch? stopwatch,
+  }) =>
+      _log(
+        message,
+        level: LogEnum.debug,
+        textColor: textColor,
+        stackTrace: stackTrace,
+        stopwatch: stopwatch,
+      );
+
+  static void _log(
+    String message, {
+    required LogEnum level,
+    TextColor? textColor,
+    bool stackTrace = true,
+    Stopwatch? stopwatch,
+  }) {
+    if (kReleaseMode) return;
+    const int maxLineLength = 100;
+
+    final String colorCode = (textColor ?? level.defaultColor).ansi;
+    final String reset = TextColor.reset.ansi;
+
+    final now = DateTime.now();
+    final timestamp = '[${now.hour.toString().padLeft(2, '0')}:'
+        '${now.minute.toString().padLeft(2, '0')}:'
+        '${now.second.toString().padLeft(2, '0')}]';
+
+    final String stackTraceInfo = stackTrace
+        ? (_getCallerInfo(StackTrace.current, colorCode).isEmpty
+            ? 'Empty Stack Trace'
+            : _getCallerInfo(StackTrace.current, colorCode))
+        : '';
+
+    // Stopwatch info
+    String durationInfo = '';
+    if (stopwatch != null) {
+      stopwatch.stop();
+      durationInfo =
+          '${TextColor.brightMagenta.ansi}⏱ Duration: ${stopwatch.elapsedMilliseconds}ms$reset';
+    }
+
+    // Wrap long lines
+    List<String> wrapLine(String line, int maxLen) {
+      List<String> wrapped = [];
+      for (int i = 0; i < line.length; i += maxLen) {
+        wrapped.add(line.substring(i, (i + maxLen).clamp(0, line.length)));
+      }
+      return wrapped;
+    }
+
+    final List<String> lines = message.split('\n');
+    final List<String> wrappedLines =
+        lines.expand((line) => wrapLine(line, maxLineLength)).toList();
+
+    final int maxWidth =
+        wrappedLines.map((l) => l.length).reduce((a, b) => a > b ? a : b);
+
+    final String horizontal = '─' * (maxWidth + 2);
+    final String top = '$colorCode┌$horizontal┐';
+    final String bottom = '$colorCode└$horizontal┘$reset';
+
+    final String boxedLines = wrappedLines
+        .map((l) => '$colorCode│ ${l.padRight(maxWidth)} │')
+        .join('\n');
+
+    final String output = '$colorCode$timestamp ${level.label}'
+        '${stackTraceInfo.isNotEmpty ? '$stackTraceInfo\n' : ''}'
+        '${durationInfo.isNotEmpty ? '$durationInfo\n' : ''}'
+        '$top\n$boxedLines\n$bottom$reset';
+
+    const chunkSize = 800;
+    for (int i = 0; i < output.length; i += chunkSize) {
+      final String chunk =
+          output.substring(i, (i + chunkSize).clamp(0, output.length));
+      debugPrint(chunk);
+    }
+  }
+
+  static String _getCallerInfo(StackTrace stackTrace, String colorCode) {
+    final List<String> lines = stackTrace.toString().split('\n');
+    String white = TextColor.white.ansi;
+
+    for (final line in lines) {
+      if (line.contains('package:') &&
+          !line.contains('custom_log.dart') && // Replace with your filename
+          !line.contains('Log.') &&
+          !line.contains('_log')) {
+        final RegExpMatch? match =
+            RegExp(r'#\d+\s+(.+)\s+\((.+):(\d+):\d+\)').firstMatch(line);
+        if (match != null) {
+          final String? method = match.group(1);
+          final String? file = match.group(2);
+          final String? lineNum = match.group(3);
+          return '🔍 $colorCode$file:$lineNum  in $white 🚀 $method';
+        }
+      }
+    }
+
+    return '';
+  }
+}
+
+// enum LogEnum {
+//   info('INFO  ℹ️ℹ️ℹ️ \n', TextColor.brightCyan),
+//   success('SUCCESS ✅✅✅ \n', TextColor.green),
+//   warn('WARNING ⚠️⚠️⚠️ \n', TextColor.yellow),
+//   error('ERROR ❌❌❌ \n', TextColor.red),
+//   debug('DEBUG 🐞🐞🐞 \n', TextColor.magenta);
+
+//   const LogEnum(this.label, this.defaultColor);
+//   final String label;
+//   final TextColor defaultColor;
+// }
+
+// enum TextColor {
+//   black('\x1B[30m'),
+//   red('\x1B[31m'),
+//   green('\x1B[32m'),
+//   yellow('\x1B[33m'),
+//   blue('\x1B[34m'),
+//   magenta('\x1B[35m'),
+//   cyan('\x1B[36m'),
+//   white('\x1B[37m'),
+//   brightBlack('\x1B[90m'),
+//   brightRed('\x1B[91m'),
+//   brightGreen('\x1B[92m'),
+//   brightYellow('\x1B[93m'),
+//   brightBlue('\x1B[94m'),
+//   brightMagenta('\x1B[95m'),
+//   brightCyan('\x1B[96m'),
+//   brightWhite('\x1B[97m'),
+//   reset('\x1B[0m');
+
+//   const TextColor(this.ansi);
+//   final String ansi;
+// }
+
+// class Log {
+//   Log._();
+
+//   static void success(String message,
+//           {TextColor? textColor, bool stackTrace = true}) =>
+//       _log(message,
+//           level: LogEnum.success,
+//           textColor: textColor,
+//           stackTrace: stackTrace);
+
+//   static void error(String message,
+//           {TextColor? textColor, bool stackTrace = true}) =>
+//       _log(message,
+//           level: LogEnum.error, textColor: textColor, stackTrace: stackTrace);
+
+//   static void warn(String message,
+//           {TextColor? textColor, bool stackTrace = true}) =>
+//       _log(message,
+//           level: LogEnum.warn, textColor: textColor, stackTrace: stackTrace);
+
+//   static void info(String message,
+//           {TextColor? textColor, bool stackTrace = true}) =>
+//       _log(message,
+//           level: LogEnum.info, textColor: textColor, stackTrace: stackTrace);
+
+//   static void debug(String message,
+//           {TextColor? textColor, bool stackTrace = true}) =>
+//       _log(message,
+//           level: LogEnum.debug, textColor: textColor, stackTrace: stackTrace);
+
+//   static void _log(
+//     String message, {
+//     required LogEnum level,
+//     TextColor? textColor,
+//     bool stackTrace = true,
+//   }) {
+//     const int maxLineLength = 100;
+
+//     final String colorCode = (textColor ?? level.defaultColor).ansi;
+//     final String reset = TextColor.reset.ansi;
+
+//     final now = DateTime.now();
+//     final timestamp = '[${now.hour.toString().padLeft(2, '0')}:'
+//         '${now.minute.toString().padLeft(2, '0')}:'
+//         '${now.second.toString().padLeft(2, '0')}]';
+
+//     // Stack trace logic (optional)
+//     final String stackTraceInfo = stackTrace
+//         ? (_getCallerInfo(StackTrace.current, colorCode).isEmpty
+//             ? 'Empty Stack Trace'
+//             : _getCallerInfo(StackTrace.current, colorCode))
+//         : '';
+
+//     // Wrap long lines
+//     List<String> wrapLine(String line, int maxLen) {
+//       List<String> wrapped = [];
+//       for (int i = 0; i < line.length; i += maxLen) {
+//         wrapped.add(line.substring(i, (i + maxLen).clamp(0, line.length)));
+//       }
+//       return wrapped;
+//     }
+
+//     final List<String> lines = message.split('\n');
+//     final List<String> wrappedLines =
+//         lines.expand((line) => wrapLine(line, maxLineLength)).toList();
+
+//     final int maxWidth =
+//         wrappedLines.map((l) => l.length).reduce((a, b) => a > b ? a : b);
+
+//     final String horizontal = '─' * (maxWidth + 2);
+//     final String top = '$colorCode┌$horizontal┐';
+//     final String bottom = '$colorCode└$horizontal┘$reset';
+
+//     final String boxedLines = wrappedLines
+//         .map((l) => '$colorCode│ ${l.padRight(maxWidth)} │')
+//         .join('\n');
+
+//     final String output = '$colorCode$timestamp ${level.label}'
+//         '${stackTraceInfo.isNotEmpty ? ' $stackTraceInfo' : ''}\n'
+//         '$top\n$boxedLines\n$bottom$reset';
+
+//     const chunkSize = 800;
+//     for (int i = 0; i < output.length; i += chunkSize) {
+//       final String chunk =
+//           output.substring(i, (i + chunkSize).clamp(0, output.length));
+//       debugLog(chunk);
+//     }
+//   }
+
+//   static String _getCallerInfo(StackTrace stackTrace, String colorCode) {
+//     final List<String> lines = stackTrace.toString().split('\n');
+//     String white = TextColor.white.ansi;
+
+//     for (final line in lines) {
+//       if (line.contains('package:') &&
+//           !line.contains(
+//               'custom_log.dart') && // Replace with your file name if different
+//           !line.contains('Log.') &&
+//           !line.contains('_log')) {
+//         final RegExpMatch? match =
+//             RegExp(r'#\d+\s+(.+)\s+\((.+):(\d+):\d+\)').firstMatch(line);
+//         if (match != null) {
+//           final String? method = match.group(1);
+//           final String? file = match.group(2);
+//           final String? lineNum = match.group(3);
+//           return '🔍 ${TextColor.red.ansi}➡️ $colorCode$file:$lineNum $white in $method';
+//         }
+//       }
+//     }
+
+//     return '';
+//   }
+// }
+
+// enum LogEnum {
+//   info('INFO  ℹ️ℹ️ℹ️ \n', TextColor.brightCyan),
+//   success('SUCCESS ✅✅✅ \n', TextColor.green),
+//   warn('WARNING ⚠️⚠️⚠️ \n', TextColor.yellow),
+//   error('ERROR ❌❌❌ \n', TextColor.red),
+//   debug('DEBUG 🐞🐞🐞 \n', TextColor.magenta);
+
+//   const LogEnum(this.label, this.defaultColor);
+//   final String label;
+//   final TextColor defaultColor;
+// }
+
+// enum TextColor {
+//   black('\x1B[30m'),
+//   red('\x1B[31m'),
+//   green('\x1B[32m'),
+//   yellow('\x1B[33m'),
+//   blue('\x1B[34m'),
+//   magenta('\x1B[35m'),
+//   cyan('\x1B[36m'),
+//   white('\x1B[37m'),
+//   brightBlack('\x1B[90m'),
+//   brightRed('\x1B[91m'),
+//   brightGreen('\x1B[92m'),
+//   brightYellow('\x1B[93m'),
+//   brightBlue('\x1B[94m'),
+//   brightMagenta('\x1B[95m'),
+//   brightCyan('\x1B[96m'),
+//   brightWhite('\x1B[97m'),
+//   reset('\x1B[0m');
+
+//   const TextColor(this.ansi);
+//   final String ansi;
+// }
+
+// class Log {
+//   Log._();
+
+//   static void success(String message, {TextColor? textColor}) =>
+//       _log(message, level: LogEnum.success, textColor: textColor);
+
+//   static void error(String message, {TextColor? textColor}) =>
+//       _log(message, level: LogEnum.error, textColor: textColor);
+
+//   static void warn(String message, {TextColor? textColor}) =>
+//       _log(message, level: LogEnum.warn, textColor: textColor);
+
+//   static void info(String message, {TextColor? textColor}) =>
+//       _log(message, level: LogEnum.info, textColor: textColor);
+
+//   static void debug(String message, {TextColor? textColor}) =>
+//       _log(message, level: LogEnum.debug, textColor: textColor);
+
+//   static String _getCallerInfo(StackTrace stackTrace, String colorCode) {
+//     final List<String> lines = stackTrace.toString().split('\n');
+
+//     String white = '\x1B[37m';
+
+//     for (final line in lines) {
+//       if (line.contains('package:') &&
+//           !line.contains('custom_log.dart') && // <-- your Log file
+//           !line.contains('Log.') && // <-- skip Log.info, etc.
+//           !line.contains('_log')) {
+//         final RegExpMatch? match =
+//             RegExp(r'#\d+\s+(.+)\s+\((.+):(\d+):\d+\)').firstMatch(line);
+//         if (match != null) {
+//           final String? method = match.group(1);
+//           final String? file = match.group(2);
+//           final String? lineNum = match.group(3);
+//           return '🔍 $colorCode$file:Code$lineNum in $white$method';
+//         }
+//       }
+//     }
+
+//     return '';
+//   }
+
+//   static void _log(
+//     String message, {
+//     required LogEnum level,
+//     TextColor? textColor,
+//   }) {
+//     const int maxLineLength = 100;
+
+//     final String colorCode = (textColor ?? level.defaultColor).ansi;
+//     final String reset = TextColor.reset.ansi;
+
+//     final now = DateTime.now();
+//     final timestamp = '[${now.hour.toString().padLeft(2, '0')}:'
+//         '${now.minute.toString().padLeft(2, '0')}:'
+//         '${now.second.toString().padLeft(2, '0')}]';
+
+//     // Parse StackTrace info
+//     final StackTrace stackTrace = StackTrace.current;
+//     final String stackTraceInfo = _getCallerInfo(stackTrace, colorCode).isEmpty
+//         ? 'Empty Stack Trace'
+//         : _getCallerInfo(stackTrace, colorCode);
+
+//     // Wrap a line at maxLineLength
+//     List<String> wrapLine(String line, int maxLen) {
+//       List<String> wrapped = [];
+//       for (int i = 0; i < line.length; i += maxLen) {
+//         wrapped.add(line.substring(i, (i + maxLen).clamp(0, line.length)));
+//       }
+//       return wrapped;
+//     }
+
+//     // Split on new lines and wrap each line
+//     final List<String> lines = message.split('\n');
+//     final List<String> wrappedLines =
+//         lines.expand((line) => wrapLine(line, maxLineLength)).toList();
+
+//     final int maxWidth =
+//         wrappedLines.map((l) => l.length).reduce((a, b) => a > b ? a : b);
+
+//     final String horizontal = '─' * (maxWidth + 2);
+//     final String top = '$colorCode┌$horizontal┐';
+//     final String bottom = '$colorCode└$horizontal┘$reset';
+
+//     final String boxedLines = wrappedLines
+//         .map((l) => '$colorCode│ ${l.padRight(maxWidth)} │')
+//         .join('\n');
+
+//     final String output =
+//         '$colorCode$timestamp ${level.label} $stackTraceInfo\n$top\n$boxedLines\n$bottom$reset';
+
+//     // Safely Log output in chunks (Flutter has a limit per log line)
+//     const chunkSize = 800;
+//     for (int i = 0; i < output.length; i += chunkSize) {
+//       final String chunk =
+//           output.substring(i, (i + chunkSize).clamp(0, output.length));
+//       debugLog(chunk);
+//     }
+//   }
+// }
+
+// enum LogEnum {
+//   info('ℹ️ INFO', 'white'),
+//   success('✅ SUCCESS', 'green'),
+//   warn('⚠️ WARNING', 'yellow'),
+//   error('🛑 ERROR', 'red'),
+//   debug('🐞 DEBUG', 'magenta');
+
+//   const LogEnum(this.label, this.color); // ✅ Constructor comes first
+
+//   final String label;
+//   final String color;
+// }
+
+// class Log {
+//   Log._();
+//   static void success(String message, {String? textColor}) =>
+//       _log('✅ $message', level: LogEnum.success, textColor: textColor);
+//   static void error(String message, {String? textColor}) =>
+//       _log('🛑 $message', level: LogEnum.error, textColor: textColor);
+//   static void warn(String message, {String? textColor}) =>
+//       _log('⚠️ $message', level: LogEnum.warn, textColor: textColor);
+//   static void info(String message, {String? textColor}) =>
+//       _log('ℹ️ $message', level: LogEnum.info, textColor: textColor);
+//   static void debug(String message, {String? textColor}) =>
+//       _log('🐞 $message', level: LogEnum.debug, textColor: textColor);
+
+//   static void _log(
+//     String message, {
+//     required LogEnum level,
+//     String? textColor,
+//   }) {
+//     //ANSI color codes
+//     final colors = {
+//       'black': '\x1B[30m',
+//       'red': '\x1B[31m',
+//       'green': '\x1B[32m',
+//       'yellow': '\x1B[33m',
+//       'blue': '\x1B[34m',
+//       'magenta': '\x1B[35m',
+//       'cyan': '\x1B[36m',
+//       'white': '\x1B[37m',
+//       'reset': '\x1B[0m',
+//     };
+
+//     final String colorKey = textColor ?? level.color;
+//     final String colorCode = colors[colorKey] ?? colors['white']!;
+//     final String reset = colors['reset']!;
+
+//     final now = DateTime.now();
+//     final timestamp = '[${now.hour.toString().padLeft(2, '0')}:'
+//         '${now.minute.toString().padLeft(2, '0')}:'
+//         '${now.second.toString().padLeft(2, '0')}]';
+
+//     final List<String> lines = message.split('\n');
+//     final int maxWidth =
+//         lines.map((l) => l.length).reduce((a, b) => a > b ? a : b);
+//     final String horizontal = '─' * (maxWidth + 2);
+//     final top = '$colorCode┌$horizontal┐';
+//     final bottom = '$colorCode└$colorCode$horizontal┘$reset';
+//     final String boxedLines =
+//         lines.map((l) => '│ ${l.padRight(maxWidth)} │').join('\n');
+
+//     debugLog(
+//       '$colorCode$timestamp ${level.label}\n$top\n$colorCode$boxedLines\n$bottom$reset',
+//     );
+//   }
+// }
+
+// Emoji	Meaning	Example
+// ✅	Success/Loaded	debugLog('✅ Messages loaded for $chatId');
+// ⚠️	Warning	debugLog('⚠️ Something might be wrong');
+// 🛑	Error/Stop	debugLog('🛑 Failed to load messages');
+// 📭	No more content	debugLog('📭 No more messages to load');
+// 🔄	Loading	debugLog('🔄 Fetching messages...');
+// 💬	Chat related	debugLog('💬 New chat started: $chatId');

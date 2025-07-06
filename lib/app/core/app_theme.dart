@@ -7,8 +7,8 @@ class AppTheme {
     useMaterial3: false,
     colorScheme: ColorScheme.fromSeed(
       seedColor: const Color(0xFF1E88E5),
-      primary: const Color(0xFF1E88E5), // Blue
-      secondary: const Color(0xFFFF7043), // Orange
+      primary: const Color(0xFF000000), // Blue
+      secondary: const Color(0xFFFFFFFF), // Orange
       surface: const Color(0xFFEAEFEF),
     ),
     scaffoldBackgroundColor: const Color(0xFFF9FAFB),
@@ -27,7 +27,7 @@ class AppTheme {
         fontWeight: FontWeight.bold,
         color: Colors.black,
       ),
-      bodyMedium: GoogleFonts.lato(
+      bodyMedium: GoogleFonts.poppins(
         fontSize: 16,
         color: Colors.black87,
       ),
@@ -62,8 +62,8 @@ class AppTheme {
     colorScheme: ColorScheme.fromSeed(
       brightness: Brightness.dark,
       seedColor: const Color(0xFF1E88E5),
-      primary: const Color(0xFF90CAF9), // Light Blue
-      secondary: const Color(0xFFFFAB91), // Soft Orange
+      primary: const Color(0xFFFFFFFF), // Light Blue
+      secondary: const Color(0xFF000000), // Soft Orange
       surface: const Color(0xFF222831),
     ),
     scaffoldBackgroundColor: const Color(0xFF121212),
@@ -82,7 +82,7 @@ class AppTheme {
         fontWeight: FontWeight.bold,
         color: Colors.white,
       ),
-      bodyMedium: GoogleFonts.lato(
+      bodyMedium: GoogleFonts.poppins(
         fontSize: 16,
         color: Colors.white70,
       ),

@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:food_courier/app/core/helper/custom_log.dart';
 import 'package:food_courier/app/data/models/product_model.dart';
-import 'package:food_courier/app/routes/app_pages.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,8 +16,6 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   late Animation<double> cartScaleAnimation;
 
   final PageController pageController = PageController();
-
-  // RxList products = [].obs;
 
   final products = <ProductModel>[].obs;
   final productsCategory = <ProductModel>[].obs;
@@ -30,10 +30,16 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
 
   static const _key = 'liked_products';
 
+  // final List<String> carouselImages = [
+  //   'https://media.istockphoto.com/id/1266459481/vector/shopping-online-in-smartphone-application-digital-marketing-vector-illustration.jpg?s=612x612&w=0&k=20&c=yFTkURyuo4e0qxfCBgISPps6MwYLNAqShj_lxPs2IrQ=',
+  //   'https://media.istockphoto.com/id/941302930/vector/online-shopping-smartphone-turned-into-internet-shop-concept-of-mobile-marketing-and-e.jpg?s=612x612&w=0&k=20&c=oEaIaAVRL6w7juxEIVwFPISjW_XkoYbLmK_VRWjNaEk=',
+  //   'https://static.vecteezy.com/system/resources/thumbnails/023/309/702/small/ai-generative-e-commerce-concept-shopping-cart-with-boxes-on-a-wooden-table-photo.jpg',
+  // ];
+
   final List<String> carouselImages = [
-    'https://media.istockphoto.com/id/1266459481/vector/shopping-online-in-smartphone-application-digital-marketing-vector-illustration.jpg?s=612x612&w=0&k=20&c=yFTkURyuo4e0qxfCBgISPps6MwYLNAqShj_lxPs2IrQ=',
-    'https://media.istockphoto.com/id/941302930/vector/online-shopping-smartphone-turned-into-internet-shop-concept-of-mobile-marketing-and-e.jpg?s=612x612&w=0&k=20&c=oEaIaAVRL6w7juxEIVwFPISjW_XkoYbLmK_VRWjNaEk=',
-    'https://static.vecteezy.com/system/resources/thumbnails/023/309/702/small/ai-generative-e-commerce-concept-shopping-cart-with-boxes-on-a-wooden-table-photo.jpg',
+    'assets/images/corousel1.jpg',
+    'assets/images/corousel2.jpg',
+    'assets/images/corousel3.jpg',
   ];
 
   OverlayEntry? overlayEntry;
@@ -51,20 +57,6 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   void addToCart(ProductModel product) {
     cartItems.add(product.id);
 
-    // cartProducts.putIfAbsent(
-    //   product.id,
-    //   () => product,
-    // );
-
-    // isAdded.update(
-    //   product.id,
-    //   (qty) {
-    //     product.countItem.value++;
-    //     return qty + 1;
-    //   },
-    //   ifAbsent: () => 1,
-    // );
-
     final ProductModel? existingProduct = cartProducts[product.id];
 
     if (existingProduct == null) {
@@ -73,15 +65,6 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     } else {
       existingProduct.countItem.value++;
     }
-    // cartProducts.update(
-    //   product.id,
-    //   (existing) => existing.copyWith(countItem: countIncrement++),
-    //   ifAbsent: () {
-    //     product.countItem.value = 1;
-
-    //     return product;
-    //   },
-    // );
   }
 
   void startAnimation(
@@ -154,7 +137,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
           cartIconAnimationController.reverse();
         });
       } catch (e) {
-        debugPrint(e.toString());
+        Log.error(e.toString());
       }
     });
   }
@@ -196,182 +179,116 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     'womens-watches': 'Womens Watches',
   };
 
-  // List<String> categories = [
-  //   'All',
-  //   'beauty',
-  //   'fragrances',
-  //   'furniture',
-  //   'groceries',
-  //   'home-decoration',
-  //   'kitchen-accessories',
-  //   'laptops',
-  //   'mens-shirts',
-  //   'mens-shoes',
-  //   'mens-watches',
-  //   'mobile-accessories',
-  //   'motorcycle',
-  //   'skin-care',
-  //   'smartphones',
-  //   'sports-accessories',
-  //   'sunglasses',
-  //   'tablets',
-  //   'tops',
-  //   'vehicle',
-  //   'womens-bags',
-  //   'womens-dresses',
-  //   'womens-jewellery',
-  //   'womens-shoes',
-  //   'womens-watches',
-  // ];
-
-  List<Map<String, String>> allFoods = [
-    {
-      'name': 'Cheese Pizza',
-      'category': 'Pizza',
-      'imageUrl':
-          'https://media.istockphoto.com/id/1048400936/photo/whole-italian-pizza-on-wooden-table-with-ingredients.jpg?s=612x612&w=0&k=20&c=_1GwSXSjFeC06w3MziyeqRk5Lx-FMXUZzCpxEOoHyzQ=',
-    },
-    {
-      'name': 'Veg Burger',
-      'category': 'Burger',
-      'imageUrl':
-          'https://media.istockphoto.com/id/1048400936/photo/whole-italian-pizza-on-wooden-table-with-ingredients.jpg?s=612x612&w=0&k=20&c=_1GwSXSjFeC06w3MziyeqRk5Lx-FMXUZzCpxEOoHyzQ=',
-    },
-    {
-      'name': 'Coke',
-      'category': 'Drinks',
-      'imageUrl':
-          'https://media.istockphoto.com/id/1048400936/photo/whole-italian-pizza-on-wooden-table-with-ingredients.jpg?s=612x612&w=0&k=20&c=_1GwSXSjFeC06w3MziyeqRk5Lx-FMXUZzCpxEOoHyzQ=',
-    },
-    {
-      'name': 'Chocolate Cake',
-      'category': 'Dessert',
-      'imageUrl':
-          'https://media.istockphoto.com/id/1048400936/photo/whole-italian-pizza-on-wooden-table-with-ingredients.jpg?s=612x612&w=0&k=20&c=_1GwSXSjFeC06w3MziyeqRk5Lx-FMXUZzCpxEOoHyzQ=',
-    },
-    {
-      'name': 'Pepsi',
-      'category': 'Drinks',
-      'imageUrl':
-          'https://media.istockphoto.com/id/1048400936/photo/whole-italian-pizza-on-wooden-table-with-ingredients.jpg?s=612x612&w=0&k=20&c=_1GwSXSjFeC06w3MziyeqRk5Lx-FMXUZzCpxEOoHyzQ=',
-    },
-    {
-      'name': 'Cheese Pizza',
-      'category': 'Pizza',
-      'imageUrl':
-          'https://media.istockphoto.com/id/1048400936/photo/whole-italian-pizza-on-wooden-table-with-ingredients.jpg?s=612x612&w=0&k=20&c=_1GwSXSjFeC06w3MziyeqRk5Lx-FMXUZzCpxEOoHyzQ=',
-    },
-    {
-      'name': 'Veg Burger',
-      'category': 'Burger',
-      'imageUrl':
-          'https://media.istockphoto.com/id/1048400936/photo/whole-italian-pizza-on-wooden-table-with-ingredients.jpg?s=612x612&w=0&k=20&c=_1GwSXSjFeC06w3MziyeqRk5Lx-FMXUZzCpxEOoHyzQ=',
-    },
-    {
-      'name': 'Coke',
-      'category': 'Drinks',
-      'imageUrl':
-          'https://media.istockphoto.com/id/1048400936/photo/whole-italian-pizza-on-wooden-table-with-ingredients.jpg?s=612x612&w=0&k=20&c=_1GwSXSjFeC06w3MziyeqRk5Lx-FMXUZzCpxEOoHyzQ=',
-    },
-    {
-      'name': 'Chocolate Cake',
-      'category': 'Dessert',
-      'imageUrl':
-          'https://media.istockphoto.com/id/1048400936/photo/whole-italian-pizza-on-wooden-table-with-ingredients.jpg?s=612x612&w=0&k=20&c=_1GwSXSjFeC06w3MziyeqRk5Lx-FMXUZzCpxEOoHyzQ=',
-    },
-    {
-      'name': 'Pepsi',
-      'category': 'Drinks',
-      'imageUrl':
-          'https://media.istockphoto.com/id/1048400936/photo/whole-italian-pizza-on-wooden-table-with-ingredients.jpg?s=612x612&w=0&k=20&c=_1GwSXSjFeC06w3MziyeqRk5Lx-FMXUZzCpxEOoHyzQ=',
-    },
-    {
-      'name': 'Cheese Pizza',
-      'category': 'Pizza',
-      'imageUrl':
-          'https://media.istockphoto.com/id/1048400936/photo/whole-italian-pizza-on-wooden-table-with-ingredients.jpg?s=612x612&w=0&k=20&c=_1GwSXSjFeC06w3MziyeqRk5Lx-FMXUZzCpxEOoHyzQ=',
-    },
-    {
-      'name': 'Veg Burger',
-      'category': 'Burger',
-      'imageUrl':
-          'https://media.istockphoto.com/id/1048400936/photo/whole-italian-pizza-on-wooden-table-with-ingredients.jpg?s=612x612&w=0&k=20&c=_1GwSXSjFeC06w3MziyeqRk5Lx-FMXUZzCpxEOoHyzQ=',
-    },
-    {
-      'name': 'Coke',
-      'category': 'Drinks',
-      'imageUrl':
-          'https://media.istockphoto.com/id/1048400936/photo/whole-italian-pizza-on-wooden-table-with-ingredients.jpg?s=612x612&w=0&k=20&c=_1GwSXSjFeC06w3MziyeqRk5Lx-FMXUZzCpxEOoHyzQ=',
-    },
-    {
-      'name': 'Chocolate Cake',
-      'category': 'Dessert',
-      'imageUrl':
-          'https://media.istockphoto.com/id/1048400936/photo/whole-italian-pizza-on-wooden-table-with-ingredients.jpg?s=612x612&w=0&k=20&c=_1GwSXSjFeC06w3MziyeqRk5Lx-FMXUZzCpxEOoHyzQ=',
-    },
-    {
-      'name': 'Pepsi',
-      'category': 'Drinks',
-      'imageUrl':
-          'https://media.istockphoto.com/id/1048400936/photo/whole-italian-pizza-on-wooden-table-with-ingredients.jpg?s=612x612&w=0&k=20&c=_1GwSXSjFeC06w3MziyeqRk5Lx-FMXUZzCpxEOoHyzQ=',
-    },
-    {
-      'name': 'Cheese Pizza',
-      'category': 'Pizza',
-      'imageUrl':
-          'https://media.istockphoto.com/id/1048400936/photo/whole-italian-pizza-on-wooden-table-with-ingredients.jpg?s=612x612&w=0&k=20&c=_1GwSXSjFeC06w3MziyeqRk5Lx-FMXUZzCpxEOoHyzQ=',
-    },
-    {
-      'name': 'Veg Burger',
-      'category': 'Burger',
-      'imageUrl':
-          'https://media.istockphoto.com/id/1048400936/photo/whole-italian-pizza-on-wooden-table-with-ingredients.jpg?s=612x612&w=0&k=20&c=_1GwSXSjFeC06w3MziyeqRk5Lx-FMXUZzCpxEOoHyzQ=',
-    },
-    {
-      'name': 'Coke',
-      'category': 'Drinks',
-      'imageUrl':
-          'https://media.istockphoto.com/id/1048400936/photo/whole-italian-pizza-on-wooden-table-with-ingredients.jpg?s=612x612&w=0&k=20&c=_1GwSXSjFeC06w3MziyeqRk5Lx-FMXUZzCpxEOoHyzQ=',
-    },
-    {
-      'name': 'Chocolate Cake',
-      'category': 'Dessert',
-      'imageUrl':
-          'https://media.istockphoto.com/id/1048400936/photo/whole-italian-pizza-on-wooden-table-with-ingredients.jpg?s=612x612&w=0&k=20&c=_1GwSXSjFeC06w3MziyeqRk5Lx-FMXUZzCpxEOoHyzQ=',
-    },
-    {
-      'name': 'Pepsi',
-      'category': 'Drinks',
-      'imageUrl':
-          'https://media.istockphoto.com/id/1048400936/photo/whole-italian-pizza-on-wooden-table-with-ingredients.jpg?s=612x612&w=0&k=20&c=_1GwSXSjFeC06w3MziyeqRk5Lx-FMXUZzCpxEOoHyzQ=',
-    },
-  ];
-
-  List<Map<String, String>> get filteredFoods {
-    if (selectedCategory.value == 'All') return allFoods;
-    return allFoods
-        .where((item) => item['category'] == selectedCategory.value)
-        .toList();
-  }
-
   final RxInt currentPage = 0.obs;
 
-  Future<void> loadLikedProducts() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final List<String>? savedIds = prefs.getStringList(_key);
-    if (savedIds != null) {
-      likedProductIds.addAll(savedIds.map(int.parse));
-    }
-  }
-
   Future<void> toggleLike(int productId) async {
+    //await toggleFavoriteProduct(productId: productId);
     if (likedProductIds.contains(productId)) {
       likedProductIds.remove(productId);
     } else {
       likedProductIds.add(productId);
     }
-    await _saveToPrefs();
+    // await _saveToPrefs();
   }
+
+  Future<void> fetchFavoriteProductIds() async {
+    final User? user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw Exception('User not logged in');
+
+    final QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
+        .instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('favorites')
+        .get();
+
+    final List<int> ids =
+        snapshot.docs.map((doc) => doc.data()['id'] as int).toList();
+
+    likedProductIds.value = Set<int>.from(ids ?? []);
+  }
+
+  Future<void> addFavoriteProductToCollectionUsersWithSubCollectionFavorites(
+    ProductModel product,
+  ) async {
+    await toggleLike(product.id);
+    final User? user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw Exception('User not logged in');
+
+    final productId = product.id.toString(); // ensure string key
+    final DocumentReference<Map<String, dynamic>> docRef = FirebaseFirestore
+        .instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('favorites')
+        .doc(productId);
+
+    try {
+      final DocumentSnapshot<Map<String, dynamic>> docSnapshot =
+          await docRef.get();
+
+      if (docSnapshot.exists) {
+        // 🔴 REMOVE favorite
+        await docRef.delete();
+        Log.info('Removed from favorites: $productId');
+      } else {
+        // ✅ ADD favorite
+        await docRef.set({
+          'id': product.id,
+          'title': product.title,
+          'description': product.description,
+          'price': product.price,
+          'category': product.category,
+          'thumbnail': product.thumbnail,
+          'stock': product.stock,
+          'rating': product.rating,
+          'createdAt': FieldValue.serverTimestamp(), // optional
+        });
+        Log.success('Added to favorites: $productId');
+      }
+    } catch (e) {
+      Log.error('Toggle Favorite Product error: $e');
+    }
+  }
+
+  // Future<void> toggleFavoriteProduct({int productId = 0}) async {
+  //   final User? user = FirebaseAuth.instance.currentUser;
+  //   if (user == null) {
+  //     throw Exception('User not logged in');
+  //   }
+
+  //   final DocumentReference<Map<String, dynamic>> docRef =
+  //       FirebaseFirestore.instance.collection('users').doc(user.uid).collection('favorites').doc();
+
+  //   try {
+  //     final DocumentSnapshot<Map<String, dynamic>> docSnapshot =
+  //         await docRef.get();
+  //     final Map<String, dynamic>? data = docSnapshot.data();
+
+  //     if (data == null) {
+  //       throw Exception('User data not found');
+  //     }
+  //     likedProductIds.value = Set<int>.from(data['favoriteProducts'] ?? []);
+
+  //     if (productId == 0) return;
+
+  //     if (likedProductIds.contains(productId)) {
+  //       // REMOVE product
+  //       await docRef.update({
+  //         'favoriteProducts': FieldValue.arrayRemove([productId]),
+  //       });
+  //       debugLog('❌ Removed product $productId from favorites');
+  //     } else {
+  //       // ADD product
+  //       await docRef.update({
+  //         'favoriteProducts': FieldValue.arrayUnion([productId]),
+  //       });
+  //       debugLog('✅ Added product $productId to favorites');
+  //     }
+  //   } catch (e) {
+  //     debugLog('❌ toggleFavoriteProduct error: $e');
+  //   }
+  // }
 
   Future<void> _saveToPrefs() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -416,7 +333,9 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       if (scrollController.position.pixels >=
               scrollController.position.maxScrollExtent &&
           hasMoreData.value) {
-        await fetchProducts();
+        if (selectedCategory.value == 'All') {
+          await fetchProducts();
+        }
       }
 
       if (scrollController.offset > 100 && !showScrollToTop.value) {
@@ -444,14 +363,18 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
 
   @override
   void onClose() {
-    cartIconAnimationController.dispose();
     super.onClose();
+    cartIconAnimationController.dispose();
+    pageController.dispose();
+    scrollController.dispose();
+    overlayEntry?.remove();
+    cartKey.currentState?.dispose();
   }
 
   Future<void> loadAllData() async {
     await Future.wait([
       fetchProducts(),
-      loadLikedProducts(),
+      fetchFavoriteProductIds(),
     ]);
   }
 
@@ -475,7 +398,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     if (_categoryCache.containsKey(category)) {
       // Use cached data
       productsCategory.assignAll(_categoryCache[category] ?? []);
-      print('ssss ${_categoryCache[category]!.length}');
+
       return;
     }
     try {
@@ -484,13 +407,13 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
           .get(Uri.parse('https://dummyjson.com/products/category/$category'));
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        final Map<String, dynamic> data = jsonDecode(response.body);
         final List<ProductModel> productList = (data['products'] as List)
             .map((e) => ProductModel.fromJson(e))
             .toList();
 
         if (productList.isEmpty) {
-          print('Empty products ');
+          Log.info('Empty products ');
           productsCategory.clear();
           return;
         }
@@ -499,9 +422,9 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
 
         productsCategory.assignAll(productList);
       }
-    } catch (e) {
+    } on Exception catch (e) {
       productsCategory.clear();
-      print('Error: $e');
+      Log.error('Error: $e');
     } finally {
       isLoading.value = false;
     }
@@ -519,22 +442,23 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
           .get(Uri.parse('https://dummyjson.com/products/search?q=$query'));
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        final Map<String, dynamic> data = jsonDecode(response.body);
         final List<ProductModel> productList = (data['products'] as List)
             .map((e) => ProductModel.fromJson(e))
             .toList();
 
         if (productList.isEmpty) {
-          print('Empty products ');
+          Log.info('Empty products');
           productsSearch.clear();
+
           return;
         }
 
         productsSearch.assignAll(productList);
       }
-    } catch (e) {
+    } on Exception catch (e) {
       productsSearch.clear();
-      debugPrint('Error: $e');
+      Log.error('Error: $e');
     } finally {
       isLoading.value = false;
     }
@@ -549,22 +473,32 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        final Map<String, dynamic> data = jsonDecode(response.body);
+
         final List<ProductModel> productList = (data['products'] as List)
             .map((e) => ProductModel.fromJson(e))
             .toList();
 
         if (productList.isEmpty) {
-          print('Empty products ');
+          Log.info('Empty products ');
+          // Get.snackbar(
+          //   backgroundColor: Colors.black,
+          //   colorText: Colors.white,
+          //   'Empty',
+          //   'No more products available.',
+          //   snackPosition: SnackPosition.BOTTOM,
+          // );
           hasMoreData.value = false;
         }
 
         products.addAll(productList);
 
         skip += limit;
+
+        Log.success('Loaded products data!');
       }
     } catch (e) {
-      debugPrint('Failed to Fetch Products $e');
+      Log.error('Failed to Fetch Products $e');
     } finally {
       isLoading.value = false;
     }
@@ -576,372 +510,5 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       return true;
     }
     return false;
-  }
-}
-
-class ProductTile extends StatefulWidget {
-  const ProductTile({
-    required this.product,
-    required this.imageKey,
-    required this.index,
-    this.shouldAnimate = true,
-    super.key,
-  });
-  final ProductModel product;
-  final GlobalKey<State<StatefulWidget>> imageKey;
-  final int index;
-  final bool shouldAnimate;
-
-  @override
-  State<ProductTile> createState() => _ProductTileState();
-}
-
-class _ProductTileState extends State<ProductTile>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 400),
-    );
-    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
-    if (widget.shouldAnimate) {
-      Future.delayed(Duration.zero, () {
-        if (mounted) {
-          _controller.forward();
-        }
-      });
-    } else {
-      _controller.value = 1.0; // Skip animation
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final HomeController controller = Get.put(HomeController());
-
-    return ScaleTransition(
-      scale: _animation,
-      child: Obx(
-        () => AnimatedContainer(
-          key: ValueKey<int>(
-            widget.product.id,
-          ),
-          duration: const Duration(microseconds: 500),
-          curve: Curves.bounceIn,
-          // shape: widget.product.isAdded.value
-          //     ? RoundedRectangleBorder(
-          //         borderRadius: BorderRadius.circular(15),
-          //         side: const BorderSide(
-          //           color: Colors.blue, // border color
-          //           width: 2, // border width
-          //         ),
-          //       )
-          //     : null,
-          margin: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface, // Light background
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: controller.cartProducts.containsKey(widget.product.id)
-                ? [
-                    const BoxShadow(
-                      color: Colors.blueGrey,
-                      offset: Offset(2, 2),
-                      blurRadius: 8,
-                      spreadRadius: 1,
-                    ),
-                    const BoxShadow(
-                      color: Colors.white,
-                      offset: Offset(-4, -4),
-                      blurRadius: 8,
-                      spreadRadius: 1,
-                    ),
-                  ]
-                : null,
-          ),
-
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                children: [
-                  Stack(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          Get.toNamed(
-                            AppPages.DETAIL_PRODUCT,
-                            arguments: widget.product,
-                          );
-                        },
-                        child: DecoratedBox(
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(20),
-                              topRight: Radius.circular(20),
-                            ),
-                          ),
-                          child: Hero(
-                            tag: widget.product.id,
-                            child: Image.network(
-                              key: widget.imageKey,
-                              widget.product.thumbnail,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 4,
-                        left: 4,
-                        child: Obx(() {
-                          final ProductModel? cartProduct =
-                              controller.cartProducts[widget.product.id];
-                          return Container(
-                            width: 40,
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface,
-                              borderRadius: const BorderRadius.only(
-                                topRight: Radius.circular(16),
-                              ),
-                            ),
-                            child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 300),
-                              transitionBuilder: (child, animation) {
-                                return ScaleTransition(
-                                  scale: animation,
-                                  child: child,
-                                );
-                              },
-                              child: cartProduct == null
-                                  ? null
-                                  : Text(
-                                      cartProduct.countItem.toString(),
-                                      key: ValueKey(
-                                        cartProduct.countItem.toString(),
-                                      ),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                    ),
-                            ),
-                          );
-                        }),
-                      ),
-                      Positioned(
-                        top: 4,
-                        right: 4,
-                        child: Obx(() {
-                          final bool isLiked =
-                              controller.isLiked(widget.product.id).value;
-
-                          return IconButton(
-                            onPressed: () =>
-                                controller.toggleLike(widget.product.id),
-                            icon: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 300),
-                              transitionBuilder: (child, animation) {
-                                return ScaleTransition(
-                                  scale: animation,
-                                  child: child,
-                                );
-                              },
-                              child: Icon(
-                                isLiked
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                                key: ValueKey<bool>(
-                                  isLiked,
-                                ), // important for animation to trigger
-                                color: isLiked ? Colors.red : Colors.grey,
-                                size: 26,
-                              ),
-                            ),
-                          );
-                        }),
-                      ),
-                    ],
-                  ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                    child: Text(
-                      widget.product.title,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(),
-                    ),
-                  ),
-                  Text(
-                    widget.product.price.toString(),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                ],
-              ),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: AnimatedSize(
-                  duration: const Duration(milliseconds: 400),
-                  curve: Curves.easeInOut,
-                  child: SizedBox(
-                    width:
-                        controller.cartProducts.containsKey(widget.product.id)
-                            ? 180
-                            : 150,
-                    height: 45,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              // controller.isAdded.putIfAbsent(
-                              //   widget.product.id,
-                              //   () => widget.product.id,
-                              // );
-
-                              // if (!controller.isAdded
-                              //     .contains(widget.product.id)) {
-                              //   controller.isAdded.add(widget.product.id);
-                              // }
-
-                              controller
-                                ..addToCart(widget.product)
-                                ..startAnimation(
-                                  widget.imageKey,
-                                  context,
-                                  widget.product.thumbnail,
-                                  widget.index,
-                                );
-                              // widget.product.isAdded.add(widget.product.id);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: controller.cartProducts
-                                      .containsKey(widget.product.id)
-                                  ? Colors.white
-                                  : Theme.of(context).colorScheme.primary,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            icon: Icon(
-                              Icons.add,
-                              color: controller.cartProducts
-                                      .containsKey(widget.product.id)
-                                  ? Colors.black
-                                  : Colors.white,
-                            ),
-                            label: FittedBox(
-                              child: Text(
-                                controller.cartProducts
-                                        .containsKey(widget.product.id)
-                                    ? 'Added'
-                                    : 'Add to Cart',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
-                                      color: controller.cartProducts
-                                              .containsKey(widget.product.id)
-                                          ? Colors.black
-                                          : Colors.white,
-                                    ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        AnimatedOpacity(
-                          opacity: controller.cartProducts
-                                  .containsKey(widget.product.id)
-                              ? 1.0
-                              : 0.0,
-                          duration: const Duration(milliseconds: 400),
-                          curve: Curves.easeInOut,
-                          child: controller.cartProducts
-                                  .containsKey(widget.product.id)
-                              ? Container(
-                                  margin: const EdgeInsets.only(left: 6),
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      final ProductModel? cartProduct =
-                                          controller
-                                              .cartProducts[widget.product.id];
-
-                                      if (cartProduct != null &&
-                                          cartProduct.id == widget.product.id) {
-                                        if (cartProduct.countItem.value > 0) {
-                                          cartProduct.countItem.value -= 1;
-                                          if (cartProduct.countItem.value ==
-                                              0) {
-                                            controller.cartProducts
-                                                .remove(widget.product.id);
-                                          }
-                                        }
-                                      }
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      padding: EdgeInsets.zero,
-                                      shape: const CircleBorder(),
-                                      minimumSize: const Size(40, 40),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                    child: const Icon(Icons.remove, size: 20),
-                                  ),
-                                )
-                              : const SizedBox.shrink(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-              // ElevatedButton(
-              //   style: ElevatedButton.styleFrom(
-              //     backgroundColor: Colors.white,
-              //     foregroundColor: Colors.green,
-              //   ),
-              //   onPressed: () {
-              //     controller.addToCart(widget.index);
-              //     controller.startAnimation(
-              //       widget.imageKey,
-              //       context,
-              //       widget.product.thumbnail,
-              //       widget.index,
-              //     );
-              //     widget.product.isAdded.value = true;
-              //   },
-              //   child: Text(
-              //     widget.product.isAdded.value
-              //         ? 'Added To Cart'
-              //         : 'Add To Cart',
-              //   ),
-              // ),
-              const SizedBox(
-                height: 10,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 }

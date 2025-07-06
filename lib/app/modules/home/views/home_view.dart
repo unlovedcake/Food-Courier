@@ -1,10 +1,10 @@
 import 'dart:ui';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:food_courier/app/core/theme_controller.dart';
 import 'package:food_courier/app/data/models/product_model.dart';
 import 'package:food_courier/app/modules/dashboard/controllers/dashboard_controller.dart';
+import 'package:food_courier/app/modules/home/views/product_tile_widget.dart';
 import 'package:food_courier/app/routes/app_pages.dart';
 import 'package:get/get.dart';
 
@@ -20,73 +20,6 @@ class HomeView extends GetView<HomeController> {
         Get.put(DashboardController());
     final ThemeController themeController = Get.find();
 
-    // final List<Map<String, dynamic>> products = List.generate(
-    //   10,
-    //   (index) => {
-    //     'name': 'Product $index',
-    //     'image':
-    //         'https://media.istockphoto.com/id/1048400936/photo/whole-italian-pizza-on-wooden-table-with-ingredients.jpg?s=612x612&w=0&k=20&c=_1GwSXSjFeC06w3MziyeqRk5Lx-FMXUZzCpxEOoHyzQ=',
-    //   },
-    // );
-
-    // return Scaffold(
-    //   body: Stack(
-    //     children: [
-    //       CustomScrollView(
-    //         slivers: [
-    //           SliverAppBar(
-    //             floating: true,
-    //             pinned: true,
-    //             title: const Text('Products'),
-    //             actions: [
-    //               Padding(
-    //                 padding: const EdgeInsets.only(right: 16),
-    //                 child:
-    //                     Icon(Icons.shopping_cart, key: cartController.cartKey),
-    //               ),
-    //             ],
-    //           ),
-    //           SliverList(
-    //             delegate: SliverChildBuilderDelegate(
-    //               (context, index) {
-    //                 final Map<String, dynamic> product = products[index];
-    //                 final GlobalKey<State<StatefulWidget>> imageKey =
-    //                     GlobalKey();
-
-    //                 return Padding(
-    //                   padding: const EdgeInsets.all(8),
-    //                   child: Card(
-    //                     child: Row(
-    //                       children: [
-    //                         Image.network(
-    //                           product['image'],
-    //                           key: imageKey,
-    //                           width: 80,
-    //                           height: 80,
-    //                         ),
-    //                         const SizedBox(width: 10),
-    //                         Expanded(child: Text(product['name'])),
-    //                         TextButton(
-    //                           onPressed: () => cartController.animateToCart(
-    //                             imageKey,
-    //                             context,
-    //                           ),
-    //                           child: const Text('Add to Cart'),
-    //                         ),
-    //                       ],
-    //                     ),
-    //                   ),
-    //                 );
-    //               },
-    //               childCount: products.length,
-    //             ),
-    //           ),
-    //         ],
-    //       ),
-    //     ],
-    //   ),
-    // );
-
     return Obx(
       () => Scaffold(
         body: CustomScrollView(
@@ -94,11 +27,14 @@ class HomeView extends GetView<HomeController> {
           slivers: [
             SliverAppBar(
               backgroundColor: Colors.white,
+              elevation: 2,
+              leadingWidth: 100,
               automaticallyImplyLeading: false,
               floating: true,
               pinned: true,
-              collapsedHeight: 80,
               expandedHeight: 180,
+              collapsedHeight: 80,
+              stretch: true,
               flexibleSpace: FlexibleSpaceBar(
                 stretchModes: const [StretchMode.blurBackground],
                 centerTitle: true,
@@ -112,11 +48,10 @@ class HomeView extends GetView<HomeController> {
                         controller.currentPage.value = index;
                       },
                       itemBuilder: (context, index) {
-                        return Image.network(
+                        return Image.asset(
                           controller.carouselImages[index],
                           key: ValueKey(controller.carouselImages[index]),
                           fit: BoxFit.cover,
-                          width: double.infinity,
                         );
                       },
                     ),
@@ -144,121 +79,119 @@ class HomeView extends GetView<HomeController> {
                     ),
 
                     // Dark Top Gradient Overlay
-                    Positioned.fill(
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.black54, // darker at top
-                              Colors.transparent, // fades out
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+                    // Positioned.fill(
+                    //   child: Container(
+                    //     decoration: const BoxDecoration(
+                    //       gradient: LinearGradient(
+                    //         begin: Alignment.topCenter,
+                    //         end: Alignment.bottomCenter,
+                    //         colors: [
+                    //           Colors.black54, // darker at top
+                    //           Colors.transparent, // fades out
+                    //         ],
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
 
                     // Text at Top-Left
-                    Positioned(
-                      top: 30,
-                      left: 20,
-                      child: RichText(
-                        text: TextSpan(
-                          style:
-                              Theme.of(context).textTheme.labelLarge?.copyWith(
-                                    fontSize: 18,
-                                    color: Colors.white,
-                                  ),
-                          children: [
-                            const TextSpan(text: 'Up to\n'),
-                            TextSpan(
-                              text: '70% ',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelLarge
-                                  ?.copyWith(
-                                    fontSize: 35,
-                                    color: Colors.red,
-                                  ),
-                            ),
-                            const TextSpan(text: 'Off\nwith free delivery'),
-                          ],
-                        ),
-                      ),
-                    ),
+                    // Positioned(
+                    //   top: 50,
+                    //   left: 30,
+                    //   child: RichText(
+                    //     text: TextSpan(
+                    //       style:
+                    //           Theme.of(context).textTheme.labelLarge?.copyWith(
+                    //                 fontSize: 18,
+                    //                 color: Colors.white,
+                    //               ),
+                    //       children: [
+                    //         const TextSpan(text: 'Up to\n'),
+                    //         TextSpan(
+                    //           text: '70% ',
+                    //           style: Theme.of(context)
+                    //               .textTheme
+                    //               .labelLarge
+                    //               ?.copyWith(
+                    //                 fontSize: 35,
+                    //                 color: Colors.red,
+                    //               ),
+                    //         ),
+                    //         const TextSpan(text: 'Off\nwith free delivery'),
+                    //       ],
+                    //     ),
+                    //   ),
+                    // ),
                   ],
                 ),
                 title: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
                   ),
-                  child: AnimatedTextReveal(
-                    text: 'Click & Get',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          fontSize: 18,
-                          color: Colors.red,
-                        ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      AnimatedTextReveal(
+                        duration: const Duration(milliseconds: 450),
+                        text: 'Shop Swift',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              fontSize: 18,
+                              color: Colors.orange,
+                            ),
+                      ),
+                      Text(
+                        'Up to 50% off with free delivery',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black,
+                            ),
+                      ),
+                    ],
                   ),
                 ),
               ),
+              leading: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Image.asset(
+                  'assets/images/app_logo.png',
+                ),
+              ),
               actions: [
-                IconButton(
-                  onPressed: () async {
-                    await FirebaseAuth.instance.signOut();
-                    await Get.offAllNamed(AppPages.AUTH);
-                  },
-                  icon: const Icon(Icons.logout_outlined),
-                ),
-
-                Obx(
-                  () => IconButton(
-                    tooltip: 'Notification',
-                    onPressed: () async {
-                      await dashBoardController.markMessageAsRead();
-                      await Get.toNamed(AppPages.CHAT);
-                    },
-                    icon: Badge(
-                      backgroundColor: Colors.white,
-                      label: dashBoardController.isRead.value
-                          ? null
-                          : const CircleAvatar(
-                              radius: 4,
-                              backgroundColor: Colors.red,
-                            ),
-                      offset: const Offset(6, -6),
-                      child: Icon(
-                        Icons.notification_important,
-                        color: Theme.of(context).colorScheme.surface,
-                      ),
-                    ),
-                  ),
-                ),
-
+                // Obx(
+                //   () => IconButton(
+                //     tooltip: 'Notification',
+                //     onPressed: () async {
+                //       await dashBoardController.markMessageAsRead();
+                //       await Get.toNamed(AppPages.CHAT);
+                //     },
+                //     icon: Badge(
+                //       backgroundColor: Colors.white,
+                //       label: dashBoardController.isRead.value
+                //           ? null
+                //           : const CircleAvatar(
+                //               radius: 2,
+                //               backgroundColor: Colors.red,
+                //             ),
+                //       offset: const Offset(6, -6),
+                //       child: const Icon(
+                //         Icons.notification_important,
+                //         color: Colors.white,
+                //       ),
+                //     ),
+                //   ),
+                // ),
                 Obx(
                   () => IconButton(
                     icon: Icon(
                       themeController.isDarkMode.value
                           ? Icons.dark_mode
                           : Icons.light_mode,
-                      color: Theme.of(context).colorScheme.surface,
+                      color: Colors.grey,
                     ),
                     onPressed: themeController.toggleTheme,
                   ),
                 ),
-                // IconButton(
-                //   icon: Icon(
-                //     Get.isDarkMode ? Icons.dark_mode : Icons.light_mode,
-                //   ),
-                //   onPressed: () {
-                //     Get.changeTheme(
-                //       Get.isDarkMode
-                //           ? ThemeData.light(useMaterial3: false)
-                //           : ThemeData.dark(useMaterial3: false),
-                //     );
-                //   },
-                // ),
-
                 ScaleTransition(
                   scale: controller.cartScaleAnimation,
                   child: Padding(
@@ -270,6 +203,7 @@ class HomeView extends GetView<HomeController> {
                         Get.toNamed(AppPages.CART);
                       },
                       icon: Badge(
+                        backgroundColor: Colors.red,
                         label: controller.cartProducts.isEmpty
                             ? null
                             : ScaleTransition(
@@ -279,25 +213,14 @@ class HomeView extends GetView<HomeController> {
                                 ),
                               ),
                         offset: const Offset(6, -6),
-                        child: Icon(
+                        child: const Icon(
                           Icons.shopping_cart,
-                          color: Theme.of(context).colorScheme.surface,
+                          color: Colors.grey,
                         ),
                       ),
                     ),
                   ),
                 ),
-                // ScaleTransition(
-                //   scale: controller.cartScaleAnimation,
-                //   child: IconButton(
-                //     key: controller.cartKey,
-                //     icon: const Icon(
-                //       Icons.shopping_cart,
-                //       color: Colors.white,
-                //     ),
-                //     onPressed: () {},
-                //   ),
-                // ),
               ],
             ),
 
@@ -314,10 +237,6 @@ class HomeView extends GetView<HomeController> {
               centerTitle: true,
               backgroundColor: Colors.white,
               automaticallyImplyLeading: false,
-              // bottom: const PreferredSize(
-              //   preferredSize: Size.fromHeight(20),
-              //   child: SizedBox(),
-              // ),
               flexibleSpace: FlexibleSpaceBar(
                 centerTitle: true,
                 title: LayoutBuilder(
@@ -375,8 +294,7 @@ class HomeView extends GetView<HomeController> {
             SliverPersistentHeader(
               pinned: true,
               delegate: MyCustomHeaderDelegate(
-                height: controller.showScrollToTop.value ? 70 : 90,
-                // height: controller.showScrollToTop.value ? 140 : 160,
+                height: controller.showScrollToTop.value ? 60 : 80,
                 child: Obx(() {
                   final bool shrink = controller.showScrollToTop.value;
 
@@ -387,44 +305,6 @@ class HomeView extends GetView<HomeController> {
                     child: Column(
                       spacing: 10,
                       children: [
-                        // ✅ Animated Search Field
-                        // AnimatedContainer(
-                        //   duration: const Duration(milliseconds: 300),
-                        //   height: shrink ? 40 : 50,
-                        //   margin: const EdgeInsets.symmetric(
-                        //     horizontal: 16,
-                        //     vertical: 8,
-                        //   ),
-                        //   padding: const EdgeInsets.symmetric(horizontal: 16),
-                        //   decoration: BoxDecoration(
-                        //     color: Colors.white,
-                        //     borderRadius: BorderRadius.circular(28),
-                        //     boxShadow: [
-                        //       BoxShadow(
-                        //         color: Colors.grey.withOpacity(0.2),
-                        //         blurRadius: 12,
-                        //         offset: const Offset(0, 6),
-                        //       ),
-                        //     ],
-                        //   ),
-                        //   child: Center(
-                        //     child: TextField(
-                        //       style: TextStyle(fontSize: shrink ? 14 : 18),
-                        //       decoration: InputDecoration(
-                        //         icon: Icon(
-                        //           Icons.search,
-                        //           color: Colors.grey[600],
-                        //           size: shrink ? 18 : 24,
-                        //         ),
-                        //         hintText: 'Search...',
-                        //         hintStyle:
-                        //             TextStyle(fontSize: shrink ? 14 : 16),
-                        //         border: InputBorder.none,
-                        //       ),
-                        //     ),
-                        //   ),
-                        // ),
-
                         // ✅ Animated Category List
                         ScrollConfiguration(
                           behavior: WebScrollBehavior(),
@@ -447,27 +327,10 @@ class HomeView extends GetView<HomeController> {
                                   final String key = categoryEntries[index].key;
                                   final String categoryName =
                                       categoryEntries[index].value;
-                                  // final String category =
-                                  //     controller.categories[index];
-                                  // final isSelected =
-                                  //     controller.selectedCategory.value ==
-                                  //         category;
 
                                   final bool isVisible =
                                       controller.animatedFlags.length > index &&
                                           controller.animatedFlags[index];
-
-                                  // return Obx(
-                                  //   () => AnimatedCategoryButton(
-                                  //     label: controller.categories[index],
-                                  //     isSelected:
-                                  //         controller.selectedCategory.value ==
-                                  //             controller.categories[index],
-                                  //     onTap: () => controller.changeCategory(
-                                  //       controller.categories[index],
-                                  //     ),
-                                  //   ),
-                                  // );
 
                                   return Obx(
                                     () => AnimatedOpacity(
@@ -503,7 +366,7 @@ class HomeView extends GetView<HomeController> {
                                               color: controller.selectedCategory
                                                           .value ==
                                                       categoryName
-                                                  ? Colors.deepOrange
+                                                  ? Colors.orange
                                                   : Colors.grey[300],
                                               borderRadius:
                                                   BorderRadius.circular(20),
@@ -561,7 +424,7 @@ class HomeView extends GetView<HomeController> {
                         GlobalKey();
                     final bool animate =
                         controller.shouldAnimate(index); // Check only once
-                    return ProductTile(
+                    return ProductTileWidget(
                       product: product,
                       imageKey: imageKey,
                       index: index,
@@ -599,13 +462,13 @@ class HomeView extends GetView<HomeController> {
               ),
 
             // Optional: You can remove this if you show "No more products" using ScaffoldMessenger
-            if (!controller.hasMoreData.value)
-              const SliverToBoxAdapter(
-                child: Text(
-                  'No more products',
-                  style: TextStyle(fontSize: 16),
-                ), // Add some space
-              ),
+            // if (!controller.hasMoreData.value)
+            //   const SliverToBoxAdapter(
+            //     child: Text(
+            //       'No more products',
+            //       style: TextStyle(fontSize: 16),
+            //     ), // Add some space
+            //   ),
           ],
         ),
       ),
@@ -685,7 +548,7 @@ class _AnimatedTextRevealState extends State<AnimatedTextReveal>
       vsync: this,
       duration:
           Duration(milliseconds: widget.duration.inMilliseconds * totalChars),
-    )..forward();
+    )..repeat();
   }
 
   @override

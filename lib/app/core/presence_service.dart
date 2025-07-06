@@ -21,14 +21,14 @@ class PresenceService {
       };
 
       final DatabaseReference connectedRef = _db.child('.info/connected');
-      connectedRef.onValue.listen((event) {
+      connectedRef.onValue.listen((event) async {
         final connected = event.snapshot.value == true;
         if (connected) {
-          userRef.onDisconnect().set(offlineStatus);
-          userRef.set(onlineStatus);
+          await userRef.onDisconnect().set(offlineStatus);
+          await userRef.set(onlineStatus);
         }
       });
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint(e.toString());
     }
   }

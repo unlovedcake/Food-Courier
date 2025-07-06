@@ -1,3 +1,7 @@
+import 'dart:async';
+import 'dart:typed_data';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:food_courier/app/data/models/message_model.dart';
 import 'package:food_courier/app/widgets/emoji_reaction_bar.dart';
@@ -13,21 +17,62 @@ class ChatView extends GetView<ChatController> {
   Widget build(BuildContext context) {
     final ChatController controller = Get.put(ChatController());
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
+        foregroundColor: Colors.black,
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        elevation: 2,
         title: Obx(
           () => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('Chat'),
-              if (controller.isOtherUserOnline.value)
-                const Text('🟢 Online', style: TextStyle(fontSize: 12))
-              else
-                Text(
-                  'Last seen: ${controller.lastSeenText.value}',
-                  style: const TextStyle(fontSize: 12),
-                ),
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  CircleAvatar(
+                    backgroundColor: Colors.white24,
+                    backgroundImage: controller.receiverImageUrl.isNotEmpty
+                        ? NetworkImage(controller.receiverImageUrl)
+                        : const NetworkImage(
+                            'https://www.shutterstock.com/image-vector/vector-flat-illustration-grayscale-avatar-600nw-2264922221.jpg',
+                          ) as ImageProvider,
+                    radius: 15,
+                  ),
+                  if (controller.isOtherUserOnline.value)
+                    Positioned(
+                      bottom: 0,
+                      right: -2,
+                      child: Obx(
+                        () => CircleAvatar(
+                          radius: 5,
+                          backgroundColor: controller.isOtherUserOnline.value
+                              ? Colors.green
+                              : Colors.grey,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              Text(
+                controller.receiverName,
+                style: const TextStyle(fontSize: 14),
+              ),
             ],
           ),
+          // Column(
+          //   crossAxisAlignment: CrossAxisAlignment.start,
+          //   children: [
+          //     const Text('Chat'),
+          //     if (controller.isOtherUserOnline.value)
+          //       const Text('🟢 Online', style: TextStyle(fontSize: 12))
+          //     else
+          //       Text(
+          //         'Last seen: ${controller.lastSeenText.value}',
+          //         style: const TextStyle(fontSize: 12, color: Colors.white),
+          //       ),
+          //   ],
+          // ),
         ),
       ),
       body: Stack(
@@ -68,27 +113,15 @@ class ChatView extends GetView<ChatController> {
                         final MessageModel msg = controller.messages[index];
                         final isMe = msg.senderId == controller.currentUserId;
 
-                        String dateString = msg.timestamp.toString();
-                        DateTime dateTime = DateTime.parse(dateString);
-                        int timestampMillis = dateTime.millisecondsSinceEpoch;
-
-                        final lastSeenTime =
-                            DateTime.fromMillisecondsSinceEpoch(
-                          int.parse(timestampMillis.toString()),
-                        );
-
                         bool isLastOfGroup = true;
                         if (index < controller.messages.length - 1) {
                           final MessageModel nextMsg =
                               controller.messages[index + 1];
                           if (nextMsg.senderId == msg.senderId) {
                             final String currentTime =
-                                DateFormat('hh:mm a').format(msg.timestamp);
+                                DateFormat('hh:mm a').format(msg.createAd);
                             final String nextTime =
-                                DateFormat('hh:mm a').format(nextMsg.timestamp);
-
-                            print(currentTime);
-                            print(nextTime);
+                                DateFormat('hh:mm a').format(nextMsg.createAd);
 
                             if (currentTime == nextTime) {
                               isLastOfGroup = false;
@@ -100,6 +133,9 @@ class ChatView extends GetView<ChatController> {
 
                         return GestureDetector(
                           onLongPress: () async {
+                            if (msg.isDeleted) {
+                              return;
+                            }
                             if (msg.senderId == controller.currentUserId) {
                               await showModalBottomSheet(
                                 context: context,
@@ -129,112 +165,244 @@ class ChatView extends GetView<ChatController> {
                               );
                             } else {
                               // Show emoji reaction bar
-                              showModalBottomSheet(
-                                context: context,
-                                builder: (_) => EmojiReactionBar(
-                                  onReactionSelected: (emoji) {
-                                    controller.floatingEmoji.value = emoji;
-                                    controller.toggleReaction(msg.id, emoji);
-                                    Future.delayed(
-                                      const Duration(milliseconds: 800),
-                                      () =>
-                                          controller.floatingEmoji.value = null,
-                                    );
-                                  },
+                              unawaited(
+                                showModalBottomSheet(
+                                  context: context,
+                                  builder: (_) => EmojiReactionBar(
+                                    onReactionSelected: (emoji) async {
+                                      controller.floatingEmoji.value = emoji;
+                                      await controller.toggleReaction(
+                                        msg.id,
+                                        emoji,
+                                      );
+                                      Future.delayed(
+                                        const Duration(milliseconds: 800),
+                                        () => controller.floatingEmoji.value =
+                                            null,
+                                      );
+                                    },
+                                  ),
                                 ),
                               );
                             }
                           },
                           child: Column(
                             children: [
-                              AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 300),
-                                child: Align(
-                                  key:
-                                      ValueKey(msg.timestamp.toIso8601String()),
-                                  alignment: isMe
-                                      ? Alignment.centerRight
-                                      : Alignment.centerLeft,
-                                  child: Container(
-                                    margin: EdgeInsets.all(isMe ? 1 : 1),
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color: isMe
-                                          ? Colors.blue[100]
-                                          : Colors.grey[300],
-                                      borderRadius: BorderRadius.circular(10),
+                              Align(
+                                key: ValueKey(
+                                  msg.createAd.toIso8601String(),
+                                ),
+                                alignment: isMe
+                                    ? Alignment.centerRight
+                                    : Alignment.centerLeft,
+                                child: Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        maxWidth: Get.width * 0.8,
+                                      ),
+                                      child: Container(
+                                        margin: const EdgeInsets.all(1.5),
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          borderRadius: isMe
+                                              ? BorderRadius.only(
+                                                  topLeft:
+                                                      const Radius.circular(
+                                                    14,
+                                                  ),
+                                                  topRight: Radius.circular(
+                                                    isLastOfGroup ? 2 : 14,
+                                                  ),
+                                                  bottomLeft: isMe
+                                                      ? const Radius.circular(
+                                                          14,
+                                                        )
+                                                      : const Radius.circular(
+                                                          2,
+                                                        ),
+                                                  bottomRight: Radius.circular(
+                                                    isLastOfGroup ? 14 : 2,
+                                                  ),
+                                                )
+                                              : BorderRadius.only(
+                                                  topRight:
+                                                      const Radius.circular(
+                                                    14,
+                                                  ),
+                                                  topLeft: Radius.circular(
+                                                    isLastOfGroup ? 2 : 14,
+                                                  ),
+                                                  bottomLeft: isMe
+                                                      ? const Radius.circular(
+                                                          14,
+                                                        )
+                                                      : Radius.circular(
+                                                          isLastOfGroup
+                                                              ? 14
+                                                              : 2,
+                                                        ),
+                                                  bottomRight:
+                                                      const Radius.circular(
+                                                    14,
+                                                  ),
+                                                ),
+                                          color: isMe
+                                              ? Colors.white
+                                              : Colors.grey[300],
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            if (msg.imageUrl != null)
+                                              !msg.isDeleted
+                                                  ? Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      spacing: 5,
+                                                      children: [
+                                                        ConstrainedBox(
+                                                          constraints:
+                                                              BoxConstraints(
+                                                            maxWidth:
+                                                                Get.width / 2,
+                                                            minWidth:
+                                                                Get.width / 2,
+                                                            maxHeight: 200,
+                                                            minHeight: 200,
+                                                          ),
+                                                          child:
+                                                              CachedNetworkImage(
+                                                            fit: BoxFit.contain,
+                                                            imageUrl:
+                                                                msg.imageUrl ??
+                                                                    '',
+                                                            progressIndicatorBuilder: (
+                                                              context,
+                                                              url,
+                                                              downloadProgress,
+                                                            ) =>
+                                                                CircularProgressIndicator(
+                                                              value:
+                                                                  downloadProgress
+                                                                      .progress,
+                                                            ),
+                                                            errorWidget: (
+                                                              context,
+                                                              url,
+                                                              error,
+                                                            ) =>
+                                                                const Icon(
+                                                              Icons.error,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        if (msg.text != '')
+                                                          Text(
+                                                            msg.text,
+                                                            style:
+                                                                const TextStyle(
+                                                              color:
+                                                                  Colors.black,
+                                                            ),
+                                                          )
+                                                        else
+                                                          const SizedBox
+                                                              .shrink(),
+                                                      ],
+                                                    )
+                                                  : Text(
+                                                      isMe
+                                                          ? 'You unsent a message'
+                                                          : 'User unsent the message',
+                                                      style: const TextStyle(
+                                                        color: Colors.grey,
+                                                        fontStyle:
+                                                            FontStyle.italic,
+                                                      ),
+                                                    )
+                                            else
+                                              Text(
+                                                !msg.isDeleted
+                                                    ? msg.text
+                                                    : isMe
+                                                        ? 'You unsent a message'
+                                                        : 'User unsent the message',
+                                                style: TextStyle(
+                                                  fontStyle: !msg.isDeleted
+                                                      ? null
+                                                      : FontStyle.italic,
+                                                  color: msg.isDeleted
+                                                      ? Colors.grey
+                                                      : Colors.black,
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        if (msg.imageUrl != null ||
-                                            msg.imageUrl == '')
-                                          Image.network(msg.imageUrl!)
-                                        else
-                                          Text(msg.text),
-                                        if (msg.reactions.isNotEmpty)
-                                          // Wrap(
-                                          //   children: msg.reactions.values
-                                          //       .toSet()
-                                          //       .map((e) {
-                                          //     final int count = msg
-                                          //         .reactions.values
-                                          //         .where((v) => v == e)
-                                          //         .length;
-                                          //     return Padding(
-                                          //       padding: const EdgeInsets.only(
-                                          //         top: 4,
-                                          //         right: 6,
-                                          //       ),
-                                          //       child: Container(
-                                          //         padding: const EdgeInsets
-                                          //             .symmetric(
-                                          //           horizontal: 6,
-                                          //           vertical: 2,
-                                          //         ),
-                                          //         decoration: BoxDecoration(
-                                          //           color: Colors.white,
-                                          //           borderRadius:
-                                          //               BorderRadius.circular(
-                                          //             12,
-                                          //           ),
-                                          //           border: Border.all(
-                                          //             color: Colors.grey,
-                                          //           ),
-                                          //         ),
-                                          //         child: Text(
-                                          //           '$e $count',
-                                          //           style: const TextStyle(
-                                          //             fontSize: 12,
-                                          //           ),
-                                          //         ),
-                                          //       ),
-                                          //     );
-                                          //   }).toList(),
-                                          // ),
-
-                                          if (msg.reactions.isNotEmpty)
-                                            Wrap(
-                                              children: msg.reactions.values
-                                                  .toSet()
-                                                  .map((e) => Text(' $e '))
-                                                  .toList(),
-                                            ),
-                                      ],
-                                    ),
-                                  ),
+                                    if (msg.reactions.isNotEmpty)
+                                      if (msg.reactions.isNotEmpty)
+                                        Positioned(
+                                          bottom: -8,
+                                          left: isMe ? -10 : null,
+                                          right: isMe ? null : -10,
+                                          child: Wrap(
+                                            children: msg.reactions.values
+                                                .toSet()
+                                                .map(
+                                                  (e) => InkWell(
+                                                    onTap: () async {
+                                                      if (!msg.reactions.keys
+                                                          .contains(
+                                                        controller
+                                                            .currentUserId,
+                                                      )) {
+                                                        return;
+                                                      }
+                                                      await controller
+                                                          .toggleReaction(
+                                                        msg.id,
+                                                        e,
+                                                      );
+                                                    },
+                                                    child: Obx(() {
+                                                      final double scale =
+                                                          controller.reactionScales[
+                                                                  msg.id] ??
+                                                              1.2;
+                                                      return AnimatedScale(
+                                                        scale: scale,
+                                                        duration:
+                                                            const Duration(
+                                                          milliseconds: 150,
+                                                        ),
+                                                        curve: Curves.easeInOut,
+                                                        child: Text(
+                                                          ' $e ',
+                                                        ),
+                                                      );
+                                                    }),
+                                                  ),
+                                                )
+                                                .toList(),
+                                          ),
+                                        ),
+                                  ],
                                 ),
                               ),
                               if (isLastOfGroup)
                                 Padding(
-                                  padding: const EdgeInsets.all(4),
+                                  padding: const EdgeInsets.all(12),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
                                         DateFormat('MMM d, y h:mm a')
-                                            .format(msg.timestamp),
+                                            .format(msg.createAd),
                                         //controller.formatLastSeen(lastSeenTime),
                                         style: const TextStyle(fontSize: 10),
                                       ),
@@ -249,60 +417,116 @@ class ChatView extends GetView<ChatController> {
                   ),
                 ),
               ),
-              Row(
-                children: [
-                  IconButton(
-                    onPressed: controller.sendImage,
-                    icon: const Icon(Icons.image),
-                  ),
-                  Expanded(
-                    child: Obx(() {
-                      final isEditing =
-                          controller.editingMessageId.value != null;
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (isEditing)
-                            Row(
+              Obx(() {
+                return controller.editingMessageId.value != null
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                        child: Row(
+                          children: [
+                            const Text(
+                              'Editing...',
+                              style: TextStyle(color: Colors.orange),
+                            ),
+                            const SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: () {
+                                controller.editingMessageId.value = null;
+                                controller.messageText.value = '';
+                              },
+                              child: const Icon(Icons.close, size: 18),
+                            ),
+                          ],
+                        ),
+                      )
+                    : controller.imageBytes.value != null
+                        ? InkWell(
+                            onTap: () {
+                              controller.imageBytes.value = null;
+                              controller.selectedImageUrl.value = '';
+                              controller.fileImage.value = null;
+                              controller.imageFile.value = null;
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Text(
-                                  'Editing...',
-                                  style: TextStyle(color: Colors.orange),
+                                Image.memory(
+                                  controller.imageBytes.value ?? Uint8List(0),
+                                  width: 50,
+                                  height: 50,
+                                  fit: BoxFit.cover,
                                 ),
-                                const SizedBox(width: 8),
-                                GestureDetector(
-                                  onTap: () {
-                                    controller.editingMessageId.value = null;
-                                    controller.messageText.value = '';
-                                  },
-                                  child: const Icon(Icons.close, size: 18),
-                                ),
+                                const Icon(Icons.close, size: 18),
                               ],
                             ),
-                          TextField(
-                            onChanged: (val) {
-                              controller.messageText.value = val;
-                              controller.updateTypingStatus(val.isNotEmpty);
-                            },
-                            controller: TextEditingController.fromValue(
-                              TextEditingValue(
-                                text: controller.messageText.value,
-                                selection: TextSelection.collapsed(
-                                  offset: controller.messageText.value.length,
+                          )
+                        : const SizedBox();
+              }),
+              Row(
+                children: [
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: IconButton(
+                      onPressed: controller.selectImage,
+                      icon: const Icon(Icons.image),
+                    ),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 4,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Obx(
+                            () => TextField(
+                              onChanged: (val) {
+                                controller.messageText.value = val;
+                                controller.updateTypingStatus(val.isNotEmpty);
+                              },
+                              controller: TextEditingController.fromValue(
+                                TextEditingValue(
+                                  text: controller.messageText.value,
+                                  selection: TextSelection.collapsed(
+                                    offset: controller.messageText.value.length,
+                                  ),
+                                ),
+                              ),
+                              keyboardType: TextInputType.multiline,
+                              maxLines: null,
+                              textInputAction: TextInputAction.newline,
+                              decoration: InputDecoration(
+                                hintText: 'Type message...',
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(width: 2),
                                 ),
                               ),
                             ),
-                            keyboardType: TextInputType.multiline,
-                            maxLines: null, // ✅ Allows unlimited lines
-                            textInputAction: TextInputAction
-                                .newline, // ✅ Keeps Enter key as newline
-                            decoration: const InputDecoration(
-                              hintText: 'Type message...',
-                            ),
                           ),
                         ],
-                      );
-                    }),
+                      ),
+                    ),
                   ),
 
                   // Expanded(
@@ -326,10 +550,25 @@ class ChatView extends GetView<ChatController> {
                   //     ),
                   //   ),
                   // ),
-                  IconButton(
-                    onPressed: controller.sendMessage,
-                    icon: const Icon(Icons.send),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: IconButton(
+                      onPressed: () async {
+                        if (controller.imageBytes.value == null) {
+                          await controller.sendMessage();
+                        } else {
+                          await controller.sendImage();
+                        }
+                      },
+                      icon: const Icon(Icons.send),
+                    ),
                   ),
+                  const SizedBox(width: 8),
                 ],
               ),
             ],

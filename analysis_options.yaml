@@ -15,6 +15,9 @@ analyzer:
 
 linter:
   rules:
+    #allow  one line for if statement condition
+    always_put_control_body_on_new_line: false
+
     # disable debugFillProperties suggestions
     diagnostic_describe_all_properties: false
 

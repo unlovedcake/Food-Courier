@@ -64,7 +64,8 @@
         "rxdart",
         "satoshi",
         "unawaited",
-        "vsync"
+        "vsync",
+        "prefs"
     ],
     "ignoreWords": []
 }

@@ -1,7 +1,13 @@
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:food_courier/app/core/helper/custom_log.dart';
+import 'package:food_courier/app/core/helper/show_loading.dart';
 import 'package:food_courier/app/data/models/product_model.dart';
+import 'package:food_courier/app/data/models/transaction_model.dart';
 import 'package:food_courier/app/modules/home/controllers/home_controller.dart';
 import 'package:food_courier/app/routes/app_pages.dart';
 import 'package:get/get.dart';
@@ -10,12 +16,16 @@ import 'package:http/http.dart' as http;
 class CartController extends GetxController with GetTickerProviderStateMixin {
   final isVisibleList = <bool>[].obs;
 
+  final isCheckout = false.obs;
+
   late AnimationController animationController;
   late List<Animation<double>> fadeAnimations;
 
   final HomeController homeController = Get.find();
 
   Map<int, GlobalKey> buttonDeleteKeys = {};
+
+  final totalPay = 0.0.obs;
 
   final String _baseUrl = 'https://api.paymongo.com/v1/checkout_sessions';
   final String _apiKey =
@@ -45,8 +55,6 @@ class CartController extends GetxController with GetTickerProviderStateMixin {
     for (final ProductModel product in homeController.cartProducts.values) {
       buttonDeleteKeys[product.id] = GlobalKey();
     }
-
-    //animateItems();
   }
 
   @override
@@ -139,6 +147,8 @@ class CartController extends GetxController with GetTickerProviderStateMixin {
     final String body = jsonEncode(data);
 
     try {
+      showLoading();
+      isCheckout.value = true;
       final http.Response response = await http.post(
         url,
         headers: headers,
@@ -146,11 +156,11 @@ class CartController extends GetxController with GetTickerProviderStateMixin {
       );
 
       if (response.statusCode == 200) {
-        final responseBody = jsonDecode(response.body);
+        final Map<String, dynamic> responseBody = jsonDecode(response.body);
 
         String checkoutUrl = responseBody['data']['attributes']['checkout_url'];
         String id = responseBody['data']['id'];
-        debugPrint('Checkout session created successfully: $id');
+        Log.success('Checkout session created successfully: $id');
 
         // if (await canLaunchUrl(Uri.parse(checkoutUrl))) {
         //   await launchUrl(
@@ -158,29 +168,103 @@ class CartController extends GetxController with GetTickerProviderStateMixin {
         //     mode: LaunchMode.externalApplication,
         //   );
         // }
+        Get.back();
 
-        Get.toNamed(
-          AppPages.WEBVIEW,
-          arguments: {
-            'checkout_url': checkoutUrl,
-            'id': id,
-          },
+        unawaited(
+          Get.toNamed(
+            AppPages.WEBVIEW,
+            arguments: {
+              'checkout_url': checkoutUrl,
+              'id': id,
+            },
+          ),
         );
       } else {
-        debugPrint('Error creating checkout session: ${response.body}');
+        Log.error('Error creating checkout session: ${response.body}');
+        final Map<String, dynamic> json = jsonDecode(response.body);
+        final String message = json['errors']?[0]?['detail'] ?? 'Unknown error';
+        Get
+          ..back()
+          ..snackbar(
+            'Error',
+            message,
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red.withValues(alpha: 0.8),
+            colorText: Colors.white,
+          );
       }
-    } catch (error) {
-      debugPrint('Error: $error');
+    } on Exception catch (error) {
+      Log.error('Error: $error');
+      Get
+        ..back()
+        ..snackbar(
+          'Error',
+          'Failed to create checkout session. Please try again later.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red.withValues(alpha: 0.8),
+          colorText: Colors.white,
+        );
+      return;
     }
   }
 
-  Future<void> animateItems() async {
-    isVisibleList.assignAll(
-      List.generate(homeController.cartProducts.length, (_) => false),
+  Future<void> saveCartItems() async {
+    final User? user = FirebaseAuth.instance.currentUser;
+    List<Map<String, dynamic>> selectedProductData =
+        homeController.cartProducts.values.map((product) {
+      return {
+        'id': product.id,
+        'title': product.title,
+        'price': product.price,
+        'countItem': product.countItem.value,
+        'thumbnail': product.thumbnail,
+        'category': product.category,
+      };
+    }).toList();
+
+    final finalPayload = TransactionModel(
+      orderId: '',
+      customerName: user?.displayName ?? '',
+      email: user?.email ?? '',
+      products: selectedProductData.map(ProductItem.fromJson).toList(),
+      totalItems: homeController.cartProducts.length,
+      totalPay: totalPay.toStringAsFixed(2),
+      createdAt: DateTime.now(),
+      currentStep: [],
     );
-    for (int i = 0; i < homeController.cartProducts.length; i++) {
-      await Future.delayed(const Duration(milliseconds: 500));
-      isVisibleList[i] = true;
+
+    // final Map<String, dynamic> finalPayload = {
+    //   'orderId': '',
+    //   'customerName': '',
+    //   'email': '',
+    //   'products': selectedProductData,
+    //   'totalItems': homeController.cartProducts.length,
+    //   'totalPay': totalPay.toStringAsFixed(2),
+    //   'createdAt': DateTime.now().toIso8601String(),
+    // };
+
+    // finalPayload.forEach((key, value) {
+    //   Log('$key: $value');
+    // });
+
+    await saveTransactionToFirestore(finalPayload);
+  }
+
+  Future<void> saveTransactionToFirestore(
+    TransactionModel finalPayload,
+  ) async {
+    try {
+      // Get a reference to the collection
+
+      final DocumentReference<Map<String, dynamic>> docRef =
+          FirebaseFirestore.instance.collection('transactions').doc();
+      finalPayload.orderId = docRef.id;
+
+      await docRef.set(finalPayload.toJson());
+
+      Log.success('Transaction saved successfully!');
+    } catch (e) {
+      Log.error('Error saving transaction: $e');
     }
   }
 }

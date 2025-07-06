@@ -6,14 +6,22 @@ import '../modules/cart/bindings/cart_binding.dart';
 import '../modules/cart/views/cart_view.dart';
 import '../modules/chat/bindings/chat_binding.dart';
 import '../modules/chat/views/chat_view.dart';
+import '../modules/chat_listed/bindings/chat_listed_binding.dart';
+import '../modules/chat_listed/views/chat_listed_view.dart';
 import '../modules/dashboard/bindings/dashboard_binding.dart';
 import '../modules/dashboard/views/dashboard_view.dart';
 import '../modules/detail_product/bindings/detail_product_binding.dart';
 import '../modules/detail_product/views/detail_product_view.dart';
+import '../modules/favorite/bindings/favorite_binding.dart';
+import '../modules/favorite/views/favorite_view.dart';
 import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
 import '../modules/onboarding/bindings/onboarding_binding.dart';
 import '../modules/onboarding/views/onboarding_view.dart';
+import '../modules/profile/bindings/profile_binding.dart';
+import '../modules/profile/views/profile_view.dart';
+import '../modules/transaction/bindings/transaction_binding.dart';
+import '../modules/transaction/views/transaction_view.dart';
 import '../modules/webview/bindings/webview_binding.dart';
 import '../modules/webview/views/webview_view.dart';
 
@@ -30,6 +38,7 @@ class AppPages {
   static const WEBVIEW = Routes.WEBVIEW;
   static const CHAT = Routes.CHAT;
   static const AUTH = Routes.AUTH;
+  static const TRANSACTION = Routes.TRANSACTION;
 
   static final routes = [
     GetPage(
@@ -71,6 +80,26 @@ class AppPages {
       name: _Paths.AUTH,
       page: () => const AuthView(),
       binding: AuthBinding(),
+    ),
+    GetPage(
+      name: _Paths.TRANSACTION,
+      page: () => const TransactionView(),
+      binding: TransactionBinding(),
+    ),
+    GetPage(
+      name: _Paths.PROFILE,
+      page: () => const ProfileView(),
+      binding: ProfileBinding(),
+    ),
+    GetPage(
+      name: _Paths.FAVORITE,
+      page: () => const FavoriteView(),
+      binding: FavoriteBinding(),
+    ),
+    GetPage(
+      name: _Paths.CHAT_LISTED,
+      page: () => const ChatListedView(),
+      binding: ChatListedBinding(),
     ),
   ];
 }
