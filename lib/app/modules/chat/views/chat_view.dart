@@ -188,202 +188,197 @@ class ChatView extends GetView<ChatController> {
                           },
                           child: Column(
                             children: [
-                              AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 300),
-                                child: Align(
-                                  key: ValueKey(
-                                    msg.createAd.toIso8601String(),
-                                  ),
-                                  alignment: isMe
-                                      ? Alignment.centerRight
-                                      : Alignment.centerLeft,
-                                  child: Stack(
-                                    clipBehavior: Clip.none,
-                                    children: [
-                                      ConstrainedBox(
-                                        constraints: BoxConstraints(
-                                          maxWidth: Get.width * 0.7,
-                                        ),
-                                        child: Container(
-                                          margin: const EdgeInsets.all(1.5),
-                                          padding: const EdgeInsets.all(10),
-                                          decoration: BoxDecoration(
-                                            borderRadius: isMe
-                                                ? BorderRadius.only(
-                                                    topLeft:
-                                                        const Radius.circular(
-                                                      14,
-                                                    ),
-                                                    topRight: Radius.circular(
-                                                      isLastOfGroup ? 2 : 14,
-                                                    ),
-                                                    bottomLeft: isMe
-                                                        ? const Radius.circular(
-                                                            14,
-                                                          )
-                                                        : const Radius.circular(
-                                                            2,
-                                                          ),
-                                                    bottomRight:
-                                                        Radius.circular(
-                                                      isLastOfGroup ? 14 : 2,
-                                                    ),
-                                                  )
-                                                : BorderRadius.only(
-                                                    topRight:
-                                                        const Radius.circular(
-                                                      14,
-                                                    ),
-                                                    topLeft: Radius.circular(
-                                                      isLastOfGroup ? 2 : 14,
-                                                    ),
-                                                    bottomLeft: isMe
-                                                        ? const Radius.circular(
-                                                            14,
-                                                          )
-                                                        : Radius.circular(
-                                                            isLastOfGroup
-                                                                ? 14
-                                                                : 2,
-                                                          ),
-                                                    bottomRight:
-                                                        const Radius.circular(
-                                                      14,
-                                                    ),
+                              Align(
+                                key: ValueKey(
+                                  msg.createAd.toIso8601String(),
+                                ),
+                                alignment: isMe
+                                    ? Alignment.centerRight
+                                    : Alignment.centerLeft,
+                                child: Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        maxWidth: Get.width * 0.7,
+                                      ),
+                                      child: Container(
+                                        margin: const EdgeInsets.all(1.5),
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          borderRadius: isMe
+                                              ? BorderRadius.only(
+                                                  topLeft:
+                                                      const Radius.circular(
+                                                    14,
                                                   ),
-                                            color: isMe
-                                                ? Colors.white
-                                                : Colors.grey[300],
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              if (msg.imageUrl != null)
-                                                !msg.isDeleted
-                                                    ? Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        spacing: 5,
-                                                        children: [
-                                                          CachedNetworkImage(
-                                                            imageUrl:
-                                                                msg.imageUrl ??
-                                                                    '',
-                                                            progressIndicatorBuilder: (
-                                                              context,
-                                                              url,
-                                                              downloadProgress,
-                                                            ) =>
-                                                                CircularProgressIndicator(
-                                                              value:
-                                                                  downloadProgress
-                                                                      .progress,
-                                                            ),
-                                                            errorWidget: (
-                                                              context,
-                                                              url,
-                                                              error,
-                                                            ) =>
-                                                                const Icon(
-                                                              Icons.error,
-                                                            ),
-                                                          ),
-                                                          if (msg.text != '')
-                                                            Text(
-                                                              msg.text,
-                                                              style:
-                                                                  const TextStyle(
-                                                                color: Colors
-                                                                    .black,
-                                                              ),
-                                                            )
-                                                          else
-                                                            const SizedBox
-                                                                .shrink(),
-                                                        ],
-                                                      )
-                                                    : Text(
-                                                        isMe
-                                                            ? 'You unsent a message'
-                                                            : 'User unsent the message',
-                                                        style: const TextStyle(
-                                                          color: Colors.grey,
-                                                          fontStyle:
-                                                              FontStyle.italic,
+                                                  topRight: Radius.circular(
+                                                    isLastOfGroup ? 2 : 14,
+                                                  ),
+                                                  bottomLeft: isMe
+                                                      ? const Radius.circular(
+                                                          14,
+                                                        )
+                                                      : const Radius.circular(
+                                                          2,
                                                         ),
-                                                      )
-                                              else
-                                                Text(
-                                                  !msg.isDeleted
-                                                      ? msg.text
-                                                      : isMe
-                                                          ? 'You unsent a message'
-                                                          : 'User unsent the message',
-                                                  style: TextStyle(
-                                                    fontStyle: !msg.isDeleted
-                                                        ? null
-                                                        : FontStyle.italic,
-                                                    color: msg.isDeleted
-                                                        ? Colors.grey
-                                                        : Colors.black,
+                                                  bottomRight: Radius.circular(
+                                                    isLastOfGroup ? 14 : 2,
+                                                  ),
+                                                )
+                                              : BorderRadius.only(
+                                                  topRight:
+                                                      const Radius.circular(
+                                                    14,
+                                                  ),
+                                                  topLeft: Radius.circular(
+                                                    isLastOfGroup ? 2 : 14,
+                                                  ),
+                                                  bottomLeft: isMe
+                                                      ? const Radius.circular(
+                                                          14,
+                                                        )
+                                                      : Radius.circular(
+                                                          isLastOfGroup
+                                                              ? 14
+                                                              : 2,
+                                                        ),
+                                                  bottomRight:
+                                                      const Radius.circular(
+                                                    14,
                                                   ),
                                                 ),
-                                            ],
-                                          ),
+                                          color: isMe
+                                              ? Colors.white
+                                              : Colors.grey[300],
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            if (msg.imageUrl != null)
+                                              !msg.isDeleted
+                                                  ? Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      spacing: 5,
+                                                      children: [
+                                                        CachedNetworkImage(
+                                                          imageUrl:
+                                                              msg.imageUrl ??
+                                                                  '',
+                                                          progressIndicatorBuilder: (
+                                                            context,
+                                                            url,
+                                                            downloadProgress,
+                                                          ) =>
+                                                              CircularProgressIndicator(
+                                                            value:
+                                                                downloadProgress
+                                                                    .progress,
+                                                          ),
+                                                          errorWidget: (
+                                                            context,
+                                                            url,
+                                                            error,
+                                                          ) =>
+                                                              const Icon(
+                                                            Icons.error,
+                                                          ),
+                                                        ),
+                                                        if (msg.text != '')
+                                                          Text(
+                                                            msg.text,
+                                                            style:
+                                                                const TextStyle(
+                                                              color:
+                                                                  Colors.black,
+                                                            ),
+                                                          )
+                                                        else
+                                                          const SizedBox
+                                                              .shrink(),
+                                                      ],
+                                                    )
+                                                  : Text(
+                                                      isMe
+                                                          ? 'You unsent a message'
+                                                          : 'User unsent the message',
+                                                      style: const TextStyle(
+                                                        color: Colors.grey,
+                                                        fontStyle:
+                                                            FontStyle.italic,
+                                                      ),
+                                                    )
+                                            else
+                                              Text(
+                                                !msg.isDeleted
+                                                    ? msg.text
+                                                    : isMe
+                                                        ? 'You unsent a message'
+                                                        : 'User unsent the message',
+                                                style: TextStyle(
+                                                  fontStyle: !msg.isDeleted
+                                                      ? null
+                                                      : FontStyle.italic,
+                                                  color: msg.isDeleted
+                                                      ? Colors.grey
+                                                      : Colors.black,
+                                                ),
+                                              ),
+                                          ],
                                         ),
                                       ),
+                                    ),
+                                    if (msg.reactions.isNotEmpty)
                                       if (msg.reactions.isNotEmpty)
-                                        if (msg.reactions.isNotEmpty)
-                                          Positioned(
-                                            bottom: -8,
-                                            left: isMe ? -10 : null,
-                                            right: isMe ? null : -10,
-                                            child: Wrap(
-                                              children: msg.reactions.values
-                                                  .toSet()
-                                                  .map(
-                                                    (e) => InkWell(
-                                                      onTap: () async {
-                                                        if (!msg.reactions.keys
-                                                            .contains(
-                                                          controller
-                                                              .currentUserId,
-                                                        )) {
-                                                          return;
-                                                        }
-                                                        await controller
-                                                            .toggleReaction(
-                                                          msg.id,
-                                                          e,
-                                                        );
-                                                      },
-                                                      child: Obx(() {
-                                                        final double scale =
-                                                            controller.reactionScales[
-                                                                    msg.id] ??
-                                                                1.2;
-                                                        return AnimatedScale(
-                                                          scale: scale,
-                                                          duration:
-                                                              const Duration(
-                                                            milliseconds: 150,
-                                                          ),
-                                                          curve:
-                                                              Curves.easeInOut,
-                                                          child: Text(
-                                                            ' $e ',
-                                                          ),
-                                                        );
-                                                      }),
-                                                    ),
-                                                  )
-                                                  .toList(),
-                                            ),
+                                        Positioned(
+                                          bottom: -8,
+                                          left: isMe ? -10 : null,
+                                          right: isMe ? null : -10,
+                                          child: Wrap(
+                                            children: msg.reactions.values
+                                                .toSet()
+                                                .map(
+                                                  (e) => InkWell(
+                                                    onTap: () async {
+                                                      if (!msg.reactions.keys
+                                                          .contains(
+                                                        controller
+                                                            .currentUserId,
+                                                      )) {
+                                                        return;
+                                                      }
+                                                      await controller
+                                                          .toggleReaction(
+                                                        msg.id,
+                                                        e,
+                                                      );
+                                                    },
+                                                    child: Obx(() {
+                                                      final double scale =
+                                                          controller.reactionScales[
+                                                                  msg.id] ??
+                                                              1.2;
+                                                      return AnimatedScale(
+                                                        scale: scale,
+                                                        duration:
+                                                            const Duration(
+                                                          milliseconds: 150,
+                                                        ),
+                                                        curve: Curves.easeInOut,
+                                                        child: Text(
+                                                          ' $e ',
+                                                        ),
+                                                      );
+                                                    }),
+                                                  ),
+                                                )
+                                                .toList(),
                                           ),
-                                    ],
-                                  ),
+                                        ),
+                                  ],
                                 ),
                               ),
                               if (isLastOfGroup)

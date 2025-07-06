@@ -47,3 +47,4 @@ app.*.map.json
 assets/env/development.json
 assets/env/staging.json
 assets/env/production.json
+assets/env/.env

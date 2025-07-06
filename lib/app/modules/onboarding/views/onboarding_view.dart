@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:food_courier/app/data/models/onboarding_model.dart';
+import 'package:food_courier/app/modules/services/notification_service.dart';
 import 'package:get/get.dart';
 
 import '../controllers/onboarding_controller.dart';
@@ -420,7 +421,18 @@ class OnboardingView extends GetView<OnboardingController> {
             top: 20,
             right: 20,
             child: TextButton(
-              onPressed: controller.navigateToHome,
+              onPressed: () async {
+                await FCM().sendPushNotification(
+                  deviceToken:
+                      'enPsgVlFST-e7Q96fYYam2:APA91bFYH0SCIrgwSDqXwBjs4bjVIyRUsr2ZHsvZPFsomwYdNjGESTg3VLDLkXz5bO6PDJpfTNzYIa9wTBp1qGrJ0D7yOVdu0c_mA-ANLTXS87YwIOHztrA',
+                  title: 'Test Noti',
+                  body: 'Good Morning',
+                  data: {
+                    'chatId': 'abc123',
+                    'type': 'private',
+                  },
+                );
+              },
               child: const Text('Skip', style: TextStyle(color: Colors.grey)),
             ),
           ),

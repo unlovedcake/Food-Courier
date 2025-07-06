@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:food_courier/app/core/helper/custom_log.dart';
 import 'package:food_courier/app/core/helper/helper_functions.dart'
@@ -43,11 +44,14 @@ class AuthController extends GetxController {
 
   Future<void> _addUserToFirestore(User firebaseUser) async {
     try {
+      final String? deviceToken = await FirebaseMessaging.instance.getToken();
       final newUser = UserModel(
         uid: firebaseUser.uid,
         name: nameController.text,
-        imageUrl: '',
-        email: firebaseUser.email!,
+        imageUrl:
+            'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png',
+        email: firebaseUser.email ?? '',
+        deviceToken: deviceToken ?? '',
         createdAt: DateTime.now(),
       );
       await FirebaseFirestore.instance
@@ -58,7 +62,7 @@ class AuthController extends GetxController {
       Print.error('Error Add User $e');
       Get
         ..back()
-        ..snackbar('Error', 'An unknown error occurred.');
+        ..snackbar('Error', 'An unknown error occurred $e.');
     }
   }
 
@@ -71,10 +75,17 @@ class AuthController extends GetxController {
         password: passwordController.text.trim(),
       );
 
-      if (userCredential.user != null) {
-        await userCredential.user?.updateDisplayName(nameController.text);
+      final User? user = userCredential.user;
+
+      if (user != null) {
+        await user.updateProfile(
+          displayName: nameController.text,
+          photoURL:
+              'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png',
+        );
+
         // Add user data to Firestore
-        await _addUserToFirestore(userCredential.user!);
+        await _addUserToFirestore(user);
         otherUserId = _auth.currentUser?.uid ?? '';
         await Get.offAllNamed(AppPages.DASHBOARD);
       }

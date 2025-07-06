@@ -34,7 +34,7 @@ class ChatController extends GetxController {
 
   final isLoading = false.obs;
 
-  final isToggleReaction = false.obs;
+  final isScrolling = false.obs;
 
   // final String receiverId =
   //     '4qYtKhUwkWheyGMeQ4BzeWzSVMq1'; //ataJQe5vGYafW9Ay7QfVbGt2L453';
@@ -312,13 +312,14 @@ class ChatController extends GetxController {
 
   Future<void> sendMessage() async {
     try {
-      isToggleReaction.value = false; // reset toggle reaction state
+      isScrolling.value = false; // reset toggle reaction state
       final String text = messageText.value.trim();
       if (text.isEmpty) {
         return;
       }
 
       if (editingMessageId.value != null) {
+        isScrolling.value = true;
         // Editing existing message
         await _firestore
             .collection('chats')
@@ -340,20 +341,12 @@ class ChatController extends GetxController {
             .collection('messages')
             .doc(); // get new ID
 
-        final msg = MessageModel(
-          id: docRef.id,
-          senderId: currentUserId,
-          text: text,
-          createAd: DateTime.now(),
-        );
-
-        await docRef.set(msg.toJson());
-        // await docRef.set({
-        //   ...msg.toJson(),
-        //   'timestamp': FieldValue.serverTimestamp(), // 🔥 override for Firestore
-        // });
-
-        // Update chat metadata with lastMessage and users
+        await docRef.set({
+          'id': docRef.id,
+          'senderId': currentUserId,
+          'text': text,
+          'createAd': FieldValue.serverTimestamp(),
+        });
 
         await chatDoc.set(
           {
@@ -413,7 +406,7 @@ class ChatController extends GetxController {
   }
 
   Future<void> sendImage() async {
-    isToggleReaction.value = false; // reset toggle reaction state
+    isScrolling.value = false; // reset toggle reaction state
     try {
       if (fileImage.value == null) {
         return;
@@ -531,7 +524,7 @@ class ChatController extends GetxController {
   final RxMap<String, double> reactionScales = <String, double>{}.obs;
 
   Future<void> toggleReaction(String messageId, String emoji) async {
-    isToggleReaction.value = true;
+    isScrolling.value = true;
     try {
       final DocumentReference<Map<String, dynamic>> ref = _firestore
           .collection('chats')
@@ -650,7 +643,7 @@ class ChatController extends GetxController {
 
   void scrollToBottom() {
     Future.delayed(const Duration(milliseconds: 200), () {
-      if (scrollController.hasClients && !isToggleReaction.value) {
+      if (scrollController.hasClients && !isScrolling.value) {
         scrollController.animateTo(
           scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 300),
