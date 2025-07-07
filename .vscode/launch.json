@@ -9,6 +9,7 @@
         "program": "lib/main.dart",
         "request": "launch",
         "type": "dart",
+        //"flutterMode": "profile",
         "args": [
           "--dart-define=env=development",
           "--web-port=5000"

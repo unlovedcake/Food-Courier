@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:food_courier/app/core/app_theme.dart';
 import 'package:food_courier/app/core/helper/custom_log.dart';
+import 'package:food_courier/app/core/persistent_login_controller.dart';
 import 'package:food_courier/app/core/theme_controller.dart';
 import 'package:food_courier/app/modules/services/notification_service.dart';
 import 'package:food_courier/app/modules/services/service_api.dart';
@@ -62,30 +63,32 @@ Future<void> main() async {
     return true;
   };
 
-  final ThemeController themeController = Get.put(ThemeController());
+  runApp(const MyApp());
 
-  runApp(
-    Obx(
-      () => GetMaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: themeController.isDarkMode.value
-            ? AppTheme.darkTheme
-            : AppTheme.lightTheme,
+  // runApp(
+  //   Obx(
+  //     () => GetMaterialApp(
+  //       debugShowCheckedModeBanner: false,
+  //       theme: themeController.isDarkMode.value
+  //           ? AppTheme.darkTheme
+  //           : AppTheme.lightTheme,
 
-        themeMode:
-            themeController.isDarkMode.value ? ThemeMode.dark : ThemeMode.light,
+  //       themeMode:
+  //           themeController.isDarkMode.value ? ThemeMode.dark : ThemeMode.light,
 
-        //theme: ThemeData.light(useMaterial3: false),
-        //darkTheme: ThemeData.light(),
+  //       //theme: ThemeData.light(useMaterial3: false),
+  //       //darkTheme: ThemeData.light(),
 
-        initialRoute: AppPages.ONBOARDING,
-        // initialRoute: json['flavor'] == 'Development'
-        //     ? AppPages.AUTH
-        //     : AppPages.ONBOARDING,
-        getPages: AppPages.routes,
-      ),
-    ),
-  );
+  //       initialRoute: persistentController.isLoggedIn.value
+  //           ? AppPages.DASHBOARD
+  //           : AppPages.ONBOARDING,
+  //       // initialRoute: json['flavor'] == 'Development'
+  //       //     ? AppPages.AUTH
+  //       //     : AppPages.ONBOARDING,
+  //       getPages: AppPages.routes,
+  //     ),
+  //   ),
+  // );
   // DevicePreview(
   //     builder: (context) {
   //       return Obx(
@@ -111,4 +114,29 @@ Future<void> main() async {
   //       );
   //     },
   //   ),
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeController themeController = Get.put(ThemeController());
+    final PersistentLoginController persistentController =
+        Get.put(PersistentLoginController());
+    return Obx(
+      () => GetMaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: themeController.isDarkMode.value
+            ? AppTheme.darkTheme
+            : AppTheme.lightTheme,
+        themeMode:
+            themeController.isDarkMode.value ? ThemeMode.dark : ThemeMode.light,
+        initialRoute: persistentController.isLoggedIn.value
+            ? AppPages.DASHBOARD
+            : AppPages.ONBOARDING,
+        getPages: AppPages.routes,
+      ),
+    );
+  }
 }

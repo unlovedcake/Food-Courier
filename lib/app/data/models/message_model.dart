@@ -10,6 +10,7 @@ class MessageModel {
     this.isDeleted = false,
     this.reactions = const {},
     this.isEdited = false,
+    this.isRead = false,
   });
 
   factory MessageModel.fromJson(Map<String, dynamic> json) {
@@ -17,9 +18,9 @@ class MessageModel {
       id: json['id'],
       senderId: json['senderId'],
       text: json['text'] ?? '',
-      imageUrl: json['imageUrl'],
+      imageUrl: json['imageUrl'] ?? '',
       isDeleted: json['isDeleted'] ?? false,
-
+      isRead: json['isRead'] ?? false,
       createAd: (json['createAd'] as Timestamp?)?.toDate() ?? DateTime.now(),
 
       //createAd: (json['createAd'] as Timestamp).toDate(),
@@ -33,6 +34,7 @@ class MessageModel {
   final String text;
   final String? imageUrl;
   final bool isDeleted;
+  final bool isRead;
   final DateTime createAd;
 
   final Map<String, String> reactions;
@@ -44,8 +46,33 @@ class MessageModel {
         'text': text,
         'imageUrl': imageUrl,
         'isDeleted': isDeleted,
+        'isRead': isRead,
         'createAd': createAd,
         'reactions': reactions,
         'isEdited': isEdited,
       };
+
+  MessageModel copyWith({
+    String? text,
+    String? imageUrl,
+    bool? isDeleted,
+    DateTime? createAd,
+    Map<String, dynamic>? reactions,
+    bool? isEdited,
+    bool? isRead,
+  }) {
+    return MessageModel(
+      id: id,
+      senderId: senderId,
+      text: text ?? this.text,
+      imageUrl: imageUrl ?? this.imageUrl,
+      isDeleted: isDeleted ?? this.isDeleted,
+      isRead: isRead ?? this.isRead,
+      createAd: createAd ?? this.createAd,
+      reactions: reactions != null
+          ? Map<String, String>.from(reactions)
+          : this.reactions,
+      isEdited: isEdited ?? this.isEdited,
+    );
+  }
 }

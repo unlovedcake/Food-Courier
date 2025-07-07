@@ -44,14 +44,12 @@ void main() {
       // Loop until there's no more data
       while (controller.hasMoreData.value) {
         await controller.fetchProducts();
-        print('Fetched ${controller.products.length} products');
 
         // Increase limit after each successful fetch
         //controller.limit += 10;
       }
 
       expect(controller.hasMoreData.value, false);
-      print('All products fetched. Final count: ${controller.products.length}');
     });
 
     test('fetchProducts sets hasMoreData to false on empty list', () async {

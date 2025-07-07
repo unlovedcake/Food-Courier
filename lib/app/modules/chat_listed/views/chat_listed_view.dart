@@ -106,7 +106,9 @@ class ChatListedView extends GetView<ChatListedController> {
                         );
 
                         try {
-                          if (!chat.isRead) {
+                          if (!chat.isRead &&
+                              chat.sender.senderId !=
+                                  controller.currentUserId) {
                             await FirebaseFirestore.instance
                                 .collection('chats')
                                 .doc(chatId)
