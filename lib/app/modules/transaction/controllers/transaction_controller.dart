@@ -25,6 +25,7 @@ class TransactionController extends GetxController {
     _transactionSubscription = FirebaseFirestore.instance
         .collection('transactions')
         .where('email', isEqualTo: user.email)
+        .orderBy('createdAt', descending: true)
         .snapshots()
         .listen(
       (snapshot) {

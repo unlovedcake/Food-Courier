@@ -6,7 +6,7 @@ class PresenceService {
   final String userId;
   final _db = FirebaseDatabase.instance.ref();
 
-  Future<void> setupPresenceTracking() async {
+  void setupPresenceTracking() {
     try {
       final DatabaseReference userRef = _db.child('status/$userId');
 

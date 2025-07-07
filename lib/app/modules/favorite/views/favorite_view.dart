@@ -8,6 +8,9 @@ class FavoriteView extends GetView<FavoriteController> {
   @override
   Widget build(BuildContext context) {
     final FavoriteController controller = Get.put(FavoriteController());
+
+    // Sort favorites by 'title' ascending (case-insensitive)
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -18,7 +21,13 @@ class FavoriteView extends GetView<FavoriteController> {
       ),
       body: Obx(() {
         final RxList<Map<String, dynamic>> favorites =
-            controller.favoriteProducts;
+            controller.favoriteProducts
+              ..sort(
+                (a, b) => (a['title'] ?? '')
+                    .toString()
+                    .toLowerCase()
+                    .compareTo((b['title'] ?? '').toString().toLowerCase()),
+              );
 
         if (favorites.isEmpty) {
           return const Center(
