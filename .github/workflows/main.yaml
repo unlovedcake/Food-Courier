@@ -26,11 +26,6 @@ jobs:
           distribution: "zulu"
           java-version: "17"
 
-      - name: 🔐 Check token available
-        run: echo "Token starts with: ${GITHUB_TOKEN:0:5}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    
-
       # Step 3: Set up Flutter
       - name: 🔧 Set up Flutter
         uses: subosito/flutter-action@v2
@@ -158,3 +153,6 @@ jobs:
             --app "${{ secrets.FIREBASE_APP_ID }}" \
             --groups testers \
             --release-notes "New release from GitHub Actions"
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
