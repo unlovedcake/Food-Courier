@@ -85,6 +85,7 @@ flutter:
     - assets/env/
     - assets/images/
     - assets/lottie/cart_empty.json
+    - shorebird.yaml
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
