@@ -76,57 +76,62 @@ jobs:
           echo "${{ secrets.GCLOUD_SERVICE_ACCOUNT_JSON }}" | base64 --decode > $HOME/firebase-service-account.json
           echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/firebase-service-account.json" >> $GITHUB_ENV
 
-      # Step 11: 🔖 Auto-increment Version, Update pubspec.yaml, and Tag
-      - name: 🔖 Bump version, update pubspec.yaml, and create Git tag
+      - name: 🛠 Install GitHub CLI
         run: |
-          git config user.name "${{ github.actor }}"
-          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          sudo apt-get install -y gh
 
-          # Fetch all tags and checkout base branch
-          git fetch --tags
-          git checkout ${{ github.base_ref }}
+      - name: 🔖 Bump version, update pubspec.yaml, tag, and release
+        run: |
+          # Read current version
+          version_line=$(grep '^version: ' pubspec.yaml)
+          current_version=$(echo "$version_line" | cut -d' ' -f2)
+          base_version=$(echo "$current_version" | cut -d'+' -f1)
+          build_number=$(echo "$current_version" | cut -d'+' -f2)
 
-          # Get latest tag or default to v1.0.0
-          latest_tag=$(git tag --sort=-v:refname | tail -n 1)
-          if [ -z "$latest_tag" ]; then
-            major=1
-            minor=0
-            patch=0
-            base_version="v$major.$minor.$patch"
-            echo "No tags found. Starting at $base_version"
-          else
-            echo "Latest tag: $latest_tag"
-            version=${latest_tag#v}
-            IFS='.' read -r major minor patch <<< "$version"
-          fi
+          IFS='.' read -r major minor patch <<< "$base_version"
 
-          # Determine bump type from last commit message
+          echo "Current base version: $major.$minor.$patch"
+          echo "Current build number: $build_number"
+
+          # Get latest commit message
           commit_message=$(git log -1 --pretty=%B)
-          echo "Last commit message: $commit_message"
 
-          if echo "$commit_message" | grep -q "#major"; then
+          # Bump base version
+          if echo "$commit_message" | grep -iq "#major"; then
             major=$((major + 1))
             minor=0
             patch=0
-            bump_type="major"
-          elif echo "$commit_message" | grep -q "#minor"; then
+            echo "🔼 Bumping MAJOR"
+          elif echo "$commit_message" | grep -iq "#minor"; then
             minor=$((minor + 1))
             patch=0
-            bump_type="minor"
+            echo "🔼 Bumping MINOR"
           else
             patch=$((patch + 1))
-            bump_type="patch"
+            echo "🔼 Bumping PATCH"
           fi
 
-          new_tag="v$major.$minor.$patch"
-          flutter_version="$major.$minor.$patch+1"
-          echo "Bump type: $bump_type"
-          echo "New tag: $new_tag"
-          echo "Flutter version: $flutter_version"
+          new_base="$major.$minor.$patch"
+
+          # Find next available build number
+          build_number=1
+          while true; do
+            candidate_tag="v${new_base}+${build_number}"
+            if git rev-parse "$candidate_tag" >/dev/null 2>&1; then
+              echo "❌ Tag $candidate_tag exists, incrementing build number..."
+              build_number=$((build_number + 1))
+            else
+              echo "✅ New tag will be $candidate_tag"
+              break
+            fi
+          done
+
+          # Final version
+          new_version="$new_base+$build_number"
+          new_tag="v$new_version"
 
           # Update pubspec.yaml
-          VERSION=${{ github.event.inputs.version }}+1
-          if [[ "$OSTYPE" == "darwin"* ]]; then
+           if [[ "$OSTYPE" == "darwin"* ]]; then
             # macOS (BSD sed)
             sed -i '' "s/^version: .*/version: $VERSION/" pubspec.yaml
           else
@@ -134,17 +139,23 @@ jobs:
             sed -i "s/^version: .*/version: $VERSION/" pubspec.yaml
           fi
 
+          # Configure Git
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor }}@users.noreply.github.com"
-          git commit -am "chore: release version v${{ github.event.inputs.version }}"
-
-          # 🛠 Use token-authenticated remote URL to allow push
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
-
-          git tag "v${{ github.event.inputs.version }}"
+          # Commit, tag, push
+          git add pubspec.yaml
+          git commit -m "chore(release): $new_tag"
+          git tag "$new_tag"
           git push origin HEAD
-          git push origin "v${{ github.event.inputs.version }}"
+          git push origin "$new_tag"
+
+          # Generate release notes
+          echo "Generating GitHub release for $new_tag..."
+          gh release create "$new_tag" \
+            --title "$new_tag" \
+            --notes "🔖 Automated release based on commit: $commit_message"
 
         # Step 12: Upload APK to Firebase
       - name: 🚀 Upload APK to Firebase
