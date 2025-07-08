@@ -84,35 +84,10 @@ jobs:
 
       - name: 🔖 Bump version, update pubspec.yaml, tag, and release
         run: |
-          # Step 1: Read current version from pubspec.yaml
+          # Read current version
           version=$(grep '^[[:space:]]*version:' pubspec.yaml | sed 's/version:[[:space:]]*//')
-          base="${version%%+*}"        # Extract base version: 1.2.3
-          build="${version##*+}"       # Extract build number: 4
-
-          # Step 2: Check if Git tag exists
-          candidate_tag="v${base}+${build}"
-          if git rev-parse "$candidate_tag" >/dev/null 2>&1; then
-            echo "❌ Tag $candidate_tag already exists"
-            build=$((build + 1))
-            new_version="${base}+${build}"
-
-            echo "✅ Updating to new version: $new_version"
-
-          # Step 3: Update pubspec.yaml (cross-platform)
-          if [[ "$OSTYPE" == "darwin"* ]]; then
-            sed -i '' "s/^version: .*/version: $new_version/" pubspec.yaml
-          else
-            sed -i "s/^version: .*/version: $new_version/" pubspec.yaml
-          fi
-          else
-            echo "✅ Tag $candidate_tag is unique. No need to bump."
-          fi 
-
-          # Step 4: Output the final version
-          echo "📦 Final version in pubspec.yaml: $(grep 'version:' pubspec.yaml | awk '{print $2}')  
-
-          # Final version
-          new_tag=$new_version
+          safe_version="${version//+/-}"
+          echo "Version from pubspec.yaml: $version"   
 
           # Configure Git
           git config user.name "${{ github.actor }}"
@@ -120,27 +95,16 @@ jobs:
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
 
-
-          # Commit, tag, push
-          git add pubspec.yaml
-
-          # ✅ Only commit if changes exist
-          if ! git diff --quiet; then
-            git commit -m "chore(release): $new_tag"
-            git tag "$new_tag"
-            git push origin HEAD
-            git push origin "$new_tag"
-          else
-            echo "✅ No version changes to commit or tag."
-          fi
-
           # ➕ GitHub Releases don't allow '+' in tag names — use a clean one
 
-          echo "Generating GitHub release: $clean_tag (actual tag: $new_tag)"
+          safe_tag="v${safe_version}-${BASE_BRANCH}"
+          clean_tag=safe_tag
 
-          gh release create "$new_tag" \
-            --title "$new_tag" \
-            --notes "🔖 Release $new_tag (base:$new_tag) from commit: $commit_message"
+          echo "Generating GitHub release: $clean_tag (actual tag: $clean_tag)"
+
+          gh release create "$clean_tag" \
+            --title "$clean_tag" \
+            --notes "🔖 Release $clean_tag (base: $clean_tag) from commit: $commit_message"
 
         # Step 12: Upload APK to Firebase
       - name: 🚀 Upload APK to Firebase
