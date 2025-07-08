@@ -13,6 +13,8 @@ jobs:
     if: github.event.pull_request.merged == true
     name: Build & Distribute Android APK
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
 
     steps:
       # Step 1: Checkout source
@@ -170,6 +172,3 @@ jobs:
             --app "${{ secrets.FIREBASE_APP_ID }}" \
             --groups testers \
             --release-notes "New release from GitHub Actions"
-
-        env:
-          GH_TOKEN: ${{ github.token }}
