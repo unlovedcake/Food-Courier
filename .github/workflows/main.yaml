@@ -1,4 +1,4 @@
-name: Build & Distribute Android (Firebase AppDistribution)
+name: Build & Distribute Android
 
 on:
   pull_request:
@@ -76,15 +76,7 @@ jobs:
           echo "${{ secrets.GCLOUD_SERVICE_ACCOUNT_JSON }}" | base64 --decode > $HOME/firebase-service-account.json
           echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/firebase-service-account.json" >> $GITHUB_ENV
 
-      # Step 11: Upload APK to Firebase
-      - name: 🚀 Upload APK to Firebase
-        run: |
-          firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
-            --app "${{ secrets.FIREBASE_APP_ID }}" \
-            --groups testers \
-            --release-notes "New release from GitHub Actions"
-
-      # Step 12: 🔖 Auto-increment Version, Update pubspec.yaml, and Tag
+      # Step 11: 🔖 Auto-increment Version, Update pubspec.yaml, and Tag
       - name: 🔖 Bump version, update pubspec.yaml, and create Git tag
         run: |
           git config user.name "${{ github.actor }}"
@@ -133,13 +125,29 @@ jobs:
           echo "Flutter version: $flutter_version"
 
           # Update pubspec.yaml
-          sed -i "s/^version: .*/version: $flutter_version/" pubspec.yaml
+          VERSION=${{ github.event.inputs.version }}+1
+          if [[ "$OSTYPE" == "darwin"* ]]; then
+            # macOS (BSD sed)
+            sed -i '' "s/^version: .*/version: $VERSION/" pubspec.yaml
+          else
+            # Linux (GNU sed)
+            sed -i "s/^version: .*/version: $VERSION/" pubspec.yaml
+          fi
 
-          # Commit and push
-          git add pubspec.yaml
-          git commit -m "chore(release): bump version to $new_tag"
-          git tag "$new_tag"
-          git push origin "$new_tag"
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git commit -am "chore: release version v${{ github.event.inputs.version }}"
+          git tag "v${{ github.event.inputs.version }}"
           git push origin HEAD
+          git push origin "v${{ github.event.inputs.version }}"
+
+        # Step 12: Upload APK to Firebase
+      - name: 🚀 Upload APK to Firebase
+        run: |
+          firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
+            --app "${{ secrets.FIREBASE_APP_ID }}" \
+            --groups testers \
+            --release-notes "New release from GitHub Actions"
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
