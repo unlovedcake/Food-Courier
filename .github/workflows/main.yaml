@@ -85,7 +85,7 @@ jobs:
       - name: 🔖 Bump version, update pubspec.yaml, tag, and release
         run: |
           # Read current version
-          version=$(grep '^[[:space:]]version:' pubspec.yaml | sed 's/version:[[:space:]]*//')
+          version=$(awk '/^ *version *:/ { print $2 }' pubspec.yaml)
           safe_version="${version//+/-}"
           echo "Version from pubspec.yaml: $version"   
 
