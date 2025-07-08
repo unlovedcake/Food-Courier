@@ -167,14 +167,14 @@ class OnboardingView extends GetView<OnboardingController> {
           ),
 
           // Skip
-          Positioned(
-            top: 20,
-            right: 20,
-            child: TextButton(
-              onPressed: controller.navigateToHome,
-              child: const Text('Skip', style: TextStyle(color: Colors.grey)),
-            ),
-          ),
+          // Positioned(
+          //   top: 20,
+          //   right: 20,
+          //   child: TextButton(
+          //     onPressed: controller.navigateToHome,
+          //     child: const Text('Skip', style: TextStyle(color: Colors.grey)),
+          //   ),
+          // ),
 
           // Dots
           Positioned(
