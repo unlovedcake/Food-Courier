@@ -1,4 +1,4 @@
-name: Build & Distribute Android (Firebase AppDistribution)
+name: Build & Distribute Android
 
 on:
   pull_request:
