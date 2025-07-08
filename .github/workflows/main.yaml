@@ -85,7 +85,7 @@ jobs:
       - name: 🔖 Bump version, update pubspec.yaml, tag, and release
         run: |
           # Read current version
-          version=$(grep '^[[:space:]]*version:' pubspec.yaml | sed 's/version:[[:space:]]*//')
+          version=$(grep '^[[:space:]]version:' pubspec.yaml | sed 's/version:[[:space:]]*//')
           safe_version="${version//+/-}"
           echo "Version from pubspec.yaml: $version"   
 
@@ -98,7 +98,7 @@ jobs:
           # ➕ GitHub Releases don't allow '+' in tag names — use a clean one
 
           safe_tag="v${safe_version}-${BASE_BRANCH}"
-          clean_tag=safe_tag
+          clean_tag=$safe_tag
 
           echo "Generating GitHub release: $clean_tag (actual tag: $clean_tag)"
 
