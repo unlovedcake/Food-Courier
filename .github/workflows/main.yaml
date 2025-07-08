@@ -12,7 +12,7 @@ jobs:
   build_android:
     if: github.event.pull_request.merged == true
     name: Build & Distribute Android APK
-    runs-on: macos-latest
+    runs-on: ubunto-latest
 
     steps:
       # Step 1: Checkout source
