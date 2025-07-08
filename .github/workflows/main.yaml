@@ -86,25 +86,36 @@ jobs:
         run: |
           # Read current version
           version=$(awk '/^ *version *:/ { print $2 }' pubspec.yaml)
-          safe_version="${version//+/-}"
-          echo "Version from pubspec.yaml: $version"   
 
-          # Configure Git
+          # Step 2: Split base and build
+          base="${version%%+*}"    # 1.2.3
+          build="${version##*+}"   # 4
+          new_build=$((build + 1)) # increment to 5
+
+          # Step 3: Compose new version
+          new_version="${base}+${new_build}"
+          safe_tag="v${base}-${new_build}"
+
+          echo "🔹 Base version: $base"
+          echo "🔢 Current build: $build → New build: $new_build"
+          echo "📦 New version: $new_version"
+          echo "🏷️ Git tag: $safe_tag"
+
+          # Step 4: Update pubspec.yaml
+          if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' "s/^version: .*/version: $new_version/" pubspec.yaml
+          else
+            sed -i "s/^version: .*/version: $new_version/" pubspec.yaml
+          fi
+
+          # Step 5: Commit and tag
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor }}@users.noreply.github.com"
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-
-
-          # ➕ GitHub Releases don't allow '+' in tag names — use a clean one
-
-          safe_tag="v${safe_version}-${BASE_BRANCH}"
-          clean_tag=$safe_tag
-
-          echo "Generating GitHub release: $clean_tag (actual tag: $clean_tag)"
-
-          gh release create "$clean_tag" \
-            --title "$clean_tag" \
-            --notes "🔖 Release $clean_tag (base: $clean_tag) from commit: $commit_message"
+          git add pubspec.yaml
+          git commit -m "chore: bump version to $new_version"
+          git tag "$safe_tag"
+          git push origin HEAD
+          git push origin "$safe_tag"
 
         # Step 12: Upload APK to Firebase
       - name: 🚀 Upload APK to Firebase
