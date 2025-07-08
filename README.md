@@ -27,3 +27,5 @@ Visit https://base64.guru/converter/encode/file
 
 Convert production.json to base64 locally
 PS C:\Users\User> [Convert]::ToBase64String([IO.File]::ReadAllBytes("D:\FlutterProject\food_courier\food_courier\assets\env\development.json")) | Out-File -Encoding ascii dev_base64.txt
+
+#SAMPLE

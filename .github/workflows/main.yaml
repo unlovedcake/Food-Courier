@@ -146,10 +146,16 @@ jobs:
 
           # Commit, tag, push
           git add pubspec.yaml
-          git commit -m "chore(release): $new_tag"
-          git tag "$new_tag"
-          git push origin HEAD
-          git push origin "$new_tag"
+
+          # ✅ Only commit if changes exist
+          if ! git diff --quiet; then
+            git commit -m "chore(release): $new_tag"
+            git tag "$new_tag"
+            git push origin HEAD
+            git push origin "$new_tag"
+          else
+            echo "✅ No version changes to commit or tag."
+          fi
 
           # Generate release notes
           echo "Generating GitHub release for $new_tag..."
