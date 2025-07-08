@@ -84,23 +84,35 @@ jobs:
 
       - name: 🔖 Bump version, update pubspec.yaml, tag, and release
         run: |
-          # Read current version
+          # Step 1: Read current version from pubspec.yaml
+          version=$(grep '^[[:space:]]*version:' pubspec.yaml | sed 's/version:[[:space:]]*//')
+          base="${version%%+*}"        # Extract base version: 1.2.3
+          build="${version##*+}"       # Extract build number: 4
 
-          version=$(grep '^version:' pubspec.yaml | awk '{print $2}')
-          echo "Version from pubspec.yaml: $version"
+          # Step 2: Check if Git tag exists
+          candidate_tag="v${base}+${build}"
+          if git rev-parse "$candidate_tag" >/dev/null 2>&1; then
+            echo "❌ Tag $candidate_tag already exists"
+            build=$((build + 1))
+            new_version="${base}+${build}"
+
+            echo "✅ Updating to new version: $new_version"
+
+          # Step 3: Update pubspec.yaml (cross-platform)
+          if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' "s/^version: .*/version: $new_version/" pubspec.yaml
+          else
+            sed -i "s/^version: .*/version: $new_version/" pubspec.yaml
+          fi
+          else
+            echo "✅ Tag $candidate_tag is unique. No need to bump."
+          fi 
+
+          # Step 4: Output the final version
+          echo "📦 Final version in pubspec.yaml: $(grep 'version:' pubspec.yaml | awk '{print $2}')  
 
           # Final version
-          new_version="$new_base+$build_number"
-          new_tag=$version
-
-          # Update pubspec.yaml
-           if [[ "$OSTYPE" == "darwin"* ]]; then
-            # macOS (BSD sed)
-            sed -i '' "s/^version: .*/version: $VERSION/" pubspec.yaml
-          else
-            # Linux (GNU sed)
-            sed -i "s/^version: .*/version: $VERSION/" pubspec.yaml
-          fi
+          new_tag=$new_version
 
           # Configure Git
           git config user.name "${{ github.actor }}"
@@ -123,12 +135,12 @@ jobs:
           fi
 
           # ➕ GitHub Releases don't allow '+' in tag names — use a clean one
-          clean_tag="v${new_base}"
+
           echo "Generating GitHub release: $clean_tag (actual tag: $new_tag)"
 
-          gh release create "$clean_tag" \
-            --title "$clean_tag" \
-            --notes "🔖 Release $new_tag (base: $clean_tag) from commit: $commit_message"
+          gh release create "$new_tag" \
+            --title "$new_tag" \
+            --notes "🔖 Release $new_tag (base:$new_tag) from commit: $commit_message"
 
         # Step 12: Upload APK to Firebase
       - name: 🚀 Upload APK to Firebase
