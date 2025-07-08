@@ -166,4 +166,4 @@ jobs:
             --release-notes "New release from GitHub Actions"
 
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
