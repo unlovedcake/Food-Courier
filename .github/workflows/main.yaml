@@ -146,6 +146,8 @@ jobs:
           git config user.email "${{ github.actor }}@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
+
+
           # Commit, tag, push
           git add pubspec.yaml
 
@@ -159,11 +161,13 @@ jobs:
             echo "✅ No version changes to commit or tag."
           fi
 
-          # Generate release notes
-          echo "Generating GitHub release for $new_tag..."
-          gh release create "$new_tag" \
-            --title "$new_tag" \
-            --notes "🔖 Automated release based on commit: $commit_message"
+          # ➕ GitHub Releases don't allow '+' in tag names — use a clean one
+          clean_tag="v${new_base}"
+          echo "Generating GitHub release: $clean_tag (actual tag: $new_tag)"
+
+          gh release create "$clean_tag" \
+            --title "$clean_tag" \
+            --notes "🔖 Release $new_tag (base: $clean_tag) from commit: $commit_message"
 
         # Step 12: Upload APK to Firebase
       - name: 🚀 Upload APK to Firebase
