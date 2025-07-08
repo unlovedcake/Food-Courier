@@ -79,87 +79,61 @@ jobs:
           echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/firebase-service-account.json" >> $GITHUB_ENV
 
       - name: 🛠 Install GitHub CLI
-        run: sudo apt-get install -y gh
-
-      - name: 🔖 Bump version, tag, and release
         run: |
-        # Step 1: Extract version
-          version_line=$(grep '^version: ' pubspec.yaml || true)
-          if [ -z "$version_line" ]; then
-            echo "❌ version not found in pubspec.yaml"
-            exit 1
-          fi
+          sudo apt-get install -y gh
 
-          current_version=$(echo "$version_line" | awk '{print $2}')
-          base_version="${current_version%%+*}"
-          build_number="${current_version##*+}"
+      - name: 🔖 Bump version, update pubspec.yaml, tag, and release
+        run: |
+          # Read current version
 
-          if ! [[ "$base_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "❌ Invalid base version format: $base_version"
-            exit 1
-          fi
+          version=$(grep '^version:' pubspec.yaml | awk '{print $2}')
+          echo "Version from pubspec.yaml: $version"
 
-          IFS='.' read -r major minor patch <<< "$base_version"
-          echo "✅ Current version: $major.$minor.$patch+$build_number"
+          # Final version
+          new_version="$new_base+$build_number"
+          new_tag=$version
 
-          # Step 2: Determine bump type from last commit message
-          commit_message=$(git log -1 --pretty=%B)
-          if echo "$commit_message" | grep -iq "#major"; then
-            major=$((major + 1)); minor=0; patch=0
-            echo "🔼 Bumping MAJOR"
-          elif echo "$commit_message" | grep -iq "#minor"; then
-            minor=$((minor + 1)); patch=0
-            echo "🔼 Bumping MINOR"
+          # Update pubspec.yaml
+           if [[ "$OSTYPE" == "darwin"* ]]; then
+            # macOS (BSD sed)
+            sed -i '' "s/^version: .*/version: $VERSION/" pubspec.yaml
           else
-            patch=$((patch + 1))
-            echo "🔼 Bumping PATCH"
+            # Linux (GNU sed)
+            sed -i "s/^version: .*/version: $VERSION/" pubspec.yaml
           fi
 
-          # Step 3: Build new version
-          new_base="$major.$minor.$patch"
-          build_number=1
-          while true; do
-            new_tag="v${new_base}+${build_number}"
-            if git rev-parse "$new_tag" >/dev/null 2>&1; then
-              build_number=$((build_number + 1))
-            else
-              break
-            fi
-          done
-
-          full_version="${new_base}+${build_number}"
-          git_tag="v$full_version"
-          release_tag="v$new_base"  # For GitHub release (no '+')
-
-          echo "🔖 Full version: $full_version"
-          echo "🏷️ Git tag: $git_tag"
-          echo "📦 GitHub release tag: $release_tag"
-
-          # Step 4: Update pubspec.yaml (cross-platform)
-          if [[ "$OSTYPE" == "darwin"* ]]; then
-            sed -i '' "s/^version: .*/version: $full_version/" pubspec.yaml
-          else
-            sed -i "s/^version: .*/version: $full_version/" pubspec.yaml
-          fi
-
-          # Step 5: Git config and push
+          # Configure Git
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor }}@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
+
+
+          # Commit, tag, push
           git add pubspec.yaml
 
-          if ! git diff --cached --quiet; then
-            git commit -m "chore(release): $git_tag"
-            git tag "$git_tag"
+          # ✅ Only commit if changes exist
+          if ! git diff --quiet; then
+            git commit -m "chore(release): $new_tag"
+            git tag "$new_tag"
             git push origin HEAD
-            git push origin "$git_tag"
+            git push origin "$new_tag"
           else
-            echo "✅ No changes to commit."
+            echo "✅ No version changes to commit or tag."
           fi
 
-          # Step 6: Create GitHub release
-          gh release create "$release_tag" \
-            --title "$release_tag" \
-            --notes "🔖 Released $git_tag based on commit: $commit_message"
+          # ➕ GitHub Releases don't allow '+' in tag names — use a clean one
+          clean_tag="v${new_base}"
+          echo "Generating GitHub release: $clean_tag (actual tag: $new_tag)"
 
+          gh release create "$clean_tag" \
+            --title "$clean_tag" \
+            --notes "🔖 Release $new_tag (base: $clean_tag) from commit: $commit_message"
+
+        # Step 12: Upload APK to Firebase
+      - name: 🚀 Upload APK to Firebase
+        run: |
+          firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
+            --app "${{ secrets.FIREBASE_APP_ID }}" \
+            --groups testers \
+            --release-notes "New release from GitHub Actions"
