@@ -6,7 +6,7 @@ class ChatListedBinding extends Bindings {
   @override
   void dependencies() {
     Get.lazyPut<ChatListedController>(
-      () => ChatListedController(),
+      ChatListedController.new,
     );
   }
 }

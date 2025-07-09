@@ -25,7 +25,6 @@ class DashboardView extends GetView<DashboardController> {
         body: Obx(
           () => FadeIndexedStack(
             index: controller.currentIndex,
-            duration: const Duration(milliseconds: 400),
             animationType: AnimationType.fadeScale,
             disableAnimationForIndexes: const [0],
 
@@ -38,7 +37,7 @@ class DashboardView extends GetView<DashboardController> {
         ),
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: controller.currentIndex,
-          onTap: controller.changeTab,
+          onTap: controller.changeBottomNav,
           type: BottomNavigationBarType.fixed,
           selectedItemColor: Colors.black,
           unselectedItemColor: Colors.grey,

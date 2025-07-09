@@ -8,7 +8,9 @@ class TransactionView extends GetView<TransactionController> {
   const TransactionView({super.key});
   @override
   Widget build(BuildContext context) {
-    final TransactionController controller = Get.put(TransactionController());
+    Get.lazyPut<TransactionController>(
+      TransactionController.new,
+    );
     return Scaffold(
       appBar: AppBar(
         foregroundColor: Colors.black,

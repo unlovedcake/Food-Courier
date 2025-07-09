@@ -54,8 +54,10 @@ class ChatListedController extends GetxController {
         .listen(
       (snapshot) {
         final List<ChattedUserModel> usersList = snapshot.docs
-            .map((doc) =>
-                ChattedUserModel.fromFirestore(doc.data(), currentUserId))
+            .map(
+              (doc) =>
+                  ChattedUserModel.fromFirestore(doc.data(), currentUserId),
+            )
             .toList();
 
         chattedUsers.assignAll(usersList);
@@ -124,6 +126,7 @@ class ChatListedController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+
     getChattedUsers();
     Future.wait([
       fetchAllUsersExceptCurrent(),
