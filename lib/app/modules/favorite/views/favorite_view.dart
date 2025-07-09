@@ -7,10 +7,9 @@ class FavoriteView extends GetView<FavoriteController> {
   const FavoriteView({super.key});
   @override
   Widget build(BuildContext context) {
-    final FavoriteController controller = Get.put(FavoriteController());
-
-    // Sort favorites by 'title' ascending (case-insensitive)
-
+    Get.lazyPut<FavoriteController>(
+      FavoriteController.new,
+    );
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,

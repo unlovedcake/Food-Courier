@@ -12,8 +12,9 @@ class ChatListedView extends GetView<ChatListedController> {
   const ChatListedView({super.key});
   @override
   Widget build(BuildContext context) {
-    final ChatListedController controller = Get.put(ChatListedController());
-
+    Get.lazyPut<ChatListedController>(
+      ChatListedController.new,
+    );
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,

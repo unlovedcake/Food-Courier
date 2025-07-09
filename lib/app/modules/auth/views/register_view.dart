@@ -48,7 +48,7 @@ class RegisterPage extends GetView<AuthController> {
                 ),
                 const SizedBox(height: 50),
                 Form(
-                  key: controller.formKey,
+                  key: controller.formKeyRegister,
                   child: Column(
                     children: [
                       CustomTextField(
@@ -110,7 +110,7 @@ class RegisterPage extends GetView<AuthController> {
                 const SizedBox(height: 30),
                 ElevatedButton(
                   onPressed: () async {
-                    if (controller.formKey.currentState!.validate()) {
+                    if (controller.formKeyRegister.currentState!.validate()) {
                       await controller.register();
                     }
                   },

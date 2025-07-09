@@ -50,6 +50,7 @@ class TransactionController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+
     listenToTransactionsForUser();
   }
 

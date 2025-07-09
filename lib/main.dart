@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:ui';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -15,7 +16,8 @@ import 'package:food_courier/app/modules/services/service_api.dart';
 import 'package:food_courier/env.dart';
 import 'package:food_courier/firebase_options.dart';
 import 'package:get/get.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 import 'app/routes/app_pages.dart';
 
@@ -40,6 +42,10 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  final bool isCompleteOnBoarding =
+      prefs.getBool('onboarding_complete') ?? false;
+
   final notificationService = NotificationService();
 
   await Future.wait([
@@ -63,7 +69,7 @@ Future<void> main() async {
     return true;
   };
 
-  runApp(const MyApp());
+  runApp(MyApp(isCompleteOnBoarding: isCompleteOnBoarding));
 
   // runApp(
   //   Obx(
@@ -117,10 +123,14 @@ Future<void> main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({required this.isCompleteOnBoarding, super.key});
+
+  final bool isCompleteOnBoarding;
 
   @override
   Widget build(BuildContext context) {
+    final User? user = FirebaseAuth.instance.currentUser;
+
     final ThemeController themeController = Get.put(ThemeController());
     final PersistentLoginController persistentController =
         Get.put(PersistentLoginController());
@@ -132,9 +142,11 @@ class MyApp extends StatelessWidget {
             : AppTheme.lightTheme,
         themeMode:
             themeController.isDarkMode.value ? ThemeMode.dark : ThemeMode.light,
-        initialRoute: persistentController.isLoggedIn.value
+        initialRoute: isCompleteOnBoarding && user != null
             ? AppPages.DASHBOARD
-            : AppPages.ONBOARDING,
+            : !isCompleteOnBoarding
+                ? AppPages.ONBOARDING
+                : AppPages.AUTH,
         getPages: AppPages.routes,
       ),
     );

@@ -11,12 +11,8 @@ class DashboardController extends GetxController {
   // Getter to access currentIndex without .value
   int get currentIndex => _currentIndex.value;
 
-  Future<void> changeTab(int index) async {
+  Future<void> changeBottomNav(int index) async {
     _currentIndex.value = index;
-
-    // if (index == 1) {
-    //   await markMessageAsRead();
-    // }
   }
 
   String currentUserId = '';
