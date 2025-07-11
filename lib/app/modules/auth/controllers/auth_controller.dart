@@ -13,14 +13,11 @@ import 'package:get/get.dart';
 class AuthController extends GetxController {
   static AuthController get to => Get.find();
 
-  final formKey = GlobalKey<FormState>();
+  final formKeyLogin = GlobalKey<FormState>();
+  final formKeyRegister = GlobalKey<FormState>();
 
   // Firebase instance
   final FirebaseAuth _auth = FirebaseAuth.instance;
-
-  // Reactive variables
-  final Rxn<User> _firebaseUser = Rxn<User>();
-  User? get user => _firebaseUser.value;
 
   // Text editing controllers
   final nameController = TextEditingController();

@@ -24,6 +24,7 @@ class HomeView extends GetView<HomeController> {
       () => Scaffold(
         body: CustomScrollView(
           controller: controller.scrollController,
+          physics: const BouncingScrollPhysics(),
           slivers: [
             SliverAppBar(
               backgroundColor: Colors.white,
@@ -260,6 +261,7 @@ class HomeView extends GetView<HomeController> {
                           color: Colors.white,
                           //color: Theme.of(context).colorScheme.surfaceContainer,
                           borderRadius: BorderRadius.circular(28),
+
                           boxShadow: [
                             BoxShadow(
                               color: Colors.grey.withValues(alpha: 0.2),
@@ -280,7 +282,10 @@ class HomeView extends GetView<HomeController> {
                               size: 24,
                             ),
                             hintText: 'Search...',
-                            hintStyle: const TextStyle(fontSize: 16),
+                            hintStyle: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.red,
+                            ),
                             border: InputBorder.none,
                           ),
                         ),
@@ -370,6 +375,14 @@ class HomeView extends GetView<HomeController> {
                                                   : Colors.grey[300],
                                               borderRadius:
                                                   BorderRadius.circular(20),
+                                              border: Border.all(
+                                                color: controller
+                                                            .selectedCategory
+                                                            .value ==
+                                                        categoryName
+                                                    ? Colors.black
+                                                    : Colors.grey[300]!,
+                                              ),
                                             ),
                                             child: Center(
                                               child: Text(

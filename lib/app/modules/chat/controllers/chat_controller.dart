@@ -5,13 +5,11 @@ import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:food_courier/app/core/helper/custom_log.dart';
 import 'package:food_courier/app/core/presence_service.dart';
 import 'package:food_courier/app/data/models/message_model.dart';
-import 'package:food_courier/app/modules/services/notification_service.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supa;
@@ -44,7 +42,7 @@ class ChatController extends GetxController {
   StreamSubscription<DatabaseEvent>? _presenceSub;
 
   DocumentSnapshot? lastDocument;
-  bool isFetchingMore = false;
+
   bool hasMore = true;
 
   final isFetchingMoreObs = false.obs;
@@ -93,19 +91,19 @@ class ChatController extends GetxController {
     //_startLastSeenTimer();
     //ever(messages, (_) => scrollToBottom());
     // Start smart message scroll tracker
-    debounce(
-      messages,
-      (_) => _onMessagesChanged(),
-      time: const Duration(milliseconds: 100),
-    );
+    // debounce(
+    //   messages,
+    //   (_) => _onMessagesChanged(),
+    //   time: const Duration(milliseconds: 100),
+    // );
 
     _startPresenceTracking();
     _listenToOtherUserPresence();
   }
 
   @override
-  void onClose() {
-    _presenceSub?.cancel(); // ✅ Stop listening
+  Future<void> onClose() async {
+    await _presenceSub?.cancel(); // ✅ Stop listening
     super.onClose();
   }
 
@@ -137,16 +135,16 @@ class ChatController extends GetxController {
     return position.maxScrollExtent - position.pixels <= threshold;
   }
 
-  Future<void> _startPresenceTracking() async {
+  void _startPresenceTracking() {
     // final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
     // if (currentUserId.isEmpty) {
     //   return;
     // }
-    await PresenceService(userId: currentUserId).setupPresenceTracking();
+    PresenceService(userId: currentUserId).setupPresenceTracking();
   }
 
-  Future<void> _listenToOtherUserPresence() async {
-    await _presenceSub?.cancel(); // cleanup before subscribing again
+  void _listenToOtherUserPresence() {
+    _presenceSub?.cancel().ignore(); // cleanup before subscribing again
 
     final DatabaseReference otherRef =
         FirebaseDatabase.instance.ref('status/$receiverId');
@@ -243,10 +241,10 @@ class ChatController extends GetxController {
   }
 
   Future<void> loadMoreMessages({ScrollController? scrollController}) async {
-    if (isFetchingMore || !hasMore || lastDocument == null) {
+    if (isFetchingMoreObs.value || !hasMore || lastDocument == null) {
       return;
     }
-    isFetchingMore = true;
+
     isFetchingMoreObs.value = true;
 
     final double beforeHeight = scrollController?.position.extentAfter ?? 0;
@@ -267,7 +265,6 @@ class ChatController extends GetxController {
         'No more messages to load for chatId: $chatId',
       );
 
-      isFetchingMore = false;
       isFetchingMoreObs.value = false;
     } else {
       lastDocument = snapshot.docs.last;
@@ -284,14 +281,13 @@ class ChatController extends GetxController {
       // final double diff = afterHeight - beforeHeight;
       // scrollController?.jumpTo(scrollController.offset + diff);
       await Future.delayed(const Duration(milliseconds: 50)); // wait layout
-      scrollController?.jumpTo(scrollController.offset + 80);
+      scrollController?.jumpTo(scrollController.offset + Get.height / 2);
     }
 
     Log.info(
       'Loaded ${messages.length} more messages for chatId: $chatId',
     );
 
-    isFetchingMore = false;
     isFetchingMoreObs.value = false;
   }
 
@@ -327,7 +323,7 @@ class ChatController extends GetxController {
     // });
   }
 
-  Future<void> sendMessage() async {
+  Future<void> sendMessage(String messageId) async {
     try {
       isScrolling.value = false; // reset toggle reaction state
       final String text = messageText.value.trim();
@@ -348,6 +344,14 @@ class ChatController extends GetxController {
           'isEdited': true,
         });
         editingMessageId.value = null; // reset edit mode
+
+        // Update the message in local list
+        int index = messages.indexWhere((msg) => msg.id == messageId);
+        if (index != -1) {
+          final MessageModel updatedMessage =
+              messages[index].copyWith(text: text);
+          messages[index] = updatedMessage;
+        }
       } else {
         final DocumentReference<Map<String, dynamic>> chatDoc =
             _firestore.collection('chats').doc(chatId);
@@ -362,6 +366,11 @@ class ChatController extends GetxController {
           'id': docRef.id,
           'senderId': currentUserId,
           'text': text,
+          'imageUrl': '',
+          'isRead': false,
+          'isEdited': false,
+          'isDeleted': false,
+          'reactions': {},
           'createAd': FieldValue.serverTimestamp(),
         });
 
@@ -392,25 +401,25 @@ class ChatController extends GetxController {
       messageText.value = '';
       scrollToBottom();
 
-      if (!isOtherUserOnline.value) {
-        // Get the token
-        final FirebaseMessaging fcm = FirebaseMessaging.instance;
-        final String? token = await fcm.getToken();
-        if (token != null) {
-          await FCM().sendPushNotification(
-            deviceToken: token,
-            title: user?.displayName ?? '',
-            body: text,
-            data: {
-              'chatId': chatId,
-              'senderId': currentUserId,
-              'receiverId': receiverId,
-              'type': 'private chat',
-            },
-          );
-        }
-      }
-    } catch (e) {
+      // if (!isOtherUserOnline.value) {
+      //   // Get the token
+      //   final FirebaseMessaging fcm = FirebaseMessaging.instance;
+      //   final String? token = await fcm.getToken();
+      //   if (token != null) {
+      //     await FCM().sendPushNotification(
+      //       deviceToken: token,
+      //       title: user?.displayName ?? '',
+      //       body: text,
+      //       data: {
+      //         'chatId': chatId,
+      //         'senderId': currentUserId,
+      //         'receiverId': receiverId,
+      //         'type': 'private chat',
+      //       },
+      //     );
+      //   }
+      // }
+    } on Exception catch (e) {
       Log.error('Error sending message: $e');
       Get.snackbar(
         'Error',
@@ -578,7 +587,29 @@ class ChatController extends GetxController {
       }
 
       await ref.update({'reactions': reactions});
-    } catch (e) {
+
+      final int index = messages.indexWhere((msg) => msg.id == messageId);
+      if (index == -1) {
+        Log.error('OIY');
+        return;
+      }
+
+      final MessageModel message = messages[index];
+
+      final updatedReactions = Map<String, dynamic>.from(message.reactions);
+
+      // If current user's reaction matches the tapped emoji, remove it
+      if (updatedReactions[currentUserId] == emoji) {
+        updatedReactions.remove(currentUserId);
+      } else {
+        // Optional: Set a new emoji
+        updatedReactions[currentUserId] = emoji;
+      }
+
+      final MessageModel updatedMessage =
+          message.copyWith(reactions: updatedReactions);
+      messages[index] = updatedMessage;
+    } on Exception catch (e) {
       Log.error('Error: $e');
     } finally {
       Future.delayed(const Duration(milliseconds: 200), () {

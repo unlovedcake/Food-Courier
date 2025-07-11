@@ -21,7 +21,6 @@ class ProfileView extends GetView<ProfileController> {
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 1,
-        leading: const BackButton(color: Colors.black),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

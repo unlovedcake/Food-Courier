@@ -12,8 +12,9 @@ class ChatListedView extends GetView<ChatListedController> {
   const ChatListedView({super.key});
   @override
   Widget build(BuildContext context) {
-    final ChatListedController controller = Get.put(ChatListedController());
-
+    Get.lazyPut<ChatListedController>(
+      ChatListedController.new,
+    );
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -106,7 +107,9 @@ class ChatListedView extends GetView<ChatListedController> {
                         );
 
                         try {
-                          if (!chat.isRead) {
+                          if (!chat.isRead &&
+                              chat.sender.senderId !=
+                                  controller.currentUserId) {
                             await FirebaseFirestore.instance
                                 .collection('chats')
                                 .doc(chatId)

@@ -1,4 +1,4 @@
-name: Build & Distribute Android (Firebase AppDistribution)
+name: Build & Distribute Android
 
 on:
   pull_request:
@@ -7,17 +7,31 @@ on:
     branches:
       - master
       - development
+env:
+  SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
 
 jobs:
   build_android:
     if: github.event.pull_request.merged == true
+    defaults:
+      run:
+        shell: bash
     name: Build & Distribute Android APK
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     steps:
       # Step 1: Checkout source
       - name: 📥 Checkout source
         uses: actions/checkout@v3
+
+      - name: 🐦 Setup Shorebird
+        uses: shorebirdtech/setup-shorebird@v1
+        with:
+          cache: true
+
+      # Now we're able to use Shorebird CLI in our workflow
+      - name: 🚀 Use Shorebird
+        run: shorebird --version
 
       # Step 2: Set up Java
       - name: 🔧 Set up Java
@@ -62,10 +76,6 @@ jobs:
       - name: 🧪 Run tests
         run: flutter test
 
-      # Step 8: Build APK
-      - name: 🏗️ Build Android APK
-        run: flutter build apk --release --dart-define=env=${{ env.ENV_NAME }}
-
       # Step 9: Install Firebase CLI
       - name: 🔧 Install Firebase CLI
         run: npm install -g firebase-tools
@@ -76,7 +86,54 @@ jobs:
           echo "${{ secrets.GCLOUD_SERVICE_ACCOUNT_JSON }}" | base64 --decode > $HOME/firebase-service-account.json
           echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/firebase-service-account.json" >> $GITHUB_ENV
 
-      # Step 11: Upload APK to Firebase
+      - name: 🔖 Bump version, update pubspec.yaml, tag, and release
+        run: |
+          # Read current version
+          version=$(grep '^ *version:' pubspec.yaml | sed -E 's/^ *version:[[:space:]]*//')
+
+          # Step 2: Split base and build
+          base="${version%%+*}"    # 1.0.0
+          build="${version##*+}"   # 1
+          new_build=$((build + 1)) # increment to 2
+
+          # Step 3: Compose new version
+          new_version="${base}+${new_build}"
+          safe_tag="v${base}-${new_build}"
+
+          echo "🔹 Base version: $base"
+          echo "🔢 Current build: $build → New build: $new_build"
+          echo "📦 New version: $new_version"
+          echo "🏷️ Git tag: $safe_tag"
+
+          # Step 4: Update pubspec.yaml
+          if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' "s/^version: .*/version: $new_version/" pubspec.yaml
+          else
+            sed -i "s/^version: .*/version: $new_version/" pubspec.yaml
+          fi
+
+          # Step 5: Commit and tag
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git add pubspec.yaml
+          git commit -m "chore: bump version to $new_version"
+          git tag "$safe_tag"
+          git push origin HEAD
+          git push origin "$safe_tag"
+
+      # Step 8: Build APK
+      - name: 🏗️ Build Android APK
+        run: flutter build apk --release --dart-define=env=${{ env.ENV_NAME }}
+
+      - name: 🚀 Shorebird Release
+        uses: shorebirdtech/shorebird-release@v0
+        with:
+          platform: android # or 'ios'
+
+      - name: 📝 Output Release Version
+        run: echo ${{ steps.shorebird-release.outputs.release-version }}
+
+        # Step 12: Upload APK to Firebase
       - name: 🚀 Upload APK to Firebase
         run: |
           firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \

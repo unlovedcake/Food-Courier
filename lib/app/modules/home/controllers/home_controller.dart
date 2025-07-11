@@ -42,6 +42,16 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     'assets/images/corousel3.jpg',
   ];
 
+  final categoriez = <String>[
+    'All',
+    'Beauty',
+    'Fragrances',
+    'Furniture',
+    'Groceries',
+    'Home Decoration',
+    'Kitchen Accessories',
+  ];
+
   OverlayEntry? overlayEntry;
 
   final cartItems = <int>[].obs;
@@ -510,5 +520,102 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       return true;
     }
     return false;
+  }
+
+  // Stores offset and width for animation
+  final selectedOffset = 0.0.obs;
+  final selectedWidth = 0.0.obs;
+
+  final Map<String, GlobalKey> itemKeys = {};
+  final ScrollController scrollControllerCat = ScrollController();
+}
+
+class CategorySelector extends StatelessWidget {
+  const CategorySelector({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final HomeController controller = Get.find<HomeController>();
+    return SizedBox(
+      height: 60,
+      child: Obx(() {
+        return Stack(
+          children: [
+            // Sliding border box
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              left: controller.selectedOffset.value,
+              width: controller.selectedWidth.value,
+              top: 0,
+              height: 50,
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(width: 2),
+                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.transparent,
+                ),
+              ),
+            ),
+
+            // Horizontal list of categories
+            ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: controller.categories.length,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              itemBuilder: (context, index) {
+                final String key = controller.categories.keys.elementAt(index);
+                final String value = controller.categories[key]!;
+                final isSelected = controller.selectedCategory.value == key;
+
+                final GlobalKey<State<StatefulWidget>> itemKey =
+                    controller.itemKeys.putIfAbsent(key, GlobalKey.new);
+
+                return GestureDetector(
+                  onTap: () {
+                    controller.selectedCategory.value = key;
+                    _updateOffset(itemKey, controller);
+                  },
+                  child: Container(
+                    key: itemKey,
+                    margin: const EdgeInsets.symmetric(horizontal: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    child: Text(
+                      value,
+                      style: TextStyle(
+                        color: isSelected ? Colors.black : Colors.grey,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      }),
+    );
+  }
+
+  void _updateOffset(GlobalKey key, HomeController controller) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final BuildContext? context = key.currentContext;
+      if (context != null) {
+        final box = context.findRenderObject()! as RenderBox;
+        final Offset offset = box.localToGlobal(Offset.zero);
+        final double width = box.size.width;
+
+        final parentBox = Get.context!.findRenderObject()! as RenderBox;
+        final Offset parentOffset = parentBox.localToGlobal(Offset.zero);
+
+        final double relativeLeft = offset.dx - parentOffset.dx;
+
+        controller.selectedOffset.value = relativeLeft;
+        controller.selectedWidth.value = width;
+      }
+    });
   }
 }

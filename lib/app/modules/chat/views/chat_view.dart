@@ -256,7 +256,7 @@ class ChatView extends GetView<ChatController> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            if (msg.imageUrl != null)
+                                            if (msg.imageUrl != '')
                                               !msg.isDeleted
                                                   ? Column(
                                                       crossAxisAlignment:
@@ -345,52 +345,49 @@ class ChatView extends GetView<ChatController> {
                                       ),
                                     ),
                                     if (msg.reactions.isNotEmpty)
-                                      if (msg.reactions.isNotEmpty)
-                                        Positioned(
-                                          bottom: -8,
-                                          left: isMe ? -10 : null,
-                                          right: isMe ? null : -10,
-                                          child: Wrap(
-                                            children: msg.reactions.values
-                                                .toSet()
-                                                .map(
-                                                  (e) => InkWell(
-                                                    onTap: () async {
-                                                      if (!msg.reactions.keys
-                                                          .contains(
-                                                        controller
-                                                            .currentUserId,
-                                                      )) {
-                                                        return;
-                                                      }
-                                                      await controller
-                                                          .toggleReaction(
-                                                        msg.id,
-                                                        e,
-                                                      );
-                                                    },
-                                                    child: Obx(() {
-                                                      final double scale =
-                                                          controller.reactionScales[
-                                                                  msg.id] ??
-                                                              1.2;
-                                                      return AnimatedScale(
-                                                        scale: scale,
-                                                        duration:
-                                                            const Duration(
-                                                          milliseconds: 150,
-                                                        ),
-                                                        curve: Curves.easeInOut,
-                                                        child: Text(
-                                                          ' $e ',
-                                                        ),
-                                                      );
-                                                    }),
-                                                  ),
-                                                )
-                                                .toList(),
-                                          ),
+                                      Positioned(
+                                        bottom: -8,
+                                        left: isMe ? -10 : null,
+                                        right: isMe ? null : -10,
+                                        child: Wrap(
+                                          children: msg.reactions.values
+                                              .toSet()
+                                              .map(
+                                                (e) => InkWell(
+                                                  onTap: () async {
+                                                    if (!msg.reactions.keys
+                                                        .contains(
+                                                      controller.currentUserId,
+                                                    )) {
+                                                      return;
+                                                    }
+                                                    await controller
+                                                        .toggleReaction(
+                                                      msg.id,
+                                                      e,
+                                                    );
+                                                  },
+                                                  child: Obx(() {
+                                                    final double scale =
+                                                        controller.reactionScales[
+                                                                msg.id] ??
+                                                            1.2;
+                                                    return AnimatedScale(
+                                                      scale: scale,
+                                                      duration: const Duration(
+                                                        milliseconds: 150,
+                                                      ),
+                                                      curve: Curves.easeInOut,
+                                                      child: Text(
+                                                        ' $e ',
+                                                      ),
+                                                    );
+                                                  }),
+                                                ),
+                                              )
+                                              .toList(),
                                         ),
+                                      ),
                                   ],
                                 ),
                               ),
@@ -560,7 +557,9 @@ class ChatView extends GetView<ChatController> {
                     child: IconButton(
                       onPressed: () async {
                         if (controller.imageBytes.value == null) {
-                          await controller.sendMessage();
+                          await controller.sendMessage(
+                            controller.editingMessageId.value ?? '',
+                          );
                         } else {
                           await controller.sendImage();
                         }

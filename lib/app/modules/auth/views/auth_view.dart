@@ -14,30 +14,23 @@ class AuthView extends GetView<AuthController> {
         () {
           return AnimatedSwitcher(
             duration: const Duration(milliseconds: 700),
-            // The transitionBuilder defines how the animation occurs
             transitionBuilder: (child, animation) {
-              return FadeTransition(
-                // It's often best to keep the fade linear for a smooth opacity change.
-                opacity: animation,
+              final Animation<Offset> slideIn = Tween<Offset>(
+                begin: const Offset(1, 0), // Slide from right
+                //begin: const Offset(-1, 0), // 👈 Slide in from LEFT
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeInOut,
+                ),
+              );
+
+              return SlideTransition(
+                position: slideIn,
                 child: child,
               );
-              // final curvedAnimation = CurvedAnimation(
-              //   parent: animation,
-              //   curve: Curves.easeOutBack, // This curve creates the 'pop'
-              // );
-
-              // return ScaleTransition(
-              //   // Use the curved animation for the scale effect.
-              //   scale: curvedAnimation,
-              //   child: FadeTransition(
-              //     // It's often best to keep the fade linear for a smooth opacity change.
-              //     opacity: animation,
-              //     child: child,
-              //   ),
-              // );
             },
-            // The key is crucial. It tells AnimatedSwitcher that the child
-            // has changed, triggering the animation.
             child: controller.isLoginPage.value
                 ? const LoginPage(key: ValueKey('LoginPage'))
                 : const RegisterPage(key: ValueKey('RegisterPage')),

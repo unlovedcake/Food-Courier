@@ -12,7 +12,7 @@ jobs:
   build_android:
     if: github.event.pull_request.merged == true
     name: Build & Distribute Android APK
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     steps:
       # Step 1: Checkout source
@@ -83,3 +83,63 @@ jobs:
             --app "${{ secrets.FIREBASE_APP_ID }}" \
             --groups testers \
             --release-notes "New release from GitHub Actions"
+
+      # Step 12: 🔖 Auto-increment Version, Update pubspec.yaml, and Tag
+      - name: 🔖 Bump version, update pubspec.yaml, and create Git tag
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+
+          # Fetch all tags and checkout base branch
+          git fetch --tags
+          git checkout ${{ github.base_ref }}
+
+          # Get latest tag or default to v1.0.0
+          latest_tag=$(git tag --sort=-v:refname | tail -n 1)
+          if [ -z "$latest_tag" ]; then
+            major=1
+            minor=0
+            patch=0
+            base_version="v$major.$minor.$patch"
+            echo "No tags found. Starting at $base_version"
+          else
+            echo "Latest tag: $latest_tag"
+            version=${latest_tag#v}
+            IFS='.' read -r major minor patch <<< "$version"
+          fi
+
+          # Determine bump type from last commit message
+          commit_message=$(git log -1 --pretty=%B)
+          echo "Last commit message: $commit_message"
+
+          if echo "$commit_message" | grep -q "#major"; then
+            major=$((major + 1))
+            minor=0
+            patch=0
+            bump_type="major"
+          elif echo "$commit_message" | grep -q "#minor"; then
+            minor=$((minor + 1))
+            patch=0
+            bump_type="minor"
+          else
+            patch=$((patch + 1))
+            bump_type="patch"
+          fi
+
+          new_tag="v$major.$minor.$patch"
+          flutter_version="$major.$minor.$patch+1"
+          echo "Bump type: $bump_type"
+          echo "New tag: $new_tag"
+          echo "Flutter version: $flutter_version"
+
+          # Update pubspec.yaml
+          sed -i "s/^version: .*/version: $flutter_version/" pubspec.yaml
+
+          # Commit and push
+          git add pubspec.yaml
+          git commit -m "chore(release): bump version to $new_tag"
+          git tag "$new_tag"
+          git push origin "$new_tag"
+          git push origin HEAD
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -10,8 +10,10 @@ analyzer:
     always_declare_return_types: warning
     always_specify_types: warning
     avoid_empty_else: warning
+    avoid_print: error
     prefer_relative_imports: error
     prefer_final_parameters: warning
+    unnecessary_this: warning
 
 linter:
   rules:

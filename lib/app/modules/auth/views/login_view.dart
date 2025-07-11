@@ -52,7 +52,7 @@ class LoginPage extends GetView<AuthController> {
                 ),
                 const SizedBox(height: 40),
                 Form(
-                  key: controller.formKey,
+                  key: controller.formKeyLogin,
                   child: Column(
                     children: [
                       CustomTextField(
@@ -101,7 +101,7 @@ class LoginPage extends GetView<AuthController> {
                 const SizedBox(height: 30),
                 ElevatedButton(
                   onPressed: () async {
-                    if (controller.formKey.currentState!.validate()) {
+                    if (controller.formKeyLogin.currentState!.validate()) {
                       await controller.login();
                     }
                   },
