@@ -297,7 +297,7 @@ class _DetailProductViewState extends State<DetailProductView>
                   fadeInUpItem(
                     2,
                     Text(
-                      '₱ ${product.price}',
+                      '${product.price}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Colors.green,
                             fontSize: 22,

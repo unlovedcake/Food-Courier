@@ -8,8 +8,8 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:food_courier/app/core/helper/custom_log.dart';
-import 'package:food_courier/app/core/presence_service.dart';
 import 'package:food_courier/app/data/models/message_model.dart';
+import 'package:food_courier/app/modules/services/notification_service.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supa;
@@ -29,7 +29,6 @@ class ChatController extends GetxController {
 
   final editingMessageId = RxnString(); // null if not editing
 
-  final isOtherUserOnline = false.obs;
   final lastSeenText = ''.obs;
 
   final isLoading = false.obs;
@@ -47,14 +46,12 @@ class ChatController extends GetxController {
 
   final isFetchingMoreObs = false.obs;
 
-  MessageModel? _lastObservedMessage;
-
   final arguments = Get.arguments as Map<String, dynamic>;
 
   String receiverImageUrl = '';
   String receiverName = '';
   String receiverId = '';
-
+  String receiverDeviceToken = '';
   String currentUserId = '';
 
   final User? user = FirebaseAuth.instance.currentUser;
@@ -62,6 +59,8 @@ class ChatController extends GetxController {
   final supabase = supa.Supabase.instance.client;
 
   final selectedImageUrl = ''.obs;
+
+  final _db = FirebaseDatabase.instance.ref();
 
   @override
   void onInit() {
@@ -73,9 +72,12 @@ class ChatController extends GetxController {
     receiverId = arguments['receiverId'];
     receiverName = arguments['receiverName'];
     receiverImageUrl = arguments['receiverImageUrl'];
+    receiverDeviceToken = arguments['receiverDeviceToken'];
 
     //Future.microtask(loadInitialMessages);
     loadInitialMessages();
+
+    isUserInChatPage(true);
 
     scrollController.addListener(() async {
       if (scrollController.position.pixels ==
@@ -85,8 +87,10 @@ class ChatController extends GetxController {
         await loadMoreMessages(scrollController: scrollController);
       }
     });
+    _listenToOtherUserPresence();
     _listenToMessages();
     _listenToTyping();
+
     //_listenToLastSeen();
     //_startLastSeenTimer();
     //ever(messages, (_) => scrollToBottom());
@@ -96,51 +100,27 @@ class ChatController extends GetxController {
     //   (_) => _onMessagesChanged(),
     //   time: const Duration(milliseconds: 100),
     // );
-
-    _startPresenceTracking();
-    _listenToOtherUserPresence();
   }
 
   @override
   Future<void> onClose() async {
     await _presenceSub?.cancel(); // ✅ Stop listening
+
+    await isUserInChatPage(false);
+
+    debugPrint('OnCLose');
     super.onClose();
   }
 
-  void _onMessagesChanged() {
-    if (messages.isEmpty) {
-      return;
-    }
+  final RxBool isChatPage = false.obs;
+  final RxBool isOnline = false.obs;
 
-    final MessageModel latest = messages.last;
+  Future<void> isUserInChatPage(bool isUserInChatPage) async {
+    final DatabaseReference userRef = _db.child('status/$currentUserId');
 
-    // If last message is newer than previous
-    if (_lastObservedMessage == null || latest.id != _lastObservedMessage!.id) {
-      final isMyMessage = latest.senderId == currentUserId;
-
-      // ✅ Only scroll if it's a new message at the bottom (not from top prepend)
-      if (isMyMessage || _isNearBottom()) {
-        scrollToBottom();
-      }
-
-      _lastObservedMessage = latest;
-    }
-  }
-
-  bool _isNearBottom({double threshold = 100}) {
-    if (!scrollController.hasClients) {
-      return false;
-    }
-    final ScrollPosition position = scrollController.position;
-    return position.maxScrollExtent - position.pixels <= threshold;
-  }
-
-  void _startPresenceTracking() {
-    // final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
-    // if (currentUserId.isEmpty) {
-    //   return;
-    // }
-    PresenceService(userId: currentUserId).setupPresenceTracking();
+    await userRef.update({
+      'isChatPage': isUserInChatPage,
+    });
   }
 
   void _listenToOtherUserPresence() {
@@ -152,15 +132,8 @@ class ChatController extends GetxController {
       final data = event.snapshot.value as Map?;
       if (data == null) return;
 
-      isOtherUserOnline.value = data['online'] ?? false;
-
-      if (data['lastSeen'] != null) {
-        final lastSeenMs = data['lastSeen'];
-        final lastSeenTime = DateTime.fromMillisecondsSinceEpoch(
-          lastSeenMs is int ? lastSeenMs : int.parse(lastSeenMs.toString()),
-        );
-        lastSeenText.value = formatLastSeen(lastSeenTime);
-      }
+      isChatPage.value = data['isChatPage'] ?? false;
+      isOnline.value = data['online'] ?? false;
     });
   }
 
@@ -305,6 +278,7 @@ class ChatController extends GetxController {
         final latest = MessageModel.fromJson(snapshot.docs.first.data());
         if (!messages.any((m) => m.id == latest.id)) {
           messages.add(latest);
+          scrollToBottom();
         }
       }
     });
@@ -367,7 +341,7 @@ class ChatController extends GetxController {
           'senderId': currentUserId,
           'text': text,
           'imageUrl': '',
-          'isRead': false,
+          'isRead': isChatPage.value,
           'isEdited': false,
           'isDeleted': false,
           'reactions': {},
@@ -379,7 +353,8 @@ class ChatController extends GetxController {
             'chatId': chatId,
             'users': [currentUserId, receiverId],
             'lastMessage': text,
-            'isRead': isOtherUserOnline.value,
+            'isRead': isChatPage.value,
+            'deviceToken': receiverDeviceToken,
             'isDeleted': false,
             'createdAt': FieldValue.serverTimestamp(),
             'sender': {
@@ -399,26 +374,24 @@ class ChatController extends GetxController {
       }
 
       messageText.value = '';
-      scrollToBottom();
+      //scrollToBottom();
 
-      // if (!isOtherUserOnline.value) {
-      //   // Get the token
-      //   final FirebaseMessaging fcm = FirebaseMessaging.instance;
-      //   final String? token = await fcm.getToken();
-      //   if (token != null) {
-      //     await FCM().sendPushNotification(
-      //       deviceToken: token,
-      //       title: user?.displayName ?? '',
-      //       body: text,
-      //       data: {
-      //         'chatId': chatId,
-      //         'senderId': currentUserId,
-      //         'receiverId': receiverId,
-      //         'type': 'private chat',
-      //       },
-      //     );
-      //   }
-      // }
+      // if receiver is offline trigger notification
+      if (!isOnline.value) {
+        if (receiverDeviceToken != '') {
+          await FCM().sendPushNotification(
+            deviceToken: receiverDeviceToken,
+            title: user?.displayName ?? '',
+            body: text,
+            data: {
+              'chatId': chatId,
+              'senderId': currentUserId,
+              'receiverId': receiverId,
+              'type': 'private chat',
+            },
+          );
+        }
+      }
     } on Exception catch (e) {
       Log.error('Error sending message: $e');
       Get.snackbar(

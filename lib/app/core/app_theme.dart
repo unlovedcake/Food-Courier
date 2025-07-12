@@ -63,7 +63,7 @@ class AppTheme {
       brightness: Brightness.dark,
       seedColor: const Color(0xFF1E88E5),
       primary: const Color(0xFFFFFFFF), // Light Blue
-      secondary: const Color(0xFF000000), // Soft Orange
+      secondary: const Color(0xFF424242),
       surface: const Color(0xFF222831),
     ),
     scaffoldBackgroundColor: const Color(0xFF121212),

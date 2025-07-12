@@ -63,7 +63,7 @@ class FavoriteView extends GetView<FavoriteController> {
                   product['title'] ?? '',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                subtitle: Text('₱${product['price']}'),
+                subtitle: Text('${product['price']}'),
                 trailing: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

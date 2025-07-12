@@ -6,17 +6,19 @@ class PresenceService {
   final String userId;
   final _db = FirebaseDatabase.instance.ref();
 
-  void setupPresenceTracking() {
+  Future<void> setupPresenceTracking() async {
     try {
       final DatabaseReference userRef = _db.child('status/$userId');
 
       final Map<String, Object> onlineStatus = {
         'online': true,
+        'isChatPage': false,
         'lastSeen': ServerValue.timestamp,
       };
 
       final Map<String, Object> offlineStatus = {
         'online': false,
+        'isChatPage': false,
         'lastSeen': ServerValue.timestamp,
       };
 

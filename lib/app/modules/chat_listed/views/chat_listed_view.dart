@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:food_courier/app/core/helper/helper_functions.dart';
 import 'package:food_courier/app/data/models/chatted_user_model.dart';
+import 'package:food_courier/app/data/models/user_model.dart';
+import 'package:food_courier/app/modules/home/controllers/home_controller.dart';
 import 'package:food_courier/app/routes/app_pages.dart';
 import 'package:get/get.dart';
 
@@ -15,6 +17,7 @@ class ChatListedView extends GetView<ChatListedController> {
     Get.lazyPut<ChatListedController>(
       ChatListedController.new,
     );
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -49,7 +52,7 @@ class ChatListedView extends GetView<ChatListedController> {
                         controller.chattedUsers[index];
 
                     return ListTile(
-                      tileColor: Colors.white,
+                      tileColor: Theme.of(context).colorScheme.secondary,
                       contentPadding: const EdgeInsets.all(12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -118,22 +121,29 @@ class ChatListedView extends GetView<ChatListedController> {
                             });
                           }
 
+                          String receiverId =
+                              chat.sender.senderId == controller.currentUserId
+                                  ? chat.receiver.receiverId
+                                  : chat.sender.senderId;
+
+                          String receiverName =
+                              chat.sender.senderId == controller.currentUserId
+                                  ? chat.receiver.receiverName
+                                  : chat.sender.senderName;
+
+                          String receiverImageUrl =
+                              chat.sender.senderId == controller.currentUserId
+                                  ? chat.receiver.receiverImage
+                                  : chat.sender.senderImage;
+
                           await Get.toNamed(
                             AppPages.CHAT,
                             arguments: {
                               'chatId': chatId,
-                              'receiverId': chat.sender.senderId ==
-                                      controller.currentUserId
-                                  ? chat.receiver.receiverId
-                                  : chat.sender.senderId,
-                              'receiverName': chat.sender.senderId ==
-                                      controller.currentUserId
-                                  ? chat.receiver.receiverName
-                                  : chat.sender.senderName,
-                              'receiverImageUrl': chat.sender.senderId ==
-                                      controller.currentUserId
-                                  ? chat.receiver.receiverImage
-                                  : chat.sender.senderImage,
+                              'receiverId': receiverId,
+                              'receiverName': receiverName,
+                              'receiverImageUrl': receiverImageUrl,
+                              'receiverDeviceToken': chat.deviceTOken,
                             },
                           );
                         } catch (e) {
@@ -177,8 +187,11 @@ class AllUsersHorizontalView extends StatelessWidget {
     final ChatListedController controller =
         Get.put(ChatListedController()); // Make sure fetch is triggered
 
+    final HomeController homeController = Get.find<HomeController>();
+
     return Obx(() {
-      final RxList<Map<String, dynamic>> users = controller.allUsers;
+      //final RxList<Map<String, dynamic>> users = controller.allUsers;
+      final RxList<UserModel> users = controller.allUsers;
 
       if (users.isEmpty) {
         return const SizedBox(
@@ -193,17 +206,17 @@ class AllUsersHorizontalView extends StatelessWidget {
           scrollDirection: Axis.horizontal,
           itemCount: users.length,
           itemBuilder: (context, index) {
-            final Map<String, dynamic> user = users[index];
+            final UserModel user = users[index];
 
             return Column(
               children: [
                 InkWell(
                   onTap: () async {
-                    String receiverId = user['uid'] ?? '';
-                    String receiverName = user['name'] ?? '';
+                    String receiverId = user.uid;
+                    String receiverName = user.name;
+                    String receiverDeviceToken = user.deviceToken;
 
-                    String receiverImageUrl = user['imageUrl'] ??
-                        'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';
+                    String receiverImageUrl = user.imageUrl;
 
                     String currentUserId =
                         FirebaseAuth.instance.currentUser?.uid ?? '';
@@ -216,24 +229,41 @@ class AllUsersHorizontalView extends StatelessWidget {
                         'receiverId': receiverId,
                         'receiverName': receiverName,
                         'receiverImageUrl': receiverImageUrl,
+                        'receiverDeviceToken': receiverDeviceToken,
                       },
                     );
                   },
-                  child: CircleAvatar(
-                    radius: 20,
-                    backgroundImage:
-                        user['imageUrl'] != null && user['imageUrl'] != ''
-                            ? NetworkImage(user['imageUrl'])
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundImage: user.imageUrl != ''
+                            ? NetworkImage(user.imageUrl)
                             : const NetworkImage(
                                 'https://sm.ign.com/ign_ap/cover/a/avatar-gen/avatar-generations_hugw.jpg',
                               ) as ImageProvider,
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: -2,
+                        child: Obx(
+                          () => homeController.onlineUsers.contains(user.uid)
+                              ? const CircleAvatar(
+                                  radius: 5,
+                                  backgroundColor: Colors.green,
+                                )
+                              : const SizedBox(),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 5),
                 SizedBox(
                   width: 70,
                   child: Text(
-                    user['name'] ?? '',
+                    user.name,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
                     style: const TextStyle(fontSize: 12),
