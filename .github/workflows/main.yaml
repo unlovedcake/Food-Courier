@@ -94,7 +94,7 @@ jobs:
           # Step 2: Split base and build
           base="${version%%+*}"    # 1.0.0
           build="${version##*+}"   # 1
-          new_build=$((build + 1)) # increment to 2
+          new_build=$((build)) # increment to 2
 
           # Step 3: Compose new version
           new_version="${base}+${new_build}"
