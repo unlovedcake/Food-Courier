@@ -3,8 +3,10 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:food_courier/app/core/helper/custom_log.dart';
+import 'package:food_courier/app/core/presence_service.dart';
 import 'package:food_courier/app/data/models/product_model.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -385,6 +387,7 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     await Future.wait([
       fetchProducts(),
       fetchFavoriteProductIds(),
+      updateStatusUserIsOnline(),
     ]);
   }
 
@@ -396,6 +399,38 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     if (category != 'All') {
       await fetchCategoriesProducts(key);
     }
+  }
+
+  RxList<String> onlineUsers = <String>[].obs;
+
+  Future<void> updateStatusUserIsOnline() async {
+    final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+    await PresenceService(userId: currentUserId).setupPresenceTracking();
+
+    final DatabaseReference statusRef = FirebaseDatabase.instance.ref('status');
+
+    statusRef.orderByChild('online').equalTo(true).onValue.listen(
+      (event) {
+        final data = event.snapshot.value as Map<dynamic, dynamic>?;
+
+        onlineUsers.clear(); // clear previous data
+
+        if (data != null) {
+          data.forEach((userId, status) {
+            debugPrint('User $userId is online.');
+            debugPrint('Status: $status');
+            onlineUsers.add(userId);
+          });
+        } else {
+          debugPrint('No users are online.');
+        }
+
+        debugPrint('onlineUsers $onlineUsers');
+      },
+      onError: (error) {
+        Log.error('Error fetching online users: $error');
+      },
+    );
   }
 
   void onSearchChanged(String value) {
@@ -479,7 +514,9 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     try {
       isLoading.value = true;
       final http.Response response = await http.get(
-        Uri.parse('https://dummyjson.com/products?limit=$limit&skip=$skip'),
+        Uri.parse(
+          'https://dummyjson.com/products?sortBy=title&order=asc&limit=$limit&skip=$skip',
+        ),
       );
 
       if (response.statusCode == 200) {
@@ -491,15 +528,13 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
 
         if (productList.isEmpty) {
           Log.info('Empty products ');
-          // Get.snackbar(
-          //   backgroundColor: Colors.black,
-          //   colorText: Colors.white,
-          //   'Empty',
-          //   'No more products available.',
-          //   snackPosition: SnackPosition.BOTTOM,
-          // );
+
           hasMoreData.value = false;
         }
+
+        isLoading.value = false;
+
+        await Future.delayed(const Duration(milliseconds: 50));
 
         products.addAll(productList);
 

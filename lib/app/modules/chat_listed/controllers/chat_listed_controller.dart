@@ -5,16 +5,19 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:food_courier/app/core/helper/custom_log.dart';
 import 'package:food_courier/app/data/models/chatted_user_model.dart';
+import 'package:food_courier/app/data/models/user_model.dart';
 import 'package:get/get.dart';
 
 class ChatListedController extends GetxController {
   final RxBool isLoading = true.obs;
   final RxList<ChattedUserModel> chattedUsers = <ChattedUserModel>[].obs;
 
-  final RxList<Map<String, dynamic>> allUsers = <Map<String, dynamic>>[].obs;
+  //final RxList<Map<String, dynamic>> allUsers = <Map<String, dynamic>>[].obs;
+
+  final RxList<UserModel> allUsers = <UserModel>[].obs;
   final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
-  late StreamSubscription _chattedUsersSub;
+  late StreamSubscription chattedUsersSub;
 
   Future<void> fetchAllUsersExceptCurrent() async {
     try {
@@ -27,7 +30,15 @@ class ChatListedController extends GetxController {
               .where('uid', isNotEqualTo: currentUserId)
               .get();
 
-      allUsers.assignAll(snapshot.docs.map((doc) => doc.data()).toList());
+      final List<UserModel> users = snapshot.docs
+          .map(
+            UserModel.fromJson,
+          ) // same as: (doc) => UserModel.fromDocument(doc)
+          .toList();
+
+      allUsers.assignAll(users);
+
+      // allUsers.assignAll(snapshot.docs.map((doc) => doc.data()).toList());
     } catch (e) {
       Log.error('Error fetching all users: $e');
       Get.snackbar(
@@ -46,7 +57,7 @@ class ChatListedController extends GetxController {
   void getChattedUsers() {
     isLoading.value = true;
 
-    _chattedUsersSub = FirebaseFirestore.instance
+    chattedUsersSub = FirebaseFirestore.instance
         .collection('chats')
         .where('users', arrayContains: currentUserId)
         .orderBy('createdAt', descending: true)
@@ -77,42 +88,6 @@ class ChatListedController extends GetxController {
     );
   }
 
-  // Future<void> getChattedUsers() async {
-  //   try {
-  //     isLoading.value = true;
-
-  //     final QuerySnapshot<Map<String, dynamic>> chatSnapshots =
-  //         await FirebaseFirestore.instance
-  //             .collection('chats')
-  //             .where('users', arrayContains: currentUserId)
-  //             .orderBy('createdAt', descending: true)
-  //             .get();
-
-  //     if (chatSnapshots.docs.isEmpty) {
-  //       return;
-  //     }
-
-  //     final List<ChattedUserModel> usersList = chatSnapshots.docs
-  //         .map(
-  //           (doc) => ChattedUserModel.fromFirestore(doc.data(), currentUserId),
-  //         )
-  //         .toList();
-
-  //     chattedUsers.assignAll(usersList);
-  //   } catch (e) {
-  //     Log.error('Error fetching chatted users: $e');
-  //     Get.snackbar(
-  //       'Error',
-  //       'Failed to load chatted users. Please try again later.',
-  //       snackPosition: SnackPosition.BOTTOM,
-  //       backgroundColor: Colors.red.withOpacity(0.8),
-  //       colorText: Colors.white,
-  //     );
-  //   } finally {
-  //     isLoading.value = false;
-  //   }
-  // }
-
   String timeAgo(DateTime date) {
     final Duration diff = DateTime.now().difference(date);
 
@@ -131,5 +106,12 @@ class ChatListedController extends GetxController {
     Future.wait([
       fetchAllUsersExceptCurrent(),
     ]);
+  }
+
+  @override
+  Future<void> onClose() async {
+    // TODO: implement onClose
+    super.onClose();
+    await chattedUsersSub.cancel();
   }
 }

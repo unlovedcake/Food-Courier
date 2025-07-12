@@ -16,79 +16,25 @@ class ChatView extends GetView<ChatController> {
   @override
   Widget build(BuildContext context) {
     final ChatController controller = Get.put(ChatController());
+
     return Scaffold(
-      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         foregroundColor: Colors.black,
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 2,
-        title: Obx(
-          () => Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  CircleAvatar(
-                    backgroundColor: Colors.white24,
-                    backgroundImage: controller.receiverImageUrl.isNotEmpty
-                        ? NetworkImage(controller.receiverImageUrl)
-                        : const NetworkImage(
-                            'https://www.shutterstock.com/image-vector/vector-flat-illustration-grayscale-avatar-600nw-2264922221.jpg',
-                          ) as ImageProvider,
-                    radius: 15,
-                  ),
-                  if (controller.isOtherUserOnline.value)
-                    Positioned(
-                      bottom: 0,
-                      right: -2,
-                      child: Obx(
-                        () => CircleAvatar(
-                          radius: 5,
-                          backgroundColor: controller.isOtherUserOnline.value
-                              ? Colors.green
-                              : Colors.grey,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              Text(
-                controller.receiverName,
-                style: const TextStyle(fontSize: 14),
-              ),
-            ],
-          ),
-          // Column(
-          //   crossAxisAlignment: CrossAxisAlignment.start,
-          //   children: [
-          //     const Text('Chat'),
-          //     if (controller.isOtherUserOnline.value)
-          //       const Text('🟢 Online', style: TextStyle(fontSize: 12))
-          //     else
-          //       Text(
-          //         'Last seen: ${controller.lastSeenText.value}',
-          //         style: const TextStyle(fontSize: 12, color: Colors.white),
-          //       ),
-          //   ],
-          // ),
-        ),
+        title: AppBarTitleWidget(controller: controller),
       ),
       body: Stack(
         children: [
           Column(
             children: [
-              Obx(
-                () => controller.otherLastSeen.isNotEmpty
-                    ? Text('Last seen: ${controller.otherLastSeen.value}')
-                    : const SizedBox(),
-              ),
-              Obx(
-                () => controller.isOtherTyping.value
-                    ? const Text('Typing...')
-                    : const SizedBox(),
-              ),
+              // Obx(
+              //   () => controller.otherLastSeen.isNotEmpty
+              //       ? Text('Last seen: ${controller.otherLastSeen.value}')
+              //       : const SizedBox(),
+              // ),
+
               Expanded(
                 child: Obx(
                   () => Padding(
@@ -394,16 +340,11 @@ class ChatView extends GetView<ChatController> {
                               if (isLastOfGroup)
                                 Padding(
                                   padding: const EdgeInsets.all(12),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        DateFormat('MMM d, y h:mm a')
-                                            .format(msg.createAd),
-                                        //controller.formatLastSeen(lastSeenTime),
-                                        style: const TextStyle(fontSize: 10),
-                                      ),
-                                    ],
+                                  child: Text(
+                                    DateFormat('MMM d, y h:mm a')
+                                        .format(msg.createAd),
+                                    //controller.formatLastSeen(lastSeenTime),
+                                    style: const TextStyle(fontSize: 10),
                                   ),
                                 ),
                             ],
@@ -413,6 +354,23 @@ class ChatView extends GetView<ChatController> {
                     ),
                   ),
                 ),
+              ),
+              Obx(
+                () => controller.isOtherTyping.value
+                    ? const Align(
+                        alignment: Alignment.topLeft,
+                        child: Padding(
+                          padding: EdgeInsets.all(8),
+                          child: Text(
+                            'Typing...',
+                            style: TextStyle(
+                              fontStyle: FontStyle.italic,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
               ),
               Obx(() {
                 return controller.editingMessageId.value != null
@@ -446,20 +404,37 @@ class ChatView extends GetView<ChatController> {
                               controller.fileImage.value = null;
                               controller.imageFile.value = null;
                             },
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Image.memory(
-                                  controller.imageBytes.value ?? Uint8List(0),
-                                  width: 50,
-                                  height: 50,
-                                  fit: BoxFit.cover,
-                                ),
-                                const Icon(Icons.close, size: 18),
-                              ],
+                            child: Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      Image.memory(
+                                        controller.imageBytes.value ??
+                                            Uint8List(0),
+                                        width: 100,
+                                        height: 100,
+                                        fit: BoxFit.cover,
+                                      ),
+                                      const Positioned(
+                                        top: 3,
+                                        right: 3,
+                                        child: Icon(
+                                          Icons.close,
+                                          size: 18,
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           )
-                        : const SizedBox();
+                        : const SizedBox.shrink();
               }),
               Row(
                 children: [
@@ -473,7 +448,10 @@ class ChatView extends GetView<ChatController> {
                     ),
                     child: IconButton(
                       onPressed: controller.selectImage,
-                      icon: const Icon(Icons.image),
+                      icon: const Icon(
+                        Icons.image,
+                        color: Colors.black,
+                      ),
                     ),
                   ),
                   Expanded(
@@ -564,7 +542,10 @@ class ChatView extends GetView<ChatController> {
                           await controller.sendImage();
                         }
                       },
-                      icon: const Icon(Icons.send),
+                      icon: const Icon(
+                        Icons.send,
+                        color: Colors.black,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -581,6 +562,57 @@ class ChatView extends GetView<ChatController> {
                         FloatingEmoji(emoji: controller.floatingEmoji.value!),
                   )
                 : const SizedBox(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class AppBarTitleWidget extends StatelessWidget {
+  const AppBarTitleWidget({
+    required this.controller,
+    super.key,
+  });
+
+  final ChatController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(
+      () => Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              CircleAvatar(
+                backgroundColor: Colors.white24,
+                backgroundImage: controller.receiverImageUrl.isNotEmpty
+                    ? NetworkImage(controller.receiverImageUrl)
+                    : const NetworkImage(
+                        'https://www.shutterstock.com/image-vector/vector-flat-illustration-grayscale-avatar-600nw-2264922221.jpg',
+                      ) as ImageProvider,
+                radius: 15,
+              ),
+              if (controller.isOnline.value)
+                Positioned(
+                  bottom: 0,
+                  right: -2,
+                  child: Obx(
+                    () => CircleAvatar(
+                      radius: 5,
+                      backgroundColor: controller.isOnline.value
+                          ? Colors.green
+                          : Colors.grey,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          Text(
+            controller.receiverName,
+            style: const TextStyle(fontSize: 14),
           ),
         ],
       ),

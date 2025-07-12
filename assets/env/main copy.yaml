@@ -82,3 +82,21 @@ jobs:
     #     fastlane deliver --ipa output/ipa/Runner.ipa --username ${{ secrets.APPLE_ID }}
 # push to master, main, develop
 # pull request on main master
+
+
+
+
+- name: 🔐 Setup keystore and key.properties
+  run: |
+    # Decode the keystore file
+    echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
+
+    # Create key.properties line by line using echo
+    echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/key.properties
+    echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+    echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+    echo "storeFile=../app/upload-keystore.jks" >> android/key.properties
+
+    # Optional: Debug output
+    ls -la android/app/upload-keystore.jks
+    cat android/key.properties

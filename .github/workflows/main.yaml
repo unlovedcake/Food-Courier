@@ -94,7 +94,7 @@ jobs:
           # Step 2: Split base and build
           base="${version%%+*}"    # 1.0.0
           build="${version##*+}"   # 1
-          new_build=$((build + 1)) # increment to 2
+          new_build=$((build)) # increment to 2
 
           # Step 3: Compose new version
           new_version="${base}+${new_build}"
@@ -120,6 +120,19 @@ jobs:
           git tag "$safe_tag"
           git push origin HEAD
           git push origin "$safe_tag"
+
+      # Step: Decode and setup keystore
+      - name: 🔐 Decode keystore
+        run: |
+          echo "${{ secrets.STORE_FILE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
+
+          # Create key.properties with matching variable names
+          cat <<EOF > android/key.properties
+          storePassword=${{ secrets.STORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=../app/upload-keystore.jks
+          EOF
 
       # Step 8: Build APK
       - name: 🏗️ Build Android APK

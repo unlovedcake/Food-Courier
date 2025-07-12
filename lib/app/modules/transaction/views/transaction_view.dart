@@ -154,7 +154,7 @@ class TransactionView extends GetView<TransactionController> {
                                 style: TextStyle(color: Colors.grey),
                               ),
                               TextSpan(
-                                text: '₱${tx.totalPay}',
+                                text: tx.totalPay,
                                 style: const TextStyle(
                                   color: Colors.blue,
                                   fontWeight: FontWeight.bold,
@@ -225,8 +225,8 @@ class OrderTrackingWidget extends StatelessWidget {
                   backgroundColor: isCompleted || isCurrent
                       ? Colors.green
                       : Colors.grey.shade300,
-                  child: const Icon(
-                    Icons.check,
+                  child: Icon(
+                    isCompleted || isCurrent ? Icons.check : Icons.close,
                     color: Colors.white,
                     size: 16,
                   ),
