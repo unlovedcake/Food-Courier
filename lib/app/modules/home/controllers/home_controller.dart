@@ -194,13 +194,11 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   final RxInt currentPage = 0.obs;
 
   Future<void> toggleLike(int productId) async {
-    //await toggleFavoriteProduct(productId: productId);
     if (likedProductIds.contains(productId)) {
       likedProductIds.remove(productId);
     } else {
       likedProductIds.add(productId);
     }
-    // await _saveToPrefs();
   }
 
   Future<void> fetchFavoriteProductIds() async {
