@@ -124,8 +124,8 @@ jobs:
       # Step: Decode and setup keystore
       - name: 🔐 Decode keystore
         run: |
-          echo "${{ secrets.STORE_FILE_BASE64 }}" | base64 -d > ../app/upload-keystore.jks
-          echo "STORE_FILE_PATH=../app/upload-keystore.jks" >> $GITHUB_ENV
+          echo "${{ secrets.STORE_FILE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
+          echo "STORE_FILE_PATH=$GITHUB_WORKSPACE/android/app/upload-keystore.jks" >> $GITHUB_ENV
           echo "STORE_PASSWORD=${{ secrets.STORE_PASSWORD }}" >> $GITHUB_ENV
           echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
           echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
