@@ -121,6 +121,15 @@ jobs:
           git push origin HEAD
           git push origin "$safe_tag"
 
+      # Step: Decode and setup keystore
+      - name: 🔐 Decode keystore
+        run: |
+          echo "${{ secrets.STORE_FILE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
+          echo "STORE_FILE_PATH=$GITHUB_WORKSPACE/android/app/keystore.jks" >> $GITHUB_ENV
+          echo "STORE_PASSWORD=${{ secrets.STORE_PASSWORD }}" >> $GITHUB_ENV
+          echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
+          echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
+
       # Step 8: Build APK
       - name: 🏗️ Build Android APK
         run: flutter build apk --release --dart-define=env=${{ env.ENV_NAME }}
