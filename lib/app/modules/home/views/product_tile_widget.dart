@@ -116,11 +116,13 @@ class _ProductTileWidgetState extends State<ProductTileWidget>
                                 key: widget.imageKey,
                                 imageUrl: widget.product.thumbnail,
                                 fit: BoxFit.cover,
-                                progressIndicatorBuilder:
-                                    (context, url, downloadProgress) =>
-                                        CircularProgressIndicator(
-                                  value: downloadProgress.progress,
-                                ),
+                                // placeholder: (context, url) =>
+                                //     const CircularProgressIndicator(),
+                                // progressIndicatorBuilder:
+                                //     (context, url, downloadProgress) =>
+                                //         CircularProgressIndicator(
+                                //   value: downloadProgress.progress,
+                                // ),
                                 errorWidget: (context, url, error) =>
                                     const Icon(Icons.error),
                               ),

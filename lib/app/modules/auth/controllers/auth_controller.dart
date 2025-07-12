@@ -3,9 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:food_courier/app/core/helper/custom_log.dart';
-import 'package:food_courier/app/core/helper/helper_functions.dart'
-    show otherUserId;
-import 'package:food_courier/app/core/helper/show_loading.dart';
 import 'package:food_courier/app/data/models/user_model.dart';
 import 'package:food_courier/app/routes/app_pages.dart';
 import 'package:get/get.dart';
@@ -26,6 +23,8 @@ class AuthController extends GetxController {
 
   final isLoginPage = true.obs;
   final isPasswordVisible = true.obs;
+
+  final isLoading = false.obs;
 
   @override
   void dispose() {
@@ -64,7 +63,7 @@ class AuthController extends GetxController {
   }
 
   Future<void> register() async {
-    showLoading(); // Helper to show a loading dialog
+    isLoading.value = true;
     try {
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
@@ -83,11 +82,12 @@ class AuthController extends GetxController {
 
         // Add user data to Firestore
         await _addUserToFirestore(user);
-        otherUserId = _auth.currentUser?.uid ?? '';
+        isLoading.value = false;
+        await Future.delayed(const Duration(milliseconds: 100));
         await Get.offAllNamed(AppPages.DASHBOARD);
       }
     } on FirebaseAuthException catch (e) {
-      // Hide loading dialog
+      Log.error('Error Register $e');
       Get
         ..back()
         // Show error snackbar
@@ -99,45 +99,48 @@ class AuthController extends GetxController {
           colorText: Colors.white,
         );
     } on Exception catch (e) {
+      Log.error('Error Register $e');
       Get
         ..back()
         ..snackbar('Error', 'An unknown error occurred.');
+    } finally {
+      isLoading.value = false;
     }
   }
 
   Future<void> login() async {
-    showLoading();
+    isLoading.value = true;
+
     try {
       await _auth.signInWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
+      isLoading.value = false;
+      await Future.delayed(const Duration(milliseconds: 100));
 
       await Get.offAllNamed(AppPages.DASHBOARD);
     } on FirebaseAuthException catch (e) {
-      Log.error('Error $e');
-      Get
-        ..back()
-        ..snackbar(
-          'Login Failed',
-          _handleFirebaseAuthError(e.code),
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.redAccent,
-          colorText: Colors.white,
-        );
+      Log.error('Error Login $e');
+      Get.snackbar(
+        'Login Failed',
+        _handleFirebaseAuthError(e.code),
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      isLoading.value = false;
     } catch (e) {
-      Log.error('Error $e');
-      Get
-        ..back()
-        ..snackbar('Error', 'An unknown error occurred.');
+      Log.error('Error Login $e');
+      Get.snackbar('Error', 'An unknown error occurred.');
+      isLoading.value = false;
+    } finally {
+      isLoading.value = false;
     }
   }
 
   Future<void> signOut() async {
     await _auth.signOut();
-    // Clear text controllers on sign out
-    emailController.clear();
-    passwordController.clear();
   }
 
   // --- Error Handling Helper ---

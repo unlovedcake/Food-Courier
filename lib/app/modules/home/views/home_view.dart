@@ -188,7 +188,7 @@ class HomeView extends GetView<HomeController> {
                       themeController.isDarkMode.value
                           ? Icons.dark_mode
                           : Icons.light_mode,
-                      color: Colors.grey,
+                      color: Colors.black,
                     ),
                     onPressed: themeController.toggleTheme,
                   ),
@@ -216,7 +216,7 @@ class HomeView extends GetView<HomeController> {
                         offset: const Offset(6, -6),
                         child: const Icon(
                           Icons.shopping_cart,
-                          color: Colors.grey,
+                          color: Colors.black,
                         ),
                       ),
                     ),
@@ -375,14 +375,6 @@ class HomeView extends GetView<HomeController> {
                                                   : Colors.grey[300],
                                               borderRadius:
                                                   BorderRadius.circular(20),
-                                              border: Border.all(
-                                                color: controller
-                                                            .selectedCategory
-                                                            .value ==
-                                                        categoryName
-                                                    ? Colors.black
-                                                    : Colors.grey[300]!,
-                                              ),
                                             ),
                                             child: Center(
                                               child: Text(

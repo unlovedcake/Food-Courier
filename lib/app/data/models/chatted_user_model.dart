@@ -28,6 +28,7 @@ class ChattedUserModel {
     required this.users,
     required this.sender,
     required this.receiver,
+    required this.deviceTOken,
     required this.chatId,
     required this.isRead,
     required this.lastMessage,
@@ -49,6 +50,7 @@ class ChattedUserModel {
     return ChattedUserModel(
       users: users,
       chatId: data['chatId'] as String? ?? '',
+      deviceTOken: data['deviceTOken'] as String? ?? '',
       lastMessage: data['lastMessage'] as String? ?? '',
       isRead: data['isRead'] as bool? ?? false,
       isDeleted: data['isDeleted'] as bool? ?? false,
@@ -69,6 +71,7 @@ class ChattedUserModel {
   final Sender sender;
   final Receiver receiver;
   final String chatId;
+  final String deviceTOken;
   final bool isRead;
   bool isDeleted; // Default value, can be updated later
   final String lastMessage;
