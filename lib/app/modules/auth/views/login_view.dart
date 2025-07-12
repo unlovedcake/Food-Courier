@@ -144,8 +144,8 @@ class LoginPage extends GetView<AuthController> {
                         color: Colors.black.withValues(alpha: 0.5),
                         alignment: Alignment.center,
                         child: Container(
-                          padding: const EdgeInsets.all(8),
-                          width: Get.width / 1.5,
+                          padding: const EdgeInsets.all(12),
+                          width: Get.width / 1.4,
                           height: 50,
                           decoration: const BoxDecoration(
                             color: Colors.white,
@@ -156,7 +156,7 @@ class LoginPage extends GetView<AuthController> {
                             spacing: 12,
                             children: [
                               CircularProgressIndicator(strokeWidth: 1),
-                              Text('Signing you in, please wait...'),
+                              Text('Signing you in, Please wait...'),
                             ],
                           ),
                         ),

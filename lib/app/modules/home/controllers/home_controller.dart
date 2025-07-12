@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:food_courier/app/core/helper/custom_log.dart';
 import 'package:food_courier/app/core/presence_service.dart';
@@ -510,20 +509,10 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     }
   }
 
-  List<ProductModel> parseProductsInBackground(String responseBody) {
-    final Map<String, dynamic> data = jsonDecode(responseBody);
-    final List<ProductModel> productList = (data['products'] as List)
-        .map((e) => ProductModel.fromJson(e))
-        .toList();
-    return productList;
-  }
-
   Future<void> fetchProducts() async {
     if (isLoading.value || !hasMoreData.value) return;
-
     try {
       isLoading.value = true;
-
       final http.Response response = await http.get(
         Uri.parse(
           'https://dummyjson.com/products?sortBy=title&order=asc&limit=$limit&skip=$skip',
@@ -531,17 +520,26 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       );
 
       if (response.statusCode == 200) {
-        // Offload heavy parsing to isolate
-        final List<ProductModel> productList =
-            await compute(parseProductsInBackground, response.body);
+        final Map<String, dynamic> data = jsonDecode(response.body);
+
+        final List<ProductModel> productList = (data['products'] as List)
+            .map((e) => ProductModel.fromJson(e))
+            .toList();
 
         if (productList.isEmpty) {
+          Log.info('Empty products ');
+
           hasMoreData.value = false;
-          Log.info('Empty products');
         }
 
+        isLoading.value = false;
+
+        await Future.delayed(const Duration(milliseconds: 50));
+
         products.addAll(productList);
+
         skip += limit;
+
         Log.success('Loaded products data!');
       }
     } catch (e) {
@@ -550,42 +548,6 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
       isLoading.value = false;
     }
   }
-
-  // Future<void> fetchProducts() async {
-  //   if (isLoading.value || !hasMoreData.value) return;
-  //   try {
-  //     isLoading.value = true;
-  //     final http.Response response = await http.get(
-  //       Uri.parse(
-  //         'https://dummyjson.com/products?sortBy=title&order=asc&limit=$limit&skip=$skip',
-  //       ),
-  //     );
-
-  //     if (response.statusCode == 200) {
-  //       final Map<String, dynamic> data = jsonDecode(response.body);
-
-  //       final List<ProductModel> productList = (data['products'] as List)
-  //           .map((e) => ProductModel.fromJson(e))
-  //           .toList();
-
-  //       if (productList.isEmpty) {
-  //         Log.info('Empty products ');
-
-  //         hasMoreData.value = false;
-  //       }
-
-  //       products.addAll(productList);
-
-  //       skip += limit;
-
-  //       Log.success('Loaded products data!');
-  //     }
-  //   } catch (e) {
-  //     Log.error('Failed to Fetch Products $e');
-  //   } finally {
-  //     isLoading.value = false;
-  //   }
-  // }
 
   bool shouldAnimate(int index) {
     if (!animatedIndexes.contains(index)) {
