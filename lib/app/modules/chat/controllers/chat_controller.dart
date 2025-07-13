@@ -62,6 +62,10 @@ class ChatController extends GetxController {
 
   final _db = FirebaseDatabase.instance.ref();
 
+  String _emoji = '';
+
+  int limit = 10;
+
   @override
   void onInit() {
     super.onInit();
@@ -87,8 +91,10 @@ class ChatController extends GetxController {
         await loadMoreMessages(scrollController: scrollController);
       }
     });
-    _listenToOtherUserPresence();
-    _listenToMessages();
+    _listenToReceiverUserPresence();
+    _listenChangesToMessagesCollection(limit);
+    _listenToNewMessage();
+
     _listenToTyping();
 
     //_listenToLastSeen();
@@ -123,7 +129,7 @@ class ChatController extends GetxController {
     });
   }
 
-  void _listenToOtherUserPresence() {
+  void _listenToReceiverUserPresence() {
     _presenceSub?.cancel().ignore(); // cleanup before subscribing again
 
     final DatabaseReference otherRef =
@@ -248,6 +254,8 @@ class ChatController extends GetxController {
 
       messages.insertAll(0, more.reversed.toList());
 
+      limit += 10;
+
       // 🔁 Scroll offset compensation
       // await Future.delayed(const Duration(milliseconds: 50)); // wait layout
       // final double afterHeight = scrollController?.position.extentAfter ?? 0;
@@ -255,6 +263,8 @@ class ChatController extends GetxController {
       // scrollController?.jumpTo(scrollController.offset + diff);
       await Future.delayed(const Duration(milliseconds: 50)); // wait layout
       scrollController?.jumpTo(scrollController.offset + Get.height / 2);
+
+      _listenChangesToMessagesCollection(limit);
     }
 
     Log.info(
@@ -264,7 +274,9 @@ class ChatController extends GetxController {
     isFetchingMoreObs.value = false;
   }
 
-  void _listenToMessages() {
+  final animatedIndexes = <String>[].obs;
+
+  void _listenToNewMessage() {
     // // Real-time listener for new messages after initial load
     _firestore
         .collection('chats')
@@ -279,6 +291,7 @@ class ChatController extends GetxController {
         if (!messages.any((m) => m.id == latest.id)) {
           messages.add(latest);
           scrollToBottom();
+          animatedIndexes.add(latest.id);
         }
       }
     });
@@ -336,6 +349,8 @@ class ChatController extends GetxController {
             .collection('messages')
             .doc(); // get new ID
 
+        debugPrint('docRef.id ${docRef.id}');
+
         await docRef.set({
           'id': docRef.id,
           'senderId': currentUserId,
@@ -351,11 +366,13 @@ class ChatController extends GetxController {
         await chatDoc.set(
           {
             'chatId': chatId,
+            'messageId': docRef.id,
             'users': [currentUserId, receiverId],
             'lastMessage': text,
             'isRead': isChatPage.value,
             'deviceToken': receiverDeviceToken,
             'isDeleted': false,
+            'isUpdated': false,
             'createdAt': FieldValue.serverTimestamp(),
             'sender': {
               'senderId': currentUserId,
@@ -540,8 +557,13 @@ class ChatController extends GetxController {
 
   final RxMap<String, double> reactionScales = <String, double>{}.obs;
 
+  final isUpdated = false.obs;
+
   Future<void> toggleReaction(String messageId, String emoji) async {
     isScrolling.value = true;
+
+    isUpdated.value = !isUpdated.value;
+
     try {
       final DocumentReference<Map<String, dynamic>> ref = _firestore
           .collection('chats')
@@ -553,35 +575,24 @@ class ChatController extends GetxController {
       final reactions = Map<String, String>.from(snap['reactions'] ?? {});
       if (reactions[currentUserId] == emoji) {
         reactions.remove(currentUserId);
+        _emoji = '';
       } else {
         reactions[currentUserId] = emoji;
 
         reactionScales[messageId] = 1.5;
+        _emoji = emoji;
       }
 
       await ref.update({'reactions': reactions});
 
-      final int index = messages.indexWhere((msg) => msg.id == messageId);
-      if (index == -1) {
-        Log.error('OIY');
-        return;
-      }
-
-      final MessageModel message = messages[index];
-
-      final updatedReactions = Map<String, dynamic>.from(message.reactions);
-
-      // If current user's reaction matches the tapped emoji, remove it
-      if (updatedReactions[currentUserId] == emoji) {
-        updatedReactions.remove(currentUserId);
-      } else {
-        // Optional: Set a new emoji
-        updatedReactions[currentUserId] = emoji;
-      }
-
-      final MessageModel updatedMessage =
-          message.copyWith(reactions: updatedReactions);
-      messages[index] = updatedMessage;
+      await _firestore.collection('chats').doc(chatId).set(
+        {
+          'messageId': messageId,
+          'isUpdated': isUpdated.value,
+          'isDeleted': false,
+        },
+        SetOptions(merge: true),
+      );
     } on Exception catch (e) {
       Log.error('Error: $e');
     } finally {
@@ -605,24 +616,26 @@ class ChatController extends GetxController {
 
   Future<void> deleteMessage(String messageId) async {
     try {
-      // await _firestore
-      //     .collection('chats')
-      //     .doc(chatId)
-      //     .collection('messages')
-      //     .doc(messageId)
-      //     .delete();
-
       await _firestore
           .collection('chats')
           .doc(chatId)
           .collection('messages')
           .doc(messageId)
-          .update({
-        'isDeleted': true,
-      });
+          .delete();
+
+      // await _firestore
+      //     .collection('chats')
+      //     .doc(chatId)
+      //     .collection('messages')
+      //     .doc(messageId)
+      //     .update({
+      //   'isDeleted': true,
+      // });
 
       await _firestore.collection('chats').doc(chatId).update({
         'isDeleted': true,
+        'isUpdated': false,
+        'messageId': messageId,
       });
     } on Exception catch (e) {
       Log.error('Error deleting message: $e');
@@ -635,6 +648,84 @@ class ChatController extends GetxController {
       );
       return;
     }
+  }
+
+  void _listenChangesToMessagesCollection(int limits) {
+    _firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .orderBy('createAd', descending: true)
+        .limit(limits)
+        .snapshots()
+        .listen((snapshot) {
+      for (final DocumentChange<Map<String, dynamic>> change
+          in snapshot.docChanges) {
+        debugPrint(
+          'snapshot.docChanges ${snapshot.docs.length} limits $limits',
+        );
+        final DocumentSnapshot<Map<String, dynamic>> doc = change.doc;
+        final Map<String, dynamic>? data = doc.data();
+        final message = MessageModel.fromJson(data!);
+
+        final int index = messages.indexWhere((m) => m.id == message.id);
+
+        if (change.type == DocumentChangeType.modified && index != -1) {
+          messages[index] = message;
+
+          debugPrint('modified');
+        }
+        //  else if (change.type == DocumentChangeType.added) {
+        //   messages.add(message);
+        // }
+        else if (change.type == DocumentChangeType.removed && index != -1) {
+          messages.removeAt(index);
+
+          debugPrint('Remove');
+        }
+      }
+    });
+
+    // _firestore.collection('chats').doc(chatId).snapshots().listen((snapshot) {
+    //   if (snapshot.exists) {
+    //     final Map<String, dynamic>? data = snapshot.data();
+
+    //     // Check if `isDeleted` exists and is a boolean
+    //     final bool isDeleted = data?['isDeleted'] ?? false;
+    //     final bool isUpdated = data?['isUpdated'] ?? false;
+    //     final String messageId = data?['messageId'] ?? '';
+    //     final int index = messages.indexWhere((msg) => msg.id == messageId);
+
+    //     final MessageModel message = messages[index];
+    //     var updatedReactions = Map<String, dynamic>.from(message.reactions);
+
+    //     if (index == -1) {
+    //       return;
+    //     }
+
+    //     if (isDeleted) {
+    //       messages.removeAt(index);
+    //     } else if (editingMessageId.value != null) {
+    //     } else {
+    //       // If current user's reaction matches the tapped emoji, remove it
+    //       if (updatedReactions[currentUserId] == _emoji) {
+    //         updatedReactions.remove(currentUserId);
+    //       } else {
+    //         // Optional: Set a new emoji
+    //         updatedReactions[currentUserId] = _emoji;
+    //       }
+
+    //       final MessageModel updatedMessage = message.copyWith(
+    //         reactions: updatedReactions,
+    //       );
+    //       messages[index] = updatedMessage;
+
+    //       debugPrint(
+    //         'updatedReactions ${messages[index].reactions}',
+    //       );
+    //     }
+    //   }
+    // });
   }
 
   // void _listenToLastSeen() {
@@ -690,5 +781,49 @@ class ChatController extends GetxController {
         );
       }
     });
+  }
+}
+
+class AnimatedMessageItem extends StatefulWidget {
+  const AnimatedMessageItem({required this.child, super.key});
+  final Widget child;
+
+  @override
+  State<AnimatedMessageItem> createState() => _AnimatedMessageItemState();
+}
+
+class _AnimatedMessageItemState extends State<AnimatedMessageItem>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(1, 0), // slide from right
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+
+    _controller.forward();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SlideTransition(
+      position: _slideAnimation,
+      child: widget.child,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 }

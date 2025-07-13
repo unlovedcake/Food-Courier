@@ -144,9 +144,9 @@ class LoginPage extends GetView<AuthController> {
                         color: Colors.black.withValues(alpha: 0.5),
                         alignment: Alignment.center,
                         child: Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(16),
                           width: Get.width / 1.4,
-                          height: 50,
+                          height: 60,
                           decoration: const BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.all(Radius.circular(12)),
